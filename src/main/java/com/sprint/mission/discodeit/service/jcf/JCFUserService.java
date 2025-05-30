@@ -4,6 +4,7 @@ import com.sprint.mission.discodeit.entity.Channel;
 import com.sprint.mission.discodeit.entity.Message;
 import com.sprint.mission.discodeit.entity.User;
 import com.sprint.mission.discodeit.service.UserService;
+import jdk.dynalink.beans.StaticClass;
 import org.w3c.dom.ls.LSOutput;
 
 import java.util.*;
@@ -14,9 +15,15 @@ import java.util.*;
  * 2025.05.30 김민수
  ********************************************/
 public class JCFUserService implements UserService {
+    private static final JCFUserService userInstance = new JCFUserService();
+
+    public static JCFUserService getUserInstance() {
+        return userInstance;
+    }
+
     private final List<User> users;
-    public JCFUserService() {
-        this.users = new ArrayList<>();
+    private JCFUserService() {
+        users = new ArrayList<>();
     }
 
     @Override

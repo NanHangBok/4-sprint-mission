@@ -17,9 +17,13 @@ import java.util.UUID;
  * 2025.05.30 김민수
  ********************************************/
 public class JCFChannelService implements ChannelService {
+    private static final JCFChannelService channelInstance = new JCFChannelService();
+    public static JCFChannelService getChannelInstance() {
+        return channelInstance;
+    }
     private List<Channel> channels;
 
-    public JCFChannelService() {
+    private JCFChannelService() {
         this.channels = new ArrayList<>();
     }
 

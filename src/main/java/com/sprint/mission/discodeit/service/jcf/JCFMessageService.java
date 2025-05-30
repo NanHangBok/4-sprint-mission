@@ -17,9 +17,14 @@ import java.util.stream.Collectors;
  * 2025.05.30 김민수
  ***********************************/
 public class JCFMessageService implements MessageService {
+    private static final JCFMessageService messageInstance = new JCFMessageService();
+    public static JCFMessageService getMessageInstance() {
+        return messageInstance;
+    }
+
     private List<Message> messages;
 
-    public JCFMessageService() {
+    private JCFMessageService() {
         this.messages = new ArrayList<>();
     }
 

@@ -12,9 +12,9 @@ import java.util.UUID;
 
 public class JavaApplication {
     public static void main(String[] args) {
-        JCFUserService jcfUserService = new JCFUserService();
-        JCFChannelService jcfChannelService = new JCFChannelService();
-        JCFMessageService jcfMessageService = new JCFMessageService();
+        JCFUserService jcfUserService = JCFUserService.getUserInstance();
+        JCFChannelService jcfChannelService = JCFChannelService.getChannelInstance();
+        JCFMessageService jcfMessageService = JCFMessageService.getMessageInstance();
 
         System.out.println("------------- 1. USER ------------");
         System.out.println("---------등록---------");
