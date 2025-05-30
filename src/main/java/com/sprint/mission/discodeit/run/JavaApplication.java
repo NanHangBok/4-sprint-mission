@@ -16,7 +16,7 @@ public class JavaApplication {
         JCFChannelService jcfChannelService = JCFChannelService.getChannelInstance();
         JCFMessageService jcfMessageService = JCFMessageService.getMessageInstance();
 
-        System.out.println("------------- 1. USER ------------");
+        System.out.println("------------- 1. USER 테스트 ------------");
         System.out.println("---------등록---------");
         User u1 = jcfUserService.addUser("김코딩","password", "email1@abc.df");
         User u2 = jcfUserService.addUser("이코드", "password2", "abcd@email.com");
@@ -65,7 +65,7 @@ public class JavaApplication {
          * 채널 테스트
          *********************************/
 
-        System.out.println("------------------채널 테스트------------------");
+        System.out.println("------------------2. Channel 테스트------------------");
         System.out.println("---------등록---------");
         Channel ch1 = jcfChannelService.addChannel(u1,"채널1");
         Channel ch2 = jcfChannelService.addChannel(u2,"채널2");
@@ -122,7 +122,7 @@ public class JavaApplication {
          * 메세지 테스트
          **********************************************/
 
-        System.out.println("------------------메세지 테스트------------------");
+        System.out.println("------------------3. Message 테스트------------------");
         System.out.println("---------등록---------");
         Message msg1 = jcfMessageService.addMessage("내용1",u1,ch1);
         Message msg2 = jcfMessageService.addMessage("내용2",u2,ch1);
@@ -167,7 +167,7 @@ public class JavaApplication {
          * 전체 조회
          ***********************************************/
 
-        System.out.println("------------------전체 조회------------------");
+        System.out.println("------------------4. 전체 조회------------------");
         System.out.println("---------유저 조회---------");
         jcfUserService.getUsers()
                 .forEach(System.out::println);
@@ -184,7 +184,7 @@ public class JavaApplication {
         /***********************************
          * 유저 삭제 시 채널 및 메시지 삭제 확인
          ***********************************/
-        System.out.println("------------------ 유저 삭제 시 채널 내 유저 삭제 확인 ------------------");
+        System.out.println("------------------ 5. 유저 삭제 시 채널 내 유저 삭제 확인 ------------------");
         
         User testUser1 = jcfUserService.addUser("유저1","testPW1","TEST@email.com");
         User testUser2 = jcfUserService.addUser("유저2","TESTpw2","testmail@email.com");
