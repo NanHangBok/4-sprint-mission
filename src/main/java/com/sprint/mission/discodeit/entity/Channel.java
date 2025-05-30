@@ -99,5 +99,7 @@ public class Channel {
         messages.add(message);
     }
 
-
+    public void setActive(boolean active) {
+        isActive = active;
+    }
 }
