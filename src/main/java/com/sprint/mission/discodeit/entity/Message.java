@@ -16,8 +16,10 @@ public class Message {
     private final List<Channel> channels;
 
     public Message(String content, UUID userId, UUID channelId) {
+        Long time = System.currentTimeMillis();
         this.messageId = UUID.randomUUID();
-        this.messageCreatedAt = System.currentTimeMillis();
+        this.messageCreatedAt = time;
+        this.messageUpdatedAt = time;
         this.content = content;
         this.userId = userId;
         this.ChannelId = channelId;

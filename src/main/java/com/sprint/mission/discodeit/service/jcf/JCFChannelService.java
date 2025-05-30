@@ -136,5 +136,6 @@ public class JCFChannelService implements ChannelService {
         List<User> targetUsers = channel.getUsers();
         targetUsers.add(user);  // 채널 사용자 추가
         user.addChannels(channel);  // 유저의 채널 리스트에 채널 추가
+        channel.setChannelUpdatedAt(System.currentTimeMillis());
     }
 }

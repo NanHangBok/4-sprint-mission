@@ -15,8 +15,10 @@ public class User {
     private final List<Message> messages;
 
     public User(String userName) {
+        Long time = System.currentTimeMillis();
         this.userId = UUID.randomUUID();
-        this.userCreatedAt = System.currentTimeMillis();
+        this.userCreatedAt = time;
+        this.userUpdatedAt = time;
         this.userName = userName;
         this.channels = new ArrayList<>();
         this.messages = new ArrayList<>();

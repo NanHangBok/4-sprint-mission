@@ -17,8 +17,10 @@ public class Channel {
     private final List<Message> messages;
 
     public Channel(User host, String channelName) {
+        Long time = System.currentTimeMillis();
         this.channelId = UUID.randomUUID();
-        this.channelCreatedAt = System.currentTimeMillis();
+        this.channelCreatedAt = time;
+        this.channelUpdatedAt = time;
         this.hostUserId = host.getUserId();
         this.channelName = channelName;
         this.users = new ArrayList<>();
