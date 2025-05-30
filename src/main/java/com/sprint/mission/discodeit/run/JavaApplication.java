@@ -18,9 +18,9 @@ public class JavaApplication {
 
         System.out.println("------------- 1. USER ------------");
         System.out.println("---------등록---------");
-        User u1 = jcfUserService.addUser("김코딩");
-        User u2 = jcfUserService.addUser("이코드");
-        User u3 = jcfUserService.addUser("박자바");
+        User u1 = jcfUserService.addUser("김코딩","password", "email1@abc.df");
+        User u2 = jcfUserService.addUser("이코드", "password2", "abcd@email.com");
+        User u3 = jcfUserService.addUser("박자바","pswd123", "java@email.com");
         System.out.println();
 
         System.out.println("---------다건조회---------");
@@ -45,6 +45,7 @@ public class JavaApplication {
 
         System.out.println("---------전체 조회 (수정 후)---------");
         jcfUserService.updateUser(uid,1,"최객체");
+        jcfUserService.updateUser(u2.getUserId(),2,"UnknownPW");
         jcfUserService.getUsers().
                 forEach(System.out::println);
         System.out.println();
@@ -185,9 +186,9 @@ public class JavaApplication {
          ***********************************/
         System.out.println("------------------ 유저 삭제 시 채널 내 유저 삭제 확인 ------------------");
         
-        User testUser1 = jcfUserService.addUser("유저1");
-        User testUser2 = jcfUserService.addUser("유저2");
-        User testUser3 = jcfUserService.addUser("유저3");
+        User testUser1 = jcfUserService.addUser("유저1","testPW1","TEST@email.com");
+        User testUser2 = jcfUserService.addUser("유저2","TESTpw2","testmail@email.com");
+        User testUser3 = jcfUserService.addUser("유저3","testPSWD","email@pass.word");
         
         jcfChannelService.addChannelUser(ch3,testUser1);
         jcfChannelService.addChannelUser(ch3,testUser2);

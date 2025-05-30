@@ -8,7 +8,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 public interface UserService {
-    public User addUser(String name);
+    public User addUser(String name, String password, String email);
     public List<User> getUsers();
     public Optional<User> getUsersById(UUID userId);
     public void updateUser(UUID userId, int select, String updatedText);

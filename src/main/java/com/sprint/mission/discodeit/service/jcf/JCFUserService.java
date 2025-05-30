@@ -20,8 +20,8 @@ public class JCFUserService implements UserService {
     }
 
     @Override
-    public User addUser(String name) {
-        User user = new User(name);
+    public User addUser(String name, String password, String email) {
+        User user = new User(name, password, email);
         users.add(user);
         return user;
     }
@@ -48,7 +48,7 @@ public class JCFUserService implements UserService {
             switch(select) {
                 /********************************************
                  * CASE 1 : 유저의 이름 수정
-                 * CASE 2 이후 추가
+                 * CASE 2 : 패스워드 변경
                  ********************************************/
                 case 1:
                     user.get()
@@ -57,6 +57,12 @@ public class JCFUserService implements UserService {
                             .setUserUpdatedAt(System.currentTimeMillis()); // 최종 업데이트 시간
                     System.out.println("UserName 업데이트 성공");
                     break;
+                case 2:
+                    user.get()
+                            .setPassword(updatedText);
+                    user.get()
+                            .setUserUpdatedAt(System.currentTimeMillis());
+                    System.out.println("Password 변경 완료");
             }
         } else {
             System.out.println("해당유저 없음");
