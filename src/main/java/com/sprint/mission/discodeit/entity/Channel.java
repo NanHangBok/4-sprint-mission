@@ -15,6 +15,7 @@ public class Channel {
     private String channelName;
     private final List<User> users;
     private final List<Message> messages;
+    private boolean isActive;
 
     public Channel(User host, String channelName) {
         Long time = System.currentTimeMillis();
@@ -97,4 +98,6 @@ public class Channel {
     public void updateMessages(Message message){
         messages.add(message);
     }
+
+
 }

@@ -14,6 +14,7 @@ public class Message {
     private UUID ChannelId;
     private final List<User> users;
     private final List<Channel> channels;
+    private boolean isActive;
 
     public Message(String content, UUID userId, UUID channelId) {
         Long time = System.currentTimeMillis();
@@ -102,5 +103,9 @@ public class Message {
 
     public void updateUsers(User user){
         users.add(user);
+    }
+
+    public void setActive(boolean active) {
+        isActive = active;
     }
 }

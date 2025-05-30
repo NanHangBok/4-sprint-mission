@@ -18,39 +18,50 @@ import java.util.UUID;
  ********************************************/
 public class JCFChannelService implements ChannelService {
     private static final JCFChannelService channelInstance = new JCFChannelService();
+    JCFUserService jcfUserService = JCFUserService.getUserInstance();
+
     public static JCFChannelService getChannelInstance() {
         return channelInstance;
     }
-    private List<Channel> channels;
+
+    private final List<Channel> data;
 
     private JCFChannelService() {
-        this.channels = new ArrayList<>();
+        this.data = new ArrayList<>();
     }
 
+    // 채널 생성
     @Override
     public Channel addChannel(User user, String channelName) {
         Channel channel = new Channel(user, channelName);
-        channels.add(channel);
-        user.addChannels(channel);
-        channel.updateUsers(user);
+        if (jcfUserService.getUsers().contains(user)) {
+            channel.setActive(true);
+            data.add(channel);
+            user.addChannels(channel);
+            channel.updateUsers(user);
+        }
         return channel;
     }
 
+    // 현재 존재하는 모든 채널 확인
     @Override
     public List<Channel> getChannels() {
-        return channels;
+        return data;
     }
 
+
+    // 채널의 ID를 사용하여 채널 검색
     @Override
     public Optional<Channel> getChannelById(UUID channelId) {
-        return channels.stream()
+        return data.stream()
                 .filter(ch -> ch.getChannelId().equals(channelId))
                 .findFirst();
     }
 
+    // 채널 내용 수정
     @Override
     public void updateChannel(UUID channelId, int select, String updatedText) {
-        Optional<Channel> tmp = channels.stream()
+        Optional<Channel> tmp = data.stream()
                 .filter(ch -> ch.getChannelId().equals(channelId))
                 .findFirst();
         if (tmp.isPresent()) {
@@ -70,28 +81,32 @@ public class JCFChannelService implements ChannelService {
         }
     }
 
+    // 채널 삭제
     @Override
     public void deleteChannel(Channel channel) {
-        // 전체 채널 리스트에서 해당 채널 삭제
-        channels.remove(channel);
+        if (data.contains(channel)) {
+            // 전체 채널 리스트에서 해당 채널 삭제
+            data.remove(channel);
 
-        /***********************************
-         * 채널을 가지고 있는 유저에게 채널 삭제
-         ***********************************/
-        List<User> users = channel.getUsers();
-        for (User user : users) {
-            user.getChannels().remove(channel);
-        }
-        // 모든 유저에게 해당 채널 삭제
+            /***********************************
+             * 채널을 가지고 있는 유저에게 채널 삭제
+             ***********************************/
+            List<User> users = channel.getUsers();
+            for (User user : users) {
+                user.getChannels().remove(channel);
+            }
+            // 모든 유저에게 해당 채널 삭제
 
-        /***********************************
-         * 전체 메시지 중 해당 채널의 메시지 삭제
-         ***********************************/
-        List<Message> messages = channel.getMessages();
-        for (Message message : messages) {
-            message.getChannels().remove(channel);
+            /***********************************
+             * 전체 메시지 중 해당 채널의 메시지 삭제
+             ***********************************/
+            List<Message> messages = channel.getMessages();
+            for (Message message : messages) {
+                message.getChannels().remove(channel);
+            }
+            // 채널 내 모든 메세지 삭제
+            channel.setActive(false);
         }
-        // 채널 내 모든 메세지 삭제
     }
 
 
@@ -108,12 +123,13 @@ public class JCFChannelService implements ChannelService {
      ***********************************/
     @Override
     public void deleteChannelUser(Channel channel, UUID userId) {
-        List<User> targetUsers = channel.getUsers();
-        Optional<User> user = targetUsers.stream()
+        List<User> users = channel.getUsers();
+        Optional<User> target = users.stream()
                 .filter(u -> u.getUserId().equals(userId))
                 .findFirst();
-        user.ifPresentOrElse(
-                u -> {targetUsers.remove(u);},
+        target.ifPresentOrElse(
+                u -> {channel.getUsers().remove(u);
+                    u.getChannels().remove(channel);},
                      () -> System.out.println("해당유저가 채널에 없습니다."));
     }
 
@@ -125,6 +141,7 @@ public class JCFChannelService implements ChannelService {
     public void deleteChannelUser(Channel channel, User user) {
         if (channel.getUsers().contains(user)) {
             channel.getUsers().remove(user);
+            user.getChannels().remove(channel);
         } else {
             System.out.println("해당유저가 채널에 없습니다.");
         }
@@ -137,9 +154,12 @@ public class JCFChannelService implements ChannelService {
      ***********************************/
     @Override
     public void addChannelUser(Channel channel, User user) {
-        List<User> targetUsers = channel.getUsers();
-        targetUsers.add(user);  // 채널 사용자 추가
-        user.addChannels(channel);  // 유저의 채널 리스트에 채널 추가
-        channel.setChannelUpdatedAt(System.currentTimeMillis());
+        List<User> targetUsers = jcfUserService.getUsers();
+        System.out.println(targetUsers);
+        if (targetUsers.contains(user)) {
+            channel.updateUsers(user);  // 채널 사용자 추가
+            user.addChannels(channel);  // 유저의 채널 리스트에 채널 추가
+            channel.setChannelUpdatedAt(System.currentTimeMillis());
+        }
     }
 }

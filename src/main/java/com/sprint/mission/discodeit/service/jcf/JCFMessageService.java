@@ -18,42 +18,60 @@ import java.util.stream.Collectors;
  ***********************************/
 public class JCFMessageService implements MessageService {
     private static final JCFMessageService messageInstance = new JCFMessageService();
+    JCFUserService jcfUserService = JCFUserService.getUserInstance();
+    JCFChannelService jcfChannelService = JCFChannelService.getChannelInstance();
     public static JCFMessageService getMessageInstance() {
         return messageInstance;
     }
 
-    private List<Message> messages;
+    private final List<Message> data;
 
     private JCFMessageService() {
-        this.messages = new ArrayList<>();
+        this.data = new ArrayList<>();
     }
 
+
+    // 메시지 생성
     @Override
-    public Message addMessage(String content, User user, Channel channel) {
-        Message message = new Message(content,user.getUserId(),channel.getChannelId());
-        messages.add(message);
-        channel.updateMessages(message);
-        user.addMessages(message);
-        message.updateChannels(channel);
-        message.updateUsers(user);
-        return message;
+    public Message addMessage(String content, UUID userId, UUID channelId) {
+        Optional<User> optUser = jcfUserService.getUsersById(userId);
+        Optional<Channel> optChannel = jcfChannelService.getChannelById(channelId);
+        Message message = new Message(content,userId,channelId);
+        if (optUser.isPresent() && optChannel.isPresent()) {
+            User user = optUser.get();
+            Channel channel = optChannel.get();
+
+            message.setActive(true);
+            data.add(message);
+            channel.updateMessages(message);
+            user.addMessages(message);
+            message.updateChannels(channel);
+            message.updateUsers(user);
+            return message;
+        } else {
+            return message;
+        }
     }
 
+
+    // 모든 메시지 확인
     @Override
     public List<Message> getMessages() {
-        return messages;
+        return data;
     }
 
+    // 특정 ID를 가진 메시지 확인
     @Override
     public Optional<Message> getMessagesById(UUID messageId) {
-        return messages.stream()
+        return data.stream()
                 .filter(msg -> msg.getMessageId().equals(messageId))
                 .findFirst();
     }
 
+    // 메세지 내용 수정
     @Override
     public void updateMessage(UUID messageId, int select, String updatedText) {
-        Optional<Message> tmp = messages.stream()
+        Optional<Message> tmp = data.stream()
                 .filter(msg -> msg.getMessageId().equals(messageId))
                 .findFirst();
         if (tmp.isPresent()) {
@@ -73,9 +91,10 @@ public class JCFMessageService implements MessageService {
         }
     }
 
+    // 메시지 삭제
     @Override
     public void deleteMessage(Message message) {
-        messages.remove(message);
+        data.remove(message);
 
         /********************************************
          * 메시지가 있는 채널 내 메시지 삭제
@@ -93,5 +112,7 @@ public class JCFMessageService implements MessageService {
         for (User user : users) {
             user.getMessages().remove(message);
         }
+        message.setActive(false);
     }
+
 }
