@@ -214,11 +214,9 @@ public class JavaApplication {
         /****************************************
          *  존재하지 않는 필드 테스트용 더미 값
          ****************************************/
-<<<<<<< HEAD
-        System.out.println("------------------ 더미 데이터 ------------------");
-=======
 
->>>>>>> 663f3fd4b8842c33238ace0851f5e1d4a9cc374b
+        System.out.println("------------------ 더미 데이터 ------------------");
+
         UUID tempUID = UUID.randomUUID();
         User tempUser = new User("더미","tempPW","TEMPTEMP@TEMP.TEMP");
         Channel tempChannel = new Channel(tempUser,"더미채널");
