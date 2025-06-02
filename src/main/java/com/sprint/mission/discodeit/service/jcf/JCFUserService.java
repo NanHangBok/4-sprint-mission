@@ -16,39 +16,48 @@ import java.util.*;
  ********************************************/
 public class JCFUserService implements UserService {
     private static final JCFUserService userInstance = new JCFUserService();
-
     public static JCFUserService getUserInstance() {
         return userInstance;
     }
 
-    private final List<User> users;
+    private final List<User> data;
+    
     private JCFUserService() {
-        users = new ArrayList<>();
+        data = new ArrayList<>();
     }
 
+    // 유저 생성
     @Override
     public User addUser(String name, String password, String email) {
         User user = new User(name, password, email);
-        users.add(user);
+        boolean emailMatch = data.stream().
+                anyMatch(user1 -> user1.getEmail().equals(email));
+        if (!emailMatch) {
+            data.add(user);
+            user.setActive(true);
+        }
         return user;
     }
 
+    // 모든 유저 확인
     @Override
     public List<User> getUsers() {
-        return users;
+        return data;
     }
 
+    // 특정 ID를 가진 유저 가져오기
     @Override
     public Optional<User> getUsersById(UUID userId) {
-        Optional<User> user = users.stream()
+        Optional<User> user = data.stream()
                 .filter(u -> u.getUserId().equals(userId))
                 .findFirst();
         return user;
     }
 
+    // 유저 내용 수정
     @Override
     public void updateUser(UUID userId, int select, String updatedText) {
-        Optional<User> user = users.stream()
+        Optional<User> user = data.stream()
                 .filter(u -> u.getUserId().equals(userId))
                 .findFirst();
         if (user.isPresent()) {
@@ -76,27 +85,34 @@ public class JCFUserService implements UserService {
         }
     }
 
+    // 유저 삭제
     @Override
-    public void deleteUser(User user) {
-        users.remove(user);
+    public void deleteUser(UUID userId) {
+        Optional<User> us = data.stream().filter(u -> u.getUserId().equals(userId)).findFirst();
 
-        /********************************************
-         * 유저가 있던 채널에서 유저 삭제
-         ********************************************/
-        List<Channel> userChannel = user.getChannels();
-        for (Channel channel : userChannel){
-            channel.getUsers().remove(user);
-        }
-        // 모든 채널 내 해당 유저 삭제
+        if (us.isPresent()) {
+            User user = us.get();
+            data.remove(user);
+            /********************************************
+             * 유저가 있던 채널에서 유저 삭제
+             ********************************************/
+            List<Channel> userChannel = user.getChannels();
+            for (Channel channel : userChannel){
+                channel.getUsers().remove(user);
+            }
+            // 모든 채널 내 해당 유저 삭제
 
-        /********************************************
-         * 유저가 작성한 메시지를 전체 메시지 내역에서 삭제
-         ********************************************/
-        List<Message> userMessage = user.getMessages();
-        for (Message message : userMessage){
-            message.getUsers().remove(user);
+            /********************************************
+             * 유저가 작성한 메시지를 전체 메시지 내역에서 삭제
+             ********************************************/
+            List<Message> userMessage = user.getMessages();
+            for (Message message : userMessage){
+                JCFMessageService.getMessageInstance().deleteMessage(message);
+            }
+            // 해당 유저의 모든 대화 내역 삭제
+            user.setActive(false); //  상태 변경
         }
-        // 해당 유저의 모든 대화 내역 삭제
+
     }
 
 }

@@ -14,6 +14,7 @@ public class User {
     private final List<Message> messages;
     private String email;
     private String password;
+    private boolean isActive;
 
     public User(String userName, String password, String email) {
         Long time = System.currentTimeMillis();
@@ -105,5 +106,9 @@ public class User {
 
     public void setPassword(String password) {
         this.password = password;
+    }
+
+    public void setActive(boolean active) {
+        isActive = active;
     }
 }
