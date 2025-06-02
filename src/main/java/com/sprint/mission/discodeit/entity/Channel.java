@@ -8,6 +8,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
+/*********************************************
+ *  채널 엔티티
+ *  채널 객체의 정보 및 관리
+ *  2025. 06. 02 김민수
+ *********************************************/
 public class Channel {
     private final UUID id;
     private final Long createdAt;
@@ -108,16 +113,27 @@ public class Channel {
         }
     }
     public void addMessage(Message message){
-        messages.add(message);
+        if (!messages.contains(message)) {
+            messages.add(message);
+            setUpdatedAt(System.currentTimeMillis());
+        }
     }
+
     public void deleteUser(User user) {
-        users.remove(user);
-        user.deleteChannel(this);
+        if (users.contains(user)) {
+            users.remove(user);
+            user.deleteChannel(this);
+            setUpdatedAt(System.currentTimeMillis());
+        }
     }
     public void deleteMessage(Message message) {
-        Factory.getInstance()
-                .getMessageService()
-                .deleteMessage(message);
+        if (messages.contains(message)) {
+            messages.remove(message);
+            Factory.getInstance()
+                    .getMessageService()
+                    .deleteMessage(message);
+            setUpdatedAt(System.currentTimeMillis());
+        }
     }
 
 }

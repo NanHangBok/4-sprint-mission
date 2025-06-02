@@ -18,6 +18,8 @@ import java.util.UUID;
  * CRUD 실행
  * 채널 내 유저 추가 및 삭제
  * 2025.05.30 김민수
+ * *
+ * 코드 리팩토링 2025. 06. 02 김민수
  ********************************************/
 public class JCFChannelService implements ChannelService {
     private final List<Channel> data;
@@ -78,26 +80,21 @@ public class JCFChannelService implements ChannelService {
     @Override
     public void deleteChannel(Channel channel) {
         if (data.contains(channel)) {
-            // 전체 채널 리스트에서 해당 채널 삭제
-            data.remove(channel);
+            data.remove(channel);  // 전체 채널 리스트에서 해당 채널 삭제
 
             /***********************************
              * 채널을 가지고 있는 유저에게 채널 삭제
              ***********************************/
-            List<User> users = channel.getUsers();
-            for (User user : users) {
-                user.getChannels().remove(channel);
-            }
-            // 모든 유저에게 해당 채널 삭제
+            for (User user : channel.getUsers()) {
+                user.deleteChannel(channel);
+            }  // 모든 유저에게 해당 채널 삭제
 
             /***********************************
              * 전체 메시지 중 해당 채널의 메시지 삭제
              ***********************************/
-            List<Message> messages = channel.getMessages();
-            for (Message message : messages) {
+            for (Message message : channel.getMessages()) {
                 Factory.getInstance().getMessageService().deleteMessage(message);
-            }
-            // 채널 내 모든 메세지 삭제
+            }  // 채널 내 모든 메세지 삭제
         }
     }
 
@@ -115,10 +112,9 @@ public class JCFChannelService implements ChannelService {
      ***********************************/
     @Override
     public void deleteChannelUser(Channel channel, UUID userId) {
-        List<User> users = channel.getUsers();
-        Optional<User> target = users.stream()
-                .filter(u -> u.getId().equals(userId))
-                .findFirst();
+        Optional<User> target = Factory.getInstance()
+                                        .getUserService()
+                                        .getUsersById(userId);
         target.ifPresentOrElse(
                 channel::deleteUser,
                 () -> System.out.println("해당유저가 채널에 없습니다."));
@@ -151,13 +147,14 @@ public class JCFChannelService implements ChannelService {
         }
     }
 
-    /**
+    /***********************************
      * 특정 유저가 전체 유저 리스트에 존재하는지 확인하는 로직
      * @param user 리스트에 존재하는지 확인하고 싶은 User 객체
      * @return 존재하면 true, 존재하지 않는다면 false 반환
-     */
+     ***********************************/
     public boolean hasUsers(User user) {
         List<User> users = Factory.getInstance().getUserService().getUsers();
         return users.contains(user);
     }
+
 }

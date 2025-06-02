@@ -108,14 +108,35 @@ public class User {
      * add, delete
      */
     public void addChannel(Channel channel){
-        channels.add(channel);
+        if (!channels.contains(channel)) {
+            channels.add(channel);
+            channel.addUser(this);
+        }
     }
 
     public void addMessage(Message message){
-        messages.add(message);
+        if(!messages.contains(message) &&
+                message.getUserId().equals(this.getId()))  {
+            messages.add(message);}
     }
 
     public void deleteChannel(Channel channel){
-        channels.remove(channel);
+        if (channels.contains(channel)) {
+            channels.remove(channel);
+            channel.deleteUser(this);
+            UUID channelId = channel.getId();
+            for (Message message : messages) {
+                if (message.getChannelId().equals(channelId)) {
+                    deleteMessage(message);
+                }
+            }
+            setUpdatedAt(System.currentTimeMillis());
+        }
+    }
+    public void deleteMessage(Message message){
+        if (messages.contains(message)) {
+            messages.remove(message);
+            setUpdatedAt(System.currentTimeMillis());
+        }
     }
 }

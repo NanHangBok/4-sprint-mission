@@ -92,7 +92,7 @@ public class JCFMessageService implements MessageService {
          * 메시지가 있는 채널 내 메시지 삭제
          ********************************************/
         for (Channel channel : Factory.getInstance().getChannelService().getChannels()) {
-            channel.getMessages().remove(message);
+            channel.deleteMessage(message);
         }
         // 채널 내 메시지 삭제
 
@@ -100,7 +100,7 @@ public class JCFMessageService implements MessageService {
          * 메시지를 작성한 유저의 내역에 메시지 삭제
          ********************************************/
         for (User user : Factory.getInstance().getUserService().getUsers()) {
-            user.getMessages().remove(message);
+            user.deleteMessage(message);
         }
         message.setActive(false);
     }

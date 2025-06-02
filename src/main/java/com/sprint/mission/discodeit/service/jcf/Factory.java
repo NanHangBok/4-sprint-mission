@@ -5,6 +5,11 @@ import com.sprint.mission.discodeit.service.FactoryService;
 import com.sprint.mission.discodeit.service.MessageService;
 import com.sprint.mission.discodeit.service.UserService;
 
+/*********************************************
+ *  Service를 관리하는 Factory 클래스
+ *  Service를 생성하고 주입시키는 역할
+ *  2025.06.02 김민수
+ *********************************************/
 public class Factory implements FactoryService {
     private static Factory instance;
     private final UserService userService;

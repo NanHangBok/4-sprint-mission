@@ -12,5 +12,5 @@ public interface UserService {
     public Optional<User> getUsersById(UUID userId);
     public void updateUser(UUID userId, int select, String updatedText);
     public void deleteUser(UUID userId);
-
+    public void deleteUser(User user);
 }
