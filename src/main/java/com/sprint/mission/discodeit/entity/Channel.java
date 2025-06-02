@@ -1,15 +1,17 @@
 package com.sprint.mission.discodeit.entity;
 
-import javax.swing.text.html.HTMLDocument;
+import com.sprint.mission.discodeit.service.jcf.Factory;
+import com.sprint.mission.discodeit.service.jcf.JCFMessageService;
+import com.sprint.mission.discodeit.service.jcf.JCFUserService;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 public class Channel {
-    private final UUID channelId;
-    private final Long channelCreatedAt;
-    private Long channelUpdatedAt;
+    private final UUID id;
+    private final Long createdAt;
+    private Long updatedAt;
 
     private final UUID hostUserId;
     private String channelName;
@@ -19,10 +21,10 @@ public class Channel {
 
     public Channel(User host, String channelName) {
         Long time = System.currentTimeMillis();
-        this.channelId = UUID.randomUUID();
-        this.channelCreatedAt = time;
-        this.channelUpdatedAt = time;
-        this.hostUserId = host.getUserId();
+        this.id = UUID.randomUUID();
+        this.createdAt = time;
+        this.updatedAt = time;
+        this.hostUserId = host.getId();
         this.channelName = channelName;
         this.users = new ArrayList<>();
         this.messages = new ArrayList<>();
@@ -31,9 +33,9 @@ public class Channel {
     @Override
     public String toString() {
         return "Channel{" +
-                "channelId=" + channelId +
-                ", channelCreatedAt=" + channelCreatedAt +
-                ", channelUpdatedAt=" + channelUpdatedAt +
+                "channelId=" + id +
+                ", channelCreatedAt=" + createdAt +
+                ", channelUpdatedAt=" + updatedAt +
                 ", hostUserId=" + hostUserId +
                 ", channelName='" + channelName + '\'' +
                 ", users=" + getUserNames() +  // 채널에 존재하는 유저의 이름 리스트
@@ -44,16 +46,16 @@ public class Channel {
     /**
      * getter
      */
-    public UUID getChannelId() {
-        return channelId;
+    public UUID getId() {
+        return id;
     }
 
-    public Long getChannelCreatedAt() {
-        return channelCreatedAt;
+    public Long getCreatedAt() {
+        return createdAt;
     }
 
-    public Long getChannelUpdatedAt() {
-        return channelUpdatedAt;
+    public Long getUpdatedAt() {
+        return updatedAt;
     }
 
     public UUID getHostUserId() {
@@ -84,22 +86,38 @@ public class Channel {
     /*********
      * setter
      *********/
-    public void setChannelUpdatedAt(Long channelUpdatedAt) {
-        this.channelUpdatedAt = channelUpdatedAt;
+    public void setUpdatedAt(Long updatedAt) {
+        this.updatedAt = updatedAt;
     }
 
     public void setChannelName(String channelName) {
         this.channelName = channelName;
     }
 
-    public void updateUsers(User user) {
-        users.add(user);
-    }
-    public void updateMessages(Message message){
-        messages.add(message);
-    }
-
     public void setActive(boolean active) {
         isActive = active;
     }
+    /**
+     * add, delete
+     */
+    public void addUser(User user) {
+        if (!users.contains(user)) {
+            users.add(user);
+            user.addChannel(this);
+            setUpdatedAt(System.currentTimeMillis());
+        }
+    }
+    public void addMessage(Message message){
+        messages.add(message);
+    }
+    public void deleteUser(User user) {
+        users.remove(user);
+        user.deleteChannel(this);
+    }
+    public void deleteMessage(Message message) {
+        Factory.getInstance()
+                .getMessageService()
+                .deleteMessage(message);
+    }
+
 }

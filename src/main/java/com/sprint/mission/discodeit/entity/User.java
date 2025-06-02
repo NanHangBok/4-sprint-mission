@@ -5,9 +5,9 @@ import java.util.List;
 import java.util.UUID;
 
 public class User {
-    private final UUID userId;
-    private final Long userCreatedAt;
-    private Long userUpdatedAt;
+    private final UUID id;
+    private final Long createdAt;
+    private Long updatedAt;
 
     private String userName;
     private final List<Channel> channels;
@@ -18,9 +18,9 @@ public class User {
 
     public User(String userName, String password, String email) {
         Long time = System.currentTimeMillis();
-        this.userId = UUID.randomUUID();
-        this.userCreatedAt = time;
-        this.userUpdatedAt = time;
+        this.id = UUID.randomUUID();
+        this.createdAt = time;
+        this.updatedAt = time;
         this.userName = userName;
         this.channels = new ArrayList<>();
         this.messages = new ArrayList<>();
@@ -31,9 +31,9 @@ public class User {
     @Override
     public String toString() {
         return "User{" +
-                "userId=" + userId +
-                ", userCreatedAt=" + userCreatedAt +
-                ", userUpdatedAt=" + userUpdatedAt +
+                "userId=" + id +
+                ", userCreatedAt=" + createdAt +
+                ", userUpdatedAt=" + updatedAt +
                 ", userName='" + userName + '\'' +
                 ", email= " + email +
                 ", password= " + password +
@@ -46,16 +46,16 @@ public class User {
      * getter
      */
 
-    public UUID getUserId() {
-        return userId;
+    public UUID getId() {
+        return id;
     }
 
-    public Long getUserCreatedAt() {
-        return userCreatedAt;
+    public Long getCreatedAt() {
+        return createdAt;
     }
 
-    public Long getUserUpdatedAt() {
-        return userUpdatedAt;
+    public Long getUpdatedAt() {
+        return updatedAt;
     }
 
     public String getUserName() {
@@ -88,20 +88,12 @@ public class User {
      * setter
      */
 
-    public void setUserUpdatedAt(Long userUpdatedAt) {
-        this.userUpdatedAt = userUpdatedAt;
+    public void setUpdatedAt(Long updatedAt) {
+        this.updatedAt = updatedAt;
     }
 
     public void setUserName(String userName) {
         this.userName = userName;
-    }
-
-    public void addChannels(Channel channel){
-        channels.add(channel);
-    }
-
-    public void addMessages(Message message){
-        messages.add(message);
     }
 
     public void setPassword(String password) {
@@ -110,5 +102,20 @@ public class User {
 
     public void setActive(boolean active) {
         isActive = active;
+    }
+
+    /**
+     * add, delete
+     */
+    public void addChannel(Channel channel){
+        channels.add(channel);
+    }
+
+    public void addMessage(Message message){
+        messages.add(message);
+    }
+
+    public void deleteChannel(Channel channel){
+        channels.remove(channel);
     }
 }

@@ -3,9 +3,9 @@ package com.sprint.mission.discodeit.service.jcf;
 import com.sprint.mission.discodeit.entity.Channel;
 import com.sprint.mission.discodeit.entity.Message;
 import com.sprint.mission.discodeit.entity.User;
+import com.sprint.mission.discodeit.service.ChannelService;
+import com.sprint.mission.discodeit.service.MessageService;
 import com.sprint.mission.discodeit.service.UserService;
-import jdk.dynalink.beans.StaticClass;
-import org.w3c.dom.ls.LSOutput;
 
 import java.util.*;
 
@@ -15,32 +15,22 @@ import java.util.*;
  * 2025.05.30 김민수
  ********************************************/
 public class JCFUserService implements UserService {
-    private static final JCFUserService userInstance = new JCFUserService();
-    public static JCFUserService getUserInstance() {
-        return userInstance;
-    }
 
     private final List<User> data;
     
-    private JCFUserService() {
+    JCFUserService() {
         data = new ArrayList<>();
     }
 
     // 유저 생성
     @Override
-    public User addUser(String name, String password, String email) {
+    public User createUser(String name, String password, String email) {
         User user = new User(name, password, email);
         boolean emailMatch = data.stream().
                 anyMatch(user1 -> user1.getEmail().equals(email));
-<<<<<<< HEAD
         if (!emailMatch) {
             data.add(user);
             user.setActive(true);
-=======
-        if (emailMatch) {
-            user.setActive(true);
-            data.add(user);
->>>>>>> 663f3fd4b8842c33238ace0851f5e1d4a9cc374b
         }
         return user;
     }
@@ -55,7 +45,7 @@ public class JCFUserService implements UserService {
     @Override
     public Optional<User> getUsersById(UUID userId) {
         Optional<User> user = data.stream()
-                .filter(u -> u.getUserId().equals(userId))
+                .filter(u -> u.getId().equals(userId))
                 .findFirst();
         return user;
     }
@@ -64,7 +54,7 @@ public class JCFUserService implements UserService {
     @Override
     public void updateUser(UUID userId, int select, String updatedText) {
         Optional<User> user = data.stream()
-                .filter(u -> u.getUserId().equals(userId))
+                .filter(u -> u.getId().equals(userId))
                 .findFirst();
         if (user.isPresent()) {
             switch(select) {
@@ -76,14 +66,14 @@ public class JCFUserService implements UserService {
                     user.get()
                             .setUserName(updatedText);  // 유저의 이름 수정
                     user.get()
-                            .setUserUpdatedAt(System.currentTimeMillis()); // 최종 업데이트 시간
+                            .setUpdatedAt(System.currentTimeMillis()); // 최종 업데이트 시간
                     System.out.println("UserName 업데이트 성공");
                     break;
                 case 2:
                     user.get()
                             .setPassword(updatedText);
                     user.get()
-                            .setUserUpdatedAt(System.currentTimeMillis());
+                            .setUpdatedAt(System.currentTimeMillis());
                     System.out.println("Password 변경 완료");
             }
         } else {
@@ -94,7 +84,7 @@ public class JCFUserService implements UserService {
     // 유저 삭제
     @Override
     public void deleteUser(UUID userId) {
-        Optional<User> us = data.stream().filter(u -> u.getUserId().equals(userId)).findFirst();
+        Optional<User> us = data.stream().filter(u -> u.getId().equals(userId)).findFirst();
 
         if (us.isPresent()) {
             User user = us.get();
@@ -113,11 +103,7 @@ public class JCFUserService implements UserService {
              ********************************************/
             List<Message> userMessage = user.getMessages();
             for (Message message : userMessage){
-<<<<<<< HEAD
-                JCFMessageService.getMessageInstance().deleteMessage(message);
-=======
-                message.getUsers().remove(user);
->>>>>>> 663f3fd4b8842c33238ace0851f5e1d4a9cc374b
+                Factory.getInstance().getMessageService().deleteMessage(message);
             }
             // 해당 유저의 모든 대화 내역 삭제
             user.setActive(false); //  상태 변경

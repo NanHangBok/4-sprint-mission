@@ -3,13 +3,14 @@ package com.sprint.mission.discodeit.service.jcf;
 import com.sprint.mission.discodeit.entity.Channel;
 import com.sprint.mission.discodeit.entity.Message;
 import com.sprint.mission.discodeit.entity.User;
+import com.sprint.mission.discodeit.service.ChannelService;
 import com.sprint.mission.discodeit.service.MessageService;
+import com.sprint.mission.discodeit.service.UserService;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 /***********************************
  * 메세지 서비스 인터페이스 구현체
@@ -17,43 +18,27 @@ import java.util.stream.Collectors;
  * 2025.05.30 김민수
  ***********************************/
 public class JCFMessageService implements MessageService {
-    private static final JCFMessageService messageInstance = new JCFMessageService();
-    JCFUserService jcfUserService = JCFUserService.getUserInstance();
-    JCFChannelService jcfChannelService = JCFChannelService.getChannelInstance();
-    public static JCFMessageService getMessageInstance() {
-        return messageInstance;
-    }
 
     private final List<Message> data;
 
-    private JCFMessageService() {
+    JCFMessageService() {
         this.data = new ArrayList<>();
     }
 
 
     // 메시지 생성
     @Override
-    public Message addMessage(String content, UUID userId, UUID channelId) {
-        Optional<User> optUser = jcfUserService.getUsersById(userId);
-        Optional<Channel> optChannel = jcfChannelService.getChannelById(channelId);
+    public Message createMessage(String content, UUID userId, UUID channelId) {
+        Optional<User> optUser = Factory.getInstance().getUserService().getUsersById(userId);
+        Optional<Channel> optChannel = Factory.getInstance().getChannelService().getChannelById(channelId);
         Message message = new Message(content,userId,channelId);
         if (optUser.isPresent() && optChannel.isPresent()) {
             User user = optUser.get();
             Channel channel = optChannel.get();
-
-<<<<<<< HEAD
             data.add(message);
             message.setActive(true);
-            channel.updateMessages(message);
-            user.addMessages(message);
-=======
-            message.setActive(true);
-            data.add(message);
-            channel.updateMessages(message);
-            user.addMessages(message);
-            message.updateChannels(channel);
-            message.updateUsers(user);
->>>>>>> 663f3fd4b8842c33238ace0851f5e1d4a9cc374b
+            channel.addMessage(message);
+            user.addMessage(message);
             return message;
         } else {
             return message;
@@ -71,7 +56,7 @@ public class JCFMessageService implements MessageService {
     @Override
     public Optional<Message> getMessagesById(UUID messageId) {
         return data.stream()
-                .filter(msg -> msg.getMessageId().equals(messageId))
+                .filter(msg -> msg.getId().equals(messageId))
                 .findFirst();
     }
 
@@ -79,7 +64,7 @@ public class JCFMessageService implements MessageService {
     @Override
     public void updateMessage(UUID messageId, int select, String updatedText) {
         Optional<Message> tmp = data.stream()
-                .filter(msg -> msg.getMessageId().equals(messageId))
+                .filter(msg -> msg.getId().equals(messageId))
                 .findFirst();
         if (tmp.isPresent()) {
             switch (select) {
@@ -91,7 +76,7 @@ public class JCFMessageService implements MessageService {
                     tmp.get()
                             .setContent(updatedText);  // 내용 수정
                     tmp.get()
-                            .setMessageUpdatedAt(System.currentTimeMillis());  // 최종 업데이트 시간
+                            .setUpdatedAt(System.currentTimeMillis());  // 최종 업데이트 시간
                     System.out.println("메시지 내용 수정 완료");
                     break;
             }
@@ -106,7 +91,7 @@ public class JCFMessageService implements MessageService {
         /********************************************
          * 메시지가 있는 채널 내 메시지 삭제
          ********************************************/
-        for (Channel channel : jcfChannelService.getChannels()) {
+        for (Channel channel : Factory.getInstance().getChannelService().getChannels()) {
             channel.getMessages().remove(message);
         }
         // 채널 내 메시지 삭제
@@ -114,7 +99,7 @@ public class JCFMessageService implements MessageService {
         /********************************************
          * 메시지를 작성한 유저의 내역에 메시지 삭제
          ********************************************/
-        for (User user : jcfUserService.getUsers()) {
+        for (User user : Factory.getInstance().getUserService().getUsers()) {
             user.getMessages().remove(message);
         }
         message.setActive(false);
