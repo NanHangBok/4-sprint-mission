@@ -1,16 +1,18 @@
-package com.sprint.mission.discodeit.service.jcf;
+package com.sprint.mission.discodeit.factory;
 
 import com.sprint.mission.discodeit.service.ChannelService;
-import com.sprint.mission.discodeit.service.FactoryService;
 import com.sprint.mission.discodeit.service.MessageService;
 import com.sprint.mission.discodeit.service.UserService;
+import com.sprint.mission.discodeit.service.jcf.JCFChannelService;
+import com.sprint.mission.discodeit.service.jcf.JCFMessageService;
+import com.sprint.mission.discodeit.service.jcf.JCFUserService;
 
 /*********************************************
  *  Service를 관리하는 Factory 클래스
  *  Service를 생성하고 주입시키는 역할
  *  2025.06.02 김민수
  *********************************************/
-public class Factory implements FactoryService {
+public class Factory {
     private static Factory instance;
     private final UserService userService;
     private final ChannelService channelService;
@@ -28,17 +30,14 @@ public class Factory implements FactoryService {
         messageService = new JCFMessageService();
     }
 
-    @Override
     public UserService getUserService() {
         return userService;
     }
 
-    @Override
     public ChannelService getChannelService() {
         return channelService;
     }
 
-    @Override
     public MessageService getMessageService() {
         return messageService;
     }

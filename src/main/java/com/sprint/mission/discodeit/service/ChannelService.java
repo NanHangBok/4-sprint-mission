@@ -13,7 +13,6 @@ public interface ChannelService {
     public Optional<Channel> getChannelById(UUID channelId);
     public void updateChannel(UUID channelId, int select, String updatedText);
     public void deleteChannel(Channel channel);
-    public void deleteChannelUser(Channel channel, UUID userId);
-    public void deleteChannelUser(Channel channel, User user);
-    public void addChannelUser(Channel channel, User user);
+    public void removeUserFromChannel(Channel channel, UUID userId);
+    public void addUserToChannel(Channel channel, User user);
 }

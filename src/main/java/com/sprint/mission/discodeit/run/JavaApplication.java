@@ -4,13 +4,9 @@ import com.sprint.mission.discodeit.entity.Channel;
 import com.sprint.mission.discodeit.entity.Message;
 import com.sprint.mission.discodeit.entity.User;
 import com.sprint.mission.discodeit.service.ChannelService;
-import com.sprint.mission.discodeit.service.FactoryService;
 import com.sprint.mission.discodeit.service.MessageService;
 import com.sprint.mission.discodeit.service.UserService;
-import com.sprint.mission.discodeit.service.jcf.Factory;
-import com.sprint.mission.discodeit.service.jcf.JCFChannelService;
-import com.sprint.mission.discodeit.service.jcf.JCFMessageService;
-import com.sprint.mission.discodeit.service.jcf.JCFUserService;
+import com.sprint.mission.discodeit.factory.Factory;
 
 import java.util.Optional;
 import java.util.UUID;
@@ -21,7 +17,16 @@ public class JavaApplication {
         UserService jcfUserService = factory.getUserService();
         ChannelService jcfChannelService = factory.getChannelService();
         MessageService jcfMessageService = factory.getMessageService();
-
+        /****************************************
+         *  외부에서 Factory 금지
+         *  user와 userid 사용하는거 통일 시키기
+         *  메서드 이름 바꾸기 deleteChannelUser  / IN_PROGRESS
+         *  isActive enum으로 구현하기  / COMPLETE
+         *  update select말고 전체를 입력받아서 수정된 부분만 수정하기 혹은 enum 사용하기
+         *  Factory 폴더 따로 빼기 / COMPLETE
+         *  엔티티 공통 필드 basedEntity로 따로 빼기 ( id, createdAt, UpdatedAt ) / COMPLETE
+         *  setUpdated는 Service에서
+         ****************************************/
         /****************************************
          *  정상 데이터 테스트
          ****************************************/
@@ -117,8 +122,8 @@ public class JavaApplication {
         System.out.println("--------- 채널 내 유저 추가 ---------");
         jcfChannelService.getChannels()
                 .forEach(channel -> System.out.println(channel.getUserNames()));
-        jcfChannelService.addChannelUser(ch2,u3);
-        jcfChannelService.addChannelUser(ch3,u3);
+        jcfChannelService.addUserToChannel(ch2,u3);
+        jcfChannelService.addUserToChannel(ch3,u3);
         System.out.println();
 
         System.out.println("--------- 유저 추가 후 ---------");
@@ -127,8 +132,7 @@ public class JavaApplication {
         System.out.println();
 
         System.out.println("--------- 채널 내 유저 삭제 ---------");
-        jcfChannelService.deleteChannelUser(ch2,u3.getId());
-        jcfChannelService.deleteChannelUser(ch3,u3);
+        jcfChannelService.removeUserFromChannel(ch2,u3.getId());
         jcfChannelService.getChannels()
                 .forEach(channel -> System.out.println(channel.getUserNames()));
         System.out.println();
@@ -207,8 +211,8 @@ public class JavaApplication {
         User testUser3 = jcfUserService.createUser("유저3","testPSWD","email@pass.word");
 
         Channel testChannel = jcfChannelService.createChannel(testUser1,"테스트채널");
-        jcfChannelService.addChannelUser(testChannel,testUser2);
-        jcfChannelService.addChannelUser(testChannel,testUser3);
+        jcfChannelService.addUserToChannel(testChannel,testUser2);
+        jcfChannelService.addUserToChannel(testChannel,testUser3);
         System.out.println(testChannel.getUserNames());
         System.out.println("유저3 삭제");
         jcfUserService.deleteUser(testUser3.getId());
@@ -227,7 +231,7 @@ public class JavaApplication {
         Message tempMessage = new Message("더미내용",tempUser.getId(),tempChannel.getId());
 
         // 실존 채널에 더미 유저 추가 ( users에 안들어가 있음 )
-        jcfChannelService.addChannelUser(testChannel,tempUser);
+        jcfChannelService.addUserToChannel(testChannel,tempUser);
 
         // 각종 더미 메시지
         jcfMessageService.createMessage("더미유저의 메시지",tempUser.getId(),tempChannel.getId());
@@ -238,7 +242,7 @@ public class JavaApplication {
         System.out.println("<UNK> <UNK> <UNK>");
         System.out.println(testUser1.getMessageContents());
         System.out.println(testChannel.getUserNames());
-        System.out.println("------------------------------------------------");
+        System.out.println("----------------------메시지 삭제 확인--------------------------");
         System.out.println(testUser2.getChannelNames());
         testChannel.deleteUser(testUser2);
         System.out.println(testUser2.getChannelNames());
@@ -248,5 +252,14 @@ public class JavaApplication {
         System.out.println(testChannel.getMessageContents());
         testChannel.deleteMessage(m1);
         System.out.println(testChannel.getMessageContents());
+        System.out.println("----------------------유저 삭제 후 채널, 채널에서 유저 삭제 후 유저가 참여중인 채널 확인-----------------------");
+        System.out.println(testChannel.getUserNames());
+        testChannel.addUser(testUser2);
+        testChannel.addUser(testUser3);
+        testUser3.deleteChannel(testChannel);
+        System.out.println(testChannel.getUserNames());
+        testChannel.deleteUser(testUser2);
+        System.out.println(testChannel.getUserNames());
+        System.out.println(testUser2.getChannelNames());
     }
 }

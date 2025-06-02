@@ -3,10 +3,8 @@ package com.sprint.mission.discodeit.service.jcf;
 import com.sprint.mission.discodeit.entity.Channel;
 import com.sprint.mission.discodeit.entity.Message;
 import com.sprint.mission.discodeit.entity.User;
+import com.sprint.mission.discodeit.factory.Factory;
 import com.sprint.mission.discodeit.service.ChannelService;
-import com.sprint.mission.discodeit.service.FactoryService;
-import com.sprint.mission.discodeit.service.MessageService;
-import com.sprint.mission.discodeit.service.UserService;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -24,7 +22,7 @@ import java.util.UUID;
 public class JCFChannelService implements ChannelService {
     private final List<Channel> data;
 
-    JCFChannelService() {
+    public JCFChannelService() {
         this.data = new ArrayList<>();
     }
 
@@ -33,9 +31,8 @@ public class JCFChannelService implements ChannelService {
     public Channel createChannel(User user, String channelName) {
         Channel channel = new Channel(user, channelName);
         if (hasUsers(user)) {
-            addChannelUser(channel, user);
+            addUserToChannel(channel, user);
             data.add(channel);
-            channel.setActive(true);
         }
         return channel;
     }
@@ -106,12 +103,12 @@ public class JCFChannelService implements ChannelService {
      ***********************************/
 
     /***********************************
-     * 해당 채널의 존재하는 특정 유저를 id를 통해 삭제
+     * 해당 채널ConcurrentModificationException의 존재하는 특정 유저를 id를 통해 삭제
      * @param channel 삭제할 유저가 있는 채널
      * @param userId 삭제할 유저의 id
      ***********************************/
     @Override
-    public void deleteChannelUser(Channel channel, UUID userId) {
+    public void removeUserFromChannel(Channel channel, UUID userId) {
         Optional<User> target = Factory.getInstance()
                                         .getUserService()
                                         .getUsersById(userId);
@@ -121,27 +118,12 @@ public class JCFChannelService implements ChannelService {
     }
 
     /***********************************
-     * 해당 채널의 존재하는 특정 유저 삭제
-     * @param channel 삭제할 유저가 있는 채널
-     * @param user 삭제할 유저
-     ***********************************/
-
-    @Override
-    public void deleteChannelUser(Channel channel, User user) {
-        if (channel.getUsers().contains(user)) {
-            channel.deleteUser(user);
-        } else {
-            System.out.println("해당유저가 채널에 없습니다.");
-        }
-    }
-
-    /***********************************
      * 해당 채널의 새로운 유저 추가
      * @param channel 유저를 추가할 채널
      * @param user 채널에 추가할 유저
      ***********************************/
     @Override
-    public void addChannelUser(Channel channel, User user) {
+    public void addUserToChannel(Channel channel, User user) {
         if (hasUsers(user)) {
             channel.addUser(user);
         }

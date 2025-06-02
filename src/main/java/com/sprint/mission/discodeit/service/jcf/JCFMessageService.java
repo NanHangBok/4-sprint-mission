@@ -3,9 +3,8 @@ package com.sprint.mission.discodeit.service.jcf;
 import com.sprint.mission.discodeit.entity.Channel;
 import com.sprint.mission.discodeit.entity.Message;
 import com.sprint.mission.discodeit.entity.User;
-import com.sprint.mission.discodeit.service.ChannelService;
+import com.sprint.mission.discodeit.factory.Factory;
 import com.sprint.mission.discodeit.service.MessageService;
-import com.sprint.mission.discodeit.service.UserService;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -21,7 +20,7 @@ public class JCFMessageService implements MessageService {
 
     private final List<Message> data;
 
-    JCFMessageService() {
+    public JCFMessageService() {
         this.data = new ArrayList<>();
     }
 
@@ -36,7 +35,6 @@ public class JCFMessageService implements MessageService {
             User user = optUser.get();
             Channel channel = optChannel.get();
             data.add(message);
-            message.setActive(true);
             channel.addMessage(message);
             user.addMessage(message);
             return message;
@@ -102,7 +100,6 @@ public class JCFMessageService implements MessageService {
         for (User user : Factory.getInstance().getUserService().getUsers()) {
             user.deleteMessage(message);
         }
-        message.setActive(false);
     }
 
 }

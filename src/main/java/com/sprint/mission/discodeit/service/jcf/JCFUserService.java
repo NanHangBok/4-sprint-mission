@@ -3,8 +3,7 @@ package com.sprint.mission.discodeit.service.jcf;
 import com.sprint.mission.discodeit.entity.Channel;
 import com.sprint.mission.discodeit.entity.Message;
 import com.sprint.mission.discodeit.entity.User;
-import com.sprint.mission.discodeit.service.ChannelService;
-import com.sprint.mission.discodeit.service.MessageService;
+import com.sprint.mission.discodeit.factory.Factory;
 import com.sprint.mission.discodeit.service.UserService;
 
 import java.util.*;
@@ -18,7 +17,7 @@ public class JCFUserService implements UserService {
 
     private final List<User> data;
     
-    JCFUserService() {
+    public JCFUserService() {
         data = new ArrayList<>();
     }
 
@@ -30,7 +29,6 @@ public class JCFUserService implements UserService {
                 anyMatch(user1 -> user1.getEmail().equals(email));
         if (!emailMatch) {
             data.add(user);
-            user.setActive(true);
         }
         return user;
     }
@@ -88,39 +86,29 @@ public class JCFUserService implements UserService {
      *  deleteUser(UUID userId) 유저 아이디로 객체를 식별 후 삭제
      ********************************************/
 
-    /********************************************
-     * 유저 삭제
-     * @param user 삭제할 유저
-     ********************************************/
-    @Override
-    public void deleteUser(User user) {
-        data.remove(user);
-        /********************************************
-         * 유저가 있던 채널에서 유저 삭제
-         ********************************************/
-        List<Channel> userChannels = user.getChannels();
-        for (Channel channel : userChannels){
-            channel.getUsers().remove(user);
-        }
-        // 모든 채널 내 해당 유저 삭제
-
-        /********************************************
-         * 유저가 작성한 메시지를 전체 메시지 내역에서 삭제
-         ********************************************/
-        List<Message> userMessages = user.getMessages();
-        for (Message message : userMessages){
-            Factory.getInstance().getMessageService().deleteMessage(message);
-        }
-        // 해당 유저의 모든 대화 내역 삭제
-        user.setActive(false); //  상태 변경
-    }
-
     @Override
     public void deleteUser(UUID userId) {
         Optional<User> us = data.stream().filter(u -> u.getId().equals(userId)).findFirst();
         if (us.isPresent()) {
             User user = us.get();
-            this.deleteUser(user);
+            data.remove(user);
+            /********************************************
+             * 유저가 있던 채널에서 유저 삭제
+             ********************************************/
+            List<Channel> userChannels = user.getChannels();
+            for (Channel channel : userChannels){
+                channel.getUsers().remove(user);
+            }
+            // 모든 채널 내 해당 유저 삭제
+
+            /********************************************
+             * 유저가 작성한 메시지를 전체 메시지 내역에서 삭제
+             ********************************************/
+            List<Message> userMessages = user.getMessages();
+            for (Message message : userMessages){
+                Factory.getInstance().getMessageService().deleteMessage(message);
+            }
+            // 해당 유저의 모든 대화 내역 삭제
         }
 
     }
