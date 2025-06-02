@@ -41,10 +41,19 @@ public class JCFMessageService implements MessageService {
             User user = optUser.get();
             Channel channel = optChannel.get();
 
+<<<<<<< HEAD
             data.add(message);
             message.setActive(true);
             channel.updateMessages(message);
             user.addMessages(message);
+=======
+            message.setActive(true);
+            data.add(message);
+            channel.updateMessages(message);
+            user.addMessages(message);
+            message.updateChannels(channel);
+            message.updateUsers(user);
+>>>>>>> 663f3fd4b8842c33238ace0851f5e1d4a9cc374b
             return message;
         } else {
             return message;
@@ -108,6 +117,7 @@ public class JCFMessageService implements MessageService {
         for (User user : jcfUserService.getUsers()) {
             user.getMessages().remove(message);
         }
+        message.setActive(false);
     }
 
 }

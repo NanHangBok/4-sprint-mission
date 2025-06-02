@@ -11,6 +11,11 @@ public class Message {
     private String content;
     private UUID userId;
     private UUID ChannelId;
+<<<<<<< HEAD
+=======
+    private final List<User> users;
+    private final List<Channel> channels;
+>>>>>>> 663f3fd4b8842c33238ace0851f5e1d4a9cc374b
     private boolean isActive;
 
     public Message(String content, UUID userId, UUID channelId) {
@@ -65,6 +70,10 @@ public class Message {
 
     public void setContent(String content) {
         this.content = content;
+    }
+
+    public void setActive(boolean active) {
+        isActive = active;
     }
 
     public void setActive(boolean active) {

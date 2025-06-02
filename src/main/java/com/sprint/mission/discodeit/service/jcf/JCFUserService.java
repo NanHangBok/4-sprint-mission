@@ -32,9 +32,15 @@ public class JCFUserService implements UserService {
         User user = new User(name, password, email);
         boolean emailMatch = data.stream().
                 anyMatch(user1 -> user1.getEmail().equals(email));
+<<<<<<< HEAD
         if (!emailMatch) {
             data.add(user);
             user.setActive(true);
+=======
+        if (emailMatch) {
+            user.setActive(true);
+            data.add(user);
+>>>>>>> 663f3fd4b8842c33238ace0851f5e1d4a9cc374b
         }
         return user;
     }
@@ -107,7 +113,11 @@ public class JCFUserService implements UserService {
              ********************************************/
             List<Message> userMessage = user.getMessages();
             for (Message message : userMessage){
+<<<<<<< HEAD
                 JCFMessageService.getMessageInstance().deleteMessage(message);
+=======
+                message.getUsers().remove(user);
+>>>>>>> 663f3fd4b8842c33238ace0851f5e1d4a9cc374b
             }
             // 해당 유저의 모든 대화 내역 삭제
             user.setActive(false); //  상태 변경
