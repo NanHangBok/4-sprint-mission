@@ -100,15 +100,16 @@ public class JCFChannelService implements ChannelService {
             /***********************************
              * 채널을 가지고 있는 유저에게 채널 삭제
              ***********************************/
-            for (User user : channel.getUsers()) {
-                if (user.getChannels().contains(channel))
-                    user.removeChannel(channel);
-                    user.setUpdatedAt(System.currentTimeMillis());
-            }  // 모든 유저에게 해당 채널 삭제
+            List<User> users = new ArrayList<User>(channel.getUsers());
+            for(User user:users){
+                user.removeChannel(channel);
+                user.setUpdatedAt(System.currentTimeMillis());
+            }
+            // 모든 유저에게 해당 채널 삭제
 
             /***********************************
              * 전체 메시지 중 해당 채널의 메시지 삭제
-             ***********************************/
+             ***********************************/g
             jcfMessageService.removeMessages(channel.getMessages());  // 채널 내 모든 메세지 삭제
         }
     }

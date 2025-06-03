@@ -4,7 +4,6 @@ import com.sprint.mission.discodeit.entity.Channel;
 import com.sprint.mission.discodeit.entity.Message;
 import com.sprint.mission.discodeit.entity.User;
 import com.sprint.mission.discodeit.entity.Status;
-import com.sprint.mission.discodeit.enums.UpdateField;
 import com.sprint.mission.discodeit.service.ChannelService;
 import com.sprint.mission.discodeit.service.MessageService;
 import com.sprint.mission.discodeit.service.UserService;
@@ -66,7 +65,6 @@ public class JavaApplication {
         System.out.println("---------전체 조회 (수정 후)---------");
         jcfUserService.updateUser(u1.getId(), "최객체", "password1",Status.AWAY);
         jcfUserService.updateUser(u2.getId(), "이코드", "password2",Status.ONLINE);
-        jcfUserService.updateUser(u2.getId(), "박자바", "pswd1234",Status.OFFLINE);
         jcfUserService.getUsers().
                 forEach(System.out::println);
         System.out.println();
