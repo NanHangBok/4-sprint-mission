@@ -10,6 +10,7 @@ public interface MessageService {
     public Message createMessage(String content, UUID userId, UUID channelId);
     public List<Message> getMessages();
     public Optional<Message> getMessagesById(UUID messageId);
-    public void updateMessage(UUID messageId, int select, String updatedText);
-    public void deleteMessage(Message message);
+    public void updateMessage(UUID messageId, String content);
+    public void removeMessages(List<Message> messages);
+    public void removeMessage(Message messgae);
 }

@@ -3,6 +3,8 @@ package com.sprint.mission.discodeit.run;
 import com.sprint.mission.discodeit.entity.Channel;
 import com.sprint.mission.discodeit.entity.Message;
 import com.sprint.mission.discodeit.entity.User;
+import com.sprint.mission.discodeit.entity.Status;
+import com.sprint.mission.discodeit.enums.UpdateField;
 import com.sprint.mission.discodeit.service.ChannelService;
 import com.sprint.mission.discodeit.service.MessageService;
 import com.sprint.mission.discodeit.service.UserService;
@@ -18,14 +20,18 @@ public class JavaApplication {
         ChannelService jcfChannelService = factory.getChannelService();
         MessageService jcfMessageService = factory.getMessageService();
         /****************************************
-         *  외부에서 Factory 금지
-         *  user와 userid 사용하는거 통일 시키기
-         *  메서드 이름 바꾸기 deleteChannelUser  / IN_PROGRESS
-         *  isActive enum으로 구현하기  / COMPLETE
-         *  update select말고 전체를 입력받아서 수정된 부분만 수정하기 혹은 enum 사용하기
+         *  외부에서 Factory 금지  / COMPLETE
+         *  user와 userid 사용하는거 통일 시키기  / COMPLETE
+         *  메서드 이름 바꾸기 deleteChannelUser  / COMPLETE..?
+         *  isActive enum으로 구현하기  / COMPLETE -> status로 필드명 변경
+         *  update select말고 전체를 입력받아서 수정된 부분만 수정하기 혹은 enum 사용하기  / COMPLETE + enums 패키지 추가
          *  Factory 폴더 따로 빼기 / COMPLETE
          *  엔티티 공통 필드 basedEntity로 따로 빼기 ( id, createdAt, UpdatedAt ) / COMPLETE
-         *  setUpdated는 Service에서
+         *  setUpdated는 Service에서 / COMPLETE
+         *
+         *  updateField 사용하지 않기  / COMPLETE
+         *  status getter 생성자 ONLINE("온라인") = value  / COMPLETE
+         *  JCF 최대한 서비스에서 안 불러오기
          ****************************************/
         /****************************************
          *  정상 데이터 테스트
@@ -44,8 +50,7 @@ public class JavaApplication {
         System.out.println();
 
         System.out.println("---------단건조회---------");
-        UUID uid = u1.getId();
-        Optional<User> targetUser = jcfUserService.getUsersById(uid);
+        Optional<User> targetUser = jcfUserService.getUsersById(u1.getId());
         if (targetUser.isPresent()) {
             System.out.println(targetUser);
         } else {
@@ -59,8 +64,9 @@ public class JavaApplication {
         System.out.println();
 
         System.out.println("---------전체 조회 (수정 후)---------");
-        jcfUserService.updateUser(uid,1,"최객체");
-        jcfUserService.updateUser(u2.getId(),2,"UnknownPW");
+        jcfUserService.updateUser(u1.getId(), "최객체", "password1",Status.AWAY);
+        jcfUserService.updateUser(u2.getId(), "이코드", "password2",Status.ONLINE);
+        jcfUserService.updateUser(u2.getId(), "박자바", "pswd1234",Status.OFFLINE);
         jcfUserService.getUsers().
                 forEach(System.out::println);
         System.out.println();
@@ -93,7 +99,7 @@ public class JavaApplication {
         System.out.println();
 
         System.out.println("---------단건 조회---------");
-        Optional<Channel> targetChannel = jcfChannelService.getChannelById(ch1.getId());
+        Optional<Channel> targetChannel = jcfChannelService.getChannelById(ch2.getId());
         targetChannel.ifPresentOrElse(System.out::println, () -> System.out.println("해당 채널 없음"));
         System.out.println();
 
@@ -103,7 +109,7 @@ public class JavaApplication {
         System.out.println();
 
         System.out.println("---------전체 조회 (수정 후)---------");
-        jcfChannelService.updateChannel(ch1.getId(),1,"수정된 채널");
+        jcfChannelService.updateChannel(ch2.getId(),"수정된 채널");
         jcfChannelService.getChannels()
                 .forEach(System.out::println);
         System.out.println();
@@ -157,7 +163,7 @@ public class JavaApplication {
         System.out.println();
 
         System.out.println("---------단건 조회---------");
-        jcfMessageService.getMessagesById(msg1.getId())
+        jcfMessageService.getMessagesById(msg4.getId())
                 .ifPresentOrElse(System.out::println,()-> System.out.println("해당 메시지 없음"));
         System.out.println();
 
@@ -167,7 +173,7 @@ public class JavaApplication {
         System.out.println();
 
         System.out.println("---------전체 조회 (수정 후)---------");
-        jcfMessageService.updateMessage(msg1.getId(),1,"수정된 내용입니다.");
+        jcfMessageService.updateMessage(msg4.getId(),"수정된 내용입니다.");
         jcfMessageService.getMessages().
                 forEach(System.out::println);
         System.out.println();
@@ -178,7 +184,7 @@ public class JavaApplication {
         System.out.println();
 
         System.out.println("---------전체 조회 (삭제 후)---------");
-        jcfMessageService.deleteMessage(msg2);
+        jcfMessageService.removeMessage(msg2);
         jcfMessageService.getMessages()
                 .forEach(System.out::println);
         System.out.println();
@@ -200,12 +206,12 @@ public class JavaApplication {
         jcfMessageService.getMessages()
                 .forEach(System.out::println);
         System.out.println();
-        
+
         /***********************************
          * 유저 삭제 시 채널 및 메시지 삭제 확인
          ***********************************/
         System.out.println("------------------ 5. 유저 삭제 시 채널 내 유저 삭제 확인 ------------------");
-        
+
         User testUser1 = jcfUserService.createUser("유저1","testPW1","TEST@email.com");
         User testUser2 = jcfUserService.createUser("유저2","TESTpw2","testmail@email.com");
         User testUser3 = jcfUserService.createUser("유저3","testPSWD","email@pass.word");
@@ -244,22 +250,23 @@ public class JavaApplication {
         System.out.println(testChannel.getUserNames());
         System.out.println("----------------------메시지 삭제 확인--------------------------");
         System.out.println(testUser2.getChannelNames());
-        testChannel.deleteUser(testUser2);
+        testChannel.removeUser(testUser2);
         System.out.println(testUser2.getChannelNames());
         System.out.println("---");
         Message m1 = jcfMessageService.createMessage("<UNK> <UNK>",testUser1.getId(),testChannel.getId());
         Message m2 = jcfMessageService.createMessage("<TEST> TEST CONTENT",testUser2.getId(),testChannel.getId());
         System.out.println(testChannel.getMessageContents());
-        testChannel.deleteMessage(m1);
+        testChannel.removeMessage(m1);
         System.out.println(testChannel.getMessageContents());
         System.out.println("----------------------유저 삭제 후 채널, 채널에서 유저 삭제 후 유저가 참여중인 채널 확인-----------------------");
         System.out.println(testChannel.getUserNames());
         testChannel.addUser(testUser2);
         testChannel.addUser(testUser3);
-        testUser3.deleteChannel(testChannel);
+        jcfUserService.leaveChannel(testUser3,testChannel);
         System.out.println(testChannel.getUserNames());
-        testChannel.deleteUser(testUser2);
+        testChannel.removeUser(testUser2);
         System.out.println(testChannel.getUserNames());
         System.out.println(testUser2.getChannelNames());
+        System.out.println();
     }
 }

@@ -2,9 +2,12 @@ package com.sprint.mission.discodeit.service.jcf;
 
 import com.sprint.mission.discodeit.entity.Channel;
 import com.sprint.mission.discodeit.entity.Message;
+import com.sprint.mission.discodeit.entity.Status;
 import com.sprint.mission.discodeit.entity.User;
 import com.sprint.mission.discodeit.factory.Factory;
 import com.sprint.mission.discodeit.service.ChannelService;
+import com.sprint.mission.discodeit.service.MessageService;
+import com.sprint.mission.discodeit.service.UserService;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -20,19 +23,23 @@ import java.util.UUID;
  * 코드 리팩토링 2025. 06. 02 김민수
  ********************************************/
 public class JCFChannelService implements ChannelService {
+    MessageService jcfMessageService;
+
     private final List<Channel> data;
 
-    public JCFChannelService() {
+    public JCFChannelService(MessageService jcfMessageService) {
         this.data = new ArrayList<>();
+        this.jcfMessageService = jcfMessageService;
     }
 
     // 채널 생성
     @Override
     public Channel createChannel(User user, String channelName) {
         Channel channel = new Channel(user, channelName);
-        if (hasUsers(user)) {
+        if (user.isActive()) {
             addUserToChannel(channel, user);
             data.add(channel);
+            channel.setActive(true);
         }
         return channel;
     }
@@ -51,28 +58,39 @@ public class JCFChannelService implements ChannelService {
                 .filter(ch -> ch.getId().equals(channelId))
                 .findFirst();
     }
-    // 채널 내용 수정
+
     @Override
-    public void updateChannel(UUID channelId, int select, String updatedText) {
+    public void updateChannel(UUID channelId, String ChannelName) {
         Optional<Channel> tmp = data.stream()
                 .filter(ch -> ch.getId().equals(channelId))
                 .findFirst();
         if (tmp.isPresent()) {
-            switch (select) {
-                /***************
-                 *  CASE 1 : 채널명 수정
-                 *  CASE 2 이하 추가
-                 ***************/
-                case 1:
-                    tmp.get()
-                            .setChannelName(updatedText); // 채널명 수정
-                    tmp.get()
-                            .setUpdatedAt(System.currentTimeMillis()); // 채널 최종 업데이트 시간
-                    System.out.println("채널명 수정 완료");
-                    break;
-            }
+            tmp.get().setChannelName(ChannelName);
+            tmp.get().setUpdatedAt(System.currentTimeMillis());
         }
     }
+//    // 채널 내용 수정
+//    @Override
+//    public void updateChannel(UUID channelId, UpdateField updateField, String updatedText) {
+//        Optional<Channel> tmp = data.stream()
+//                .filter(ch -> ch.getId().equals(channelId))
+//                .findFirst();
+//        if (tmp.isPresent()) {
+//            switch (updateField) {
+//                /***************
+//                 *  CASE TYPE_NAME : 채널명 수정
+//                 *  CASE 2 이하 추가
+//                 ***************/
+//                case TYPE_NAME:
+//                    tmp.get()
+//                            .setChannelName(updatedText); // 채널명 수정
+//                    tmp.get()
+//                            .setUpdatedAt(System.currentTimeMillis()); // 채널 최종 업데이트 시간
+//                    System.out.println("채널명 수정 완료");
+//                    break;
+//            }
+//        }
+//    }
     // 채널 삭제
     @Override
     public void deleteChannel(Channel channel) {
@@ -83,15 +101,15 @@ public class JCFChannelService implements ChannelService {
              * 채널을 가지고 있는 유저에게 채널 삭제
              ***********************************/
             for (User user : channel.getUsers()) {
-                user.deleteChannel(channel);
+                if (user.getChannels().contains(channel))
+                    user.removeChannel(channel);
+                    user.setUpdatedAt(System.currentTimeMillis());
             }  // 모든 유저에게 해당 채널 삭제
 
             /***********************************
              * 전체 메시지 중 해당 채널의 메시지 삭제
              ***********************************/
-            for (Message message : channel.getMessages()) {
-                Factory.getInstance().getMessageService().deleteMessage(message);
-            }  // 채널 내 모든 메세지 삭제
+            jcfMessageService.removeMessages(channel.getMessages());  // 채널 내 모든 메세지 삭제
         }
     }
 
@@ -109,11 +127,14 @@ public class JCFChannelService implements ChannelService {
      ***********************************/
     @Override
     public void removeUserFromChannel(Channel channel, UUID userId) {
-        Optional<User> target = Factory.getInstance()
-                                        .getUserService()
-                                        .getUsersById(userId);
+        Optional<User> target = channel.getUsers().stream()
+                .filter(u -> u.getId().equals(userId))
+                .findFirst();
         target.ifPresentOrElse(
-                channel::deleteUser,
+                user -> {
+                    user.removeChannel(channel);  // 유저에서 해당 채널을 삭제하고
+                    channel.setUpdatedAt(System.currentTimeMillis());  // 채널의 업데이트 시간 수정
+                },
                 () -> System.out.println("해당유저가 채널에 없습니다."));
     }
 
@@ -124,19 +145,17 @@ public class JCFChannelService implements ChannelService {
      ***********************************/
     @Override
     public void addUserToChannel(Channel channel, User user) {
-        if (hasUsers(user)) {
-            channel.addUser(user);
+        if (user.isActive()) {
+            channel.addUser(user);  // 해당 유저에 채널을 추가하고
+            channel.setUpdatedAt(System.currentTimeMillis());  // 채널의 업데이트 시간 수정
         }
     }
 
-    /***********************************
-     * 특정 유저가 전체 유저 리스트에 존재하는지 확인하는 로직
-     * @param user 리스트에 존재하는지 확인하고 싶은 User 객체
-     * @return 존재하면 true, 존재하지 않는다면 false 반환
-     ***********************************/
-    public boolean hasUsers(User user) {
-        List<User> users = Factory.getInstance().getUserService().getUsers();
-        return users.contains(user);
+    public void removeMessage(UUID channelId,Message message) {
+        Optional<Channel> channel = getChannelById(channelId);
+        if (channel.isPresent() && channel.get()
+                                            .getMessages().contains(message)) {
+            channel.get().getMessages().remove(message);
+        }
     }
-
 }

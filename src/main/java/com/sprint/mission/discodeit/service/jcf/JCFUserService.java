@@ -3,7 +3,9 @@ package com.sprint.mission.discodeit.service.jcf;
 import com.sprint.mission.discodeit.entity.Channel;
 import com.sprint.mission.discodeit.entity.Message;
 import com.sprint.mission.discodeit.entity.User;
-import com.sprint.mission.discodeit.factory.Factory;
+import com.sprint.mission.discodeit.entity.Status;
+import com.sprint.mission.discodeit.service.ChannelService;
+import com.sprint.mission.discodeit.service.MessageService;
 import com.sprint.mission.discodeit.service.UserService;
 
 import java.util.*;
@@ -14,11 +16,14 @@ import java.util.*;
  * 2025.05.30 김민수
  ********************************************/
 public class JCFUserService implements UserService {
+    private ChannelService jcfChannelService;
+    private MessageService jcfMessageService;
 
     private final List<User> data;
-    
-    public JCFUserService() {
+
+    public JCFUserService(MessageService jcfMessageService) {
         data = new ArrayList<>();
+        this.jcfMessageService = jcfMessageService;
     }
 
     // 유저 생성
@@ -29,6 +34,7 @@ public class JCFUserService implements UserService {
                 anyMatch(user1 -> user1.getEmail().equals(email));
         if (!emailMatch) {
             data.add(user);
+            user.setActive(true);
         }
         return user;
     }
@@ -48,36 +54,62 @@ public class JCFUserService implements UserService {
         return user;
     }
 
-    // 유저 내용 수정
     @Override
-    public void updateUser(UUID userId, int select, String updatedText) {
-        Optional<User> user = data.stream()
-                .filter(u -> u.getId().equals(userId))
+    public void updateUser(UUID userId, String userName, String password, Status status){
+        Optional<User> tmp = data.stream()
+                .filter(user -> user.getId().equals(userId))
                 .findFirst();
-        if (user.isPresent()) {
-            switch(select) {
-                /********************************************
-                 * CASE 1 : 유저의 이름 수정
-                 * CASE 2 : 패스워드 변경
-                 ********************************************/
-                case 1:
-                    user.get()
-                            .setUserName(updatedText);  // 유저의 이름 수정
-                    user.get()
-                            .setUpdatedAt(System.currentTimeMillis()); // 최종 업데이트 시간
-                    System.out.println("UserName 업데이트 성공");
-                    break;
-                case 2:
-                    user.get()
-                            .setPassword(updatedText);
-                    user.get()
-                            .setUpdatedAt(System.currentTimeMillis());
-                    System.out.println("Password 변경 완료");
-            }
-        } else {
-            System.out.println("해당유저 없음");
+        if(tmp.isPresent()) {
+            tmp.get().setUserName(userName);
+            tmp.get().setPassword(password);
+            tmp.get().setStatus(status);
+            tmp.get().setUpdatedAt(System.currentTimeMillis());
         }
     }
+//    // 유저 내용 수정
+//    @Override
+//    public void updateUser(UUID userId, UpdateField updateField, String updatedText) {
+//        Optional<User> user = data.stream()
+//                .filter(u -> u.getId().equals(userId))
+//                .findFirst();
+//        if (user.isPresent()) {
+//            switch(updateField) {
+//                /********************************************
+//                 * CASE TYPE_NAME : 유저의 이름 수정
+//                 * CASE TYPE_PASSWORD : 패스워드 변경
+//                 ********************************************/
+//                case TYPE_NAME:
+//                    user.get()
+//                            .setUserName(updatedText);  // 유저의 이름 수정
+//                    user.get()
+//                            .setUpdatedAt(System.currentTimeMillis()); // 최종 업데이트 시간
+//                    System.out.println("UserName 업데이트 성공");
+//                    break;
+//                case TYPE_PASSWORD :
+//                    user.get()
+//                            .setPassword(updatedText);
+//                    user.get()
+//                            .setUpdatedAt(System.currentTimeMillis());
+//                    System.out.println("Password 변경 완료");
+//            }
+//        } else {
+//            System.out.println("해당유저 없음");
+//        }
+//    }
+//
+//    @Override
+//    public void updateUser(UUID userId, UpdateField updateField, Status updatedStatus) {
+//        Optional<User> user = data.stream()
+//                .filter(u -> u.getId().equals(userId))
+//                .findFirst();
+//        if (user.isPresent()) {
+//            user.get().setStatus(updatedStatus);
+//            user.get().setUpdatedAt(System.currentTimeMillis());
+//            System.out.println("상태 변경 완료");
+//        } else {
+//            System.out.println("해당유저 없음");
+//        }
+//    }
 
     // 유저 삭제
     /********************************************
@@ -98,6 +130,7 @@ public class JCFUserService implements UserService {
             List<Channel> userChannels = user.getChannels();
             for (Channel channel : userChannels){
                 channel.getUsers().remove(user);
+                channel.setUpdatedAt(System.currentTimeMillis());
             }
             // 모든 채널 내 해당 유저 삭제
 
@@ -105,12 +138,29 @@ public class JCFUserService implements UserService {
              * 유저가 작성한 메시지를 전체 메시지 내역에서 삭제
              ********************************************/
             List<Message> userMessages = user.getMessages();
-            for (Message message : userMessages){
-                Factory.getInstance().getMessageService().deleteMessage(message);
-            }
+            jcfMessageService.removeMessages(userMessages);
             // 해당 유저의 모든 대화 내역 삭제
         }
-
     }
 
+    public void leaveChannel(User user, Channel channel) {
+        if(data.contains(user)) {
+            UUID channelId = channel.getId();
+            for (Message message : user.getMessages()) {
+                if(message.getChannelId().equals(channelId)) {
+                    jcfMessageService.removeMessage(message);
+                }
+            }
+            user.getChannels().remove(channel);
+            channel.removeUser(user);
+        }
+    }
+
+    public void removeMessage(UUID userId, Message message){
+        Optional<User> user = getUsersById(userId);
+        if(user.isPresent() && user.get()
+                                    .getMessages().contains(message)) {
+            user.get().getMessages().remove(message);
+        }
+    }
 }

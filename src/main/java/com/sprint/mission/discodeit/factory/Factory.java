@@ -25,9 +25,9 @@ public class Factory {
         return instance;
     }
     private Factory() {
-        userService = new JCFUserService();
-        channelService = new JCFChannelService();
-        messageService = new JCFMessageService();
+        userService = new JCFUserService(getMessageService());
+        channelService = new JCFChannelService(getMessageService());
+        messageService = new JCFMessageService(getUserService(),getChannelService());
     }
 
     public UserService getUserService() {

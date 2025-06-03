@@ -17,7 +17,6 @@ public class Channel extends BasedEntity {
     private String channelName;
     private final List<User> users;
     private final List<Message> messages;
-
     public Channel(User host, String channelName) {
         super();
         this.hostUserId = host.getId();
@@ -89,18 +88,16 @@ public class Channel extends BasedEntity {
         }
     }
 
-    public void deleteUser(User user) {
+    public void removeUser(User user) {
         if (users.contains(user)) {
             users.remove(user);
-            user.getChannels().remove(this);
+            user.removeChannel(this);
         }
     }
-    public void deleteMessage(Message message) {
+
+    public void removeMessage(Message message) {
         if (messages.contains(message)) {
             messages.remove(message);
-            Factory.getInstance()
-                    .getMessageService()
-                    .deleteMessage(message);
         }
     }
 

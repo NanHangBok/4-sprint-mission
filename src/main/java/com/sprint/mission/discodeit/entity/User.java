@@ -1,19 +1,9 @@
 package com.sprint.mission.discodeit.entity;
 
-import com.sprint.mission.discodeit.factory.Factory;
-
-import java.security.PrivateKey;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
 
 public class User extends BasedEntity{
-    private enum Status {
-        ONLINE,
-        OFFLINE,
-        AWAY,
-        BUSY,
-    }
 
     private String userName;
     private final List<Channel> channels;
@@ -21,6 +11,7 @@ public class User extends BasedEntity{
     private String email;
     private String password;
     private Status status;
+    private boolean isActive;
     public User(String userName, String password, String email) {
         super();
         this.userName = userName;
@@ -113,18 +104,15 @@ public class User extends BasedEntity{
             messages.add(message);}
     }
 
-    public void deleteChannel(Channel channel){
-        if (channels.contains(channel)) {
-            UUID channelId = channel.getId();
-            for (Message message : messages) {
-                if (message.getChannelId().equals(channelId)) {
-                    Factory.getInstance().getMessageService().deleteMessage(message);
-                }
-            }
+    public void removeChannel(Channel channel) {
+        if(channels.contains(channel)) {
             channels.remove(channel);
+            channel.removeUser(this);
         }
     }
-    public void deleteMessage(Message message){
-        messages.remove(message);
+    public void removeMessage(Message message){
+        if(messages.contains(message)) {
+            messages.remove(message);
+        }
     }
 }
