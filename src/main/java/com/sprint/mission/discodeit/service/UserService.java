@@ -12,7 +12,7 @@ public interface UserService {
     public User createUser(String name, String password, String email);
     public List<User> getUsers();
     public Optional<User> getUsersById(UUID userId);
-    public void updateUser(UUID userId, String name, String password, Status status);
+    public void updateUser(UUID userId, User updateUser);
     public void deleteUser(UUID userId);
     public void leaveChannel(User user, Channel channel);
 }

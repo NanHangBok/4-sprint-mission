@@ -85,6 +85,7 @@ public class Channel extends BasedEntity {
     public void addMessage(Message message){
         if (!messages.contains(message)) {
             messages.add(message);
+            message.addChannel(this);
         }
     }
 
@@ -98,6 +99,7 @@ public class Channel extends BasedEntity {
     public void removeMessage(Message message) {
         if (messages.contains(message)) {
             messages.remove(message);
+            message.removeChannel(this);
         }
     }
 

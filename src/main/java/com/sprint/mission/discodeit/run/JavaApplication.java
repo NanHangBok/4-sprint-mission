@@ -31,6 +31,10 @@ public class JavaApplication {
          *  updateField 사용하지 않기  / COMPLETE
          *  status getter 생성자 ONLINE("온라인") = value  / COMPLETE
          *  JCF 최대한 서비스에서 안 불러오기  / MessageService가 채널과 유저에 의존하지 않게(채널 서비스와 유저 서비스에 접근하지 않도록) 수정
+         *  -
+         *  stream().map으로 수정  / COMPLETE
+         *  channel과 유저에서 addMessage와 removeMessage를 메세지와 상호 보완적으로 수정  / COMPLETE
+         *  updateUser 몇 개의 인자가 오든 대응 가능하게 수정
          ****************************************/
         /****************************************
          *  정상 데이터 테스트
@@ -63,8 +67,8 @@ public class JavaApplication {
         System.out.println();
 
         System.out.println("---------전체 조회 (수정 후)---------");
-        jcfUserService.updateUser(u1.getId(), "최객체", "password1",Status.AWAY);
-        jcfUserService.updateUser(u2.getId(), "이코드", "password2",Status.ONLINE);
+        jcfUserService.updateUser(u1.getId(), new User("최객체",null,null,Status.AWAY));
+        jcfUserService.updateUser(u2.getId(), new User(null,"passwordChange","ChangeMail@email.com",null));
         jcfUserService.getUsers().
                 forEach(System.out::println);
         System.out.println();

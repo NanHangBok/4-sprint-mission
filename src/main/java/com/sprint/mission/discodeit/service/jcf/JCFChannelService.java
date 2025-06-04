@@ -56,13 +56,15 @@ public class JCFChannelService implements ChannelService {
                 .findFirst();
     }
 
+    // 채널 업데이트 ( 정보 수정 )
+    // 현재는 수정 가능한 입력이 channelName 1개
     @Override
-    public void updateChannel(UUID channelId, String ChannelName) {
+    public void updateChannel(UUID channelId, String channelName) {
         Optional<Channel> tmp = data.stream()
                 .filter(ch -> ch.getId().equals(channelId))
                 .findFirst();
         if (tmp.isPresent()) {
-            tmp.get().setChannelName(ChannelName);
+            tmp.get().setChannelName(channelName);
             tmp.get().setUpdatedAt(System.currentTimeMillis());
         }
     }
@@ -97,31 +99,26 @@ public class JCFChannelService implements ChannelService {
             /***********************************
              * 채널을 가지고 있는 유저에게 채널 삭제
              ***********************************/
-            List<User> users = new ArrayList<User>(channel.getUsers());
-            for(User user:users){
-                user.removeChannel(channel);
-                user.setUpdatedAt(System.currentTimeMillis());
-            }
+            channel.getUsers().stream()
+                    .forEach(user -> {
+                        user.getChannels().remove(channel);
+                        user.setUpdatedAt(System.currentTimeMillis());
+                    });
             // 모든 유저에게 해당 채널 삭제
 
             /***********************************
              * 전체 메시지 중 해당 채널의 메시지 삭제
              ***********************************/
-            for(Message message : channel.getMessages()) {
-                jcfMessageService.removeMessage(message);
-            }// 채널 내 모든 메세지 삭제
+            channel.getMessages().stream()
+                    .forEach(message -> {
+                        jcfMessageService.removeMessage(message);
+                        message.setUpdatedAt(System.currentTimeMillis());
+                    });// 채널 내 모든 메세지 삭제
         }
     }
 
-
     /***********************************
-     * deleteChannelUser 오버로딩
-     * deleteChannelUser(Channel, UUID) = UID로 채널 내 유저 삭제
-     * deleteChannelUser(Channel, User) = 채널 내 유저 삭제
-     ***********************************/
-
-    /***********************************
-     * 해당 채널ConcurrentModificationException의 존재하는 특정 유저를 id를 통해 삭제
+     * 해당 채널의 존재하는 특정 유저를 id를 통해 삭제
      * @param channel 삭제할 유저가 있는 채널
      * @param userId 삭제할 유저의 id
      ***********************************/

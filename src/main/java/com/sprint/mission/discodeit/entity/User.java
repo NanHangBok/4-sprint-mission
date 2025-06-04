@@ -21,7 +21,15 @@ public class User extends BasedEntity{
         this.password = password;
         this.status = Status.ONLINE;
     }
-
+    public User(String userName, String password, String email, Status status) {
+        super();
+        this.channels = new ArrayList<>();
+        this.messages = new ArrayList<>();
+        this.userName = userName;
+        this.password = password;
+        this.email = email;
+        this.status = status;
+    }
     @Override
     public String toString() {
         return "User{" +
@@ -68,6 +76,10 @@ public class User extends BasedEntity{
         return email;
     }
 
+    public String getPassword() { return password; }
+
+    public Status getStatus() { return status; }
+
     /**
      * setter
      */
@@ -84,6 +96,8 @@ public class User extends BasedEntity{
         this.status = status;
     }
 
+    public void setEmail(String email) { this.email = email; }
+
     /**
      * add, delete
      */
@@ -97,6 +111,7 @@ public class User extends BasedEntity{
     public void addMessage(Message message){
         if(!messages.contains(message) && message.getUser().equals(this))  {
             messages.add(message);
+            message.addUser(this);
         }
     }
 
@@ -109,6 +124,7 @@ public class User extends BasedEntity{
     public void removeMessage(Message message){
         if(messages.contains(message)) {
             messages.remove(message);
+            message.removeUser(this);
         }
     }
 }

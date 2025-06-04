@@ -43,4 +43,28 @@ public class Message extends BasedEntity {
         this.content = content;
     }
 
+    public void addUser(User user) {
+        if (this.user == null){
+            this.user = user;
+            user.addMessage(this);
+        }
+    }
+    public void addChannel(Channel channel) {
+        if (this.channel == null){
+            this.channel = channel;
+            channel.addMessage(this);
+        }
+    }
+    public void removeUser(User user) {
+        if (this.user != null) {
+            this.user = null;
+            user.removeMessage(this);
+        }
+    }
+    public void removeChannel(Channel channel) {
+        if (this.channel != null) {
+            this.channel = null;
+            channel.removeMessage(this);
+        }
+    }
 }

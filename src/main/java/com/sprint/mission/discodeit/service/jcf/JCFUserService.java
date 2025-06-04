@@ -55,22 +55,42 @@ public class JCFUserService implements UserService {
     /********************************************
      * 유저 정보 업데이트
      * @param userId  유저의 아이디 / 수정되지 않음 / 유저를 찾는 용도
-     * @param userName  유저의 이름 / 수정될 수 있음
-     * @param password  유저의 패스워드 / 수정될 수 잇음
-     * @param status  유저의 상태 / enum 클래스 / (ONLINE,OFFLINE,AWAY,BUSY) 중 하나를 입력받음
+     * @param updateUser 수정할 정보를 담은 User / null이 아닌 값을 기존 유저의 값을 수정
      ********************************************/
     @Override
-    public void updateUser(UUID userId, String userName, String password, Status status){
-        Optional<User> tmp = data.stream()
-                .filter(user -> user.getId().equals(userId))
-                .findFirst();
-        if(tmp.isPresent()) {
-            tmp.get().setUserName(userName);
-            tmp.get().setPassword(password);
-            tmp.get().setStatus(status);
-            tmp.get().setUpdatedAt(System.currentTimeMillis());
+    public void updateUser(UUID userId, User updateUser) {
+        Optional<User> target = getUsersById(userId);
+        if (target.isPresent()) {
+            User user = target.get();
+            if (updateUser.getUserName() != null) {
+                user.setUserName(updateUser.getUserName());
+            }
+            if (updateUser.getPassword() != null) {
+                user.setPassword(updateUser.getPassword());
+            }
+            if (updateUser.getEmail() != null) {
+                user.setEmail(updateUser.getEmail());
+            }
+            if (updateUser.getStatus() != null) {
+                user.setStatus(updateUser.getStatus());
+            }
+            if (updateUser.getUserName() != null || updateUser.getPassword() != null || updateUser.getStatus() != null) {
+                user.setUpdatedAt(System.currentTimeMillis());
+            }
         }
     }
+    //    @Override
+//    public void updateUser(UUID userId, String userName, String password, Status status){
+//        Optional<User> tmp = data.stream()
+//                .filter(user -> user.getId().equals(userId))
+//                .findFirst();
+//        if(tmp.isPresent()) {
+//            tmp.get().setUserName(userName);
+//            tmp.get().setPassword(password);
+//            tmp.get().setStatus(status);
+//            tmp.get().setUpdatedAt(System.currentTimeMillis());
+//        }
+//    }
 //    // 유저 내용 수정
 //    @Override
 //    public void updateUser(UUID userId, UpdateField updateField, String updatedText) {
@@ -118,9 +138,8 @@ public class JCFUserService implements UserService {
 
     // 유저 삭제
     /********************************************
-     *  유저 삭제 메서드 오버로딩
-     *  deleteUser(User user) 유저객체로 삭제
-     *  deleteUser(UUID userId) 유저 아이디로 객체를 식별 후 삭제
+     *  유저 삭제 메서드
+     * @param userId 아이디를 입력으로 받음
      ********************************************/
 
     @Override
@@ -132,30 +151,39 @@ public class JCFUserService implements UserService {
             /********************************************
              * 유저가 있던 채널에서 유저 삭제
              ********************************************/
-            List<Channel> userChannels = user.getChannels();
-            for (Channel channel : userChannels){
-                channel.getUsers().remove(user);
-                channel.setUpdatedAt(System.currentTimeMillis());
-            }
+            user.getChannels().stream()
+                    .forEach(channel -> {
+                        channel.getUsers().remove(user);
+                        channel.setUpdatedAt(System.currentTimeMillis());
+                    });
             // 모든 채널 내 해당 유저 삭제
 
             /********************************************
              * 유저가 작성한 메시지를 전체 메시지 내역에서 삭제
              ********************************************/
-            List<Message> userMessages = user.getMessages();
-            for (Message message : userMessages)
-            jcfMessageService.removeMessage(message);
+            user.getMessages().stream()
+                    .forEach(message -> {
+                        jcfMessageService.removeMessage(message);
+                        message.setUpdatedAt(System.currentTimeMillis());
+                    });
             // 해당 유저의 모든 대화 내역 삭제
         }
     }
 
+    /**
+     * 채널 나가기
+     * 유저가 채널을 나가서 삭제되거나 채널이 유저를 퇴장해서 채널이 삭제될 때 사용
+     * @param user
+     * @param channel
+     */
     public void leaveChannel(User user, Channel channel) {
         if(data.contains(user)) {
-            for (Message message : user.getMessages()) {
-                if(message.getChannel().equals(channel)) {
-                    jcfMessageService.removeMessage(message);
-                }
-            }
+            user.getMessages().stream()
+                    .filter(message -> message.getChannel().equals(channel))
+                    .forEach(message -> {
+                        jcfMessageService.removeMessage(message);
+                        message.setUpdatedAt(System.currentTimeMillis());
+                    });
             user.getChannels().remove(channel);
             channel.removeUser(user);
         }

@@ -53,6 +53,8 @@ public class JCFMessageService implements MessageService {
                 .findFirst();
     }
 
+    // 메시지 내용 수정
+    // 현재는 내용 1개만 수정 가능
     @Override
     public void updateMessage(UUID messageId, String content) {
         Optional<Message> tmp = data.stream()
