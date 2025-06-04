@@ -33,7 +33,7 @@ public class User extends BasedEntity{
                 ", password= " + password +
                 ", channels=" + getChannelNames() +  // 유저가 존재하는 채널의 이름 리스트
                 ", messages=" + getMessageContents() +  // 유저가 작성한 메시지의 내용 리스트
-                ", status=" + getStatus() +
+                ", status=" + status.getValue() +
                 '}';
     }
 
@@ -68,10 +68,6 @@ public class User extends BasedEntity{
         return email;
     }
 
-    public Status getStatus() {
-        return status;
-    }
-
     /**
      * setter
      */
@@ -99,9 +95,9 @@ public class User extends BasedEntity{
     }
 
     public void addMessage(Message message){
-        if(!messages.contains(message) &&
-                message.getUserId().equals(this.getId()))  {
-            messages.add(message);}
+        if(!messages.contains(message) && message.getUser().equals(this))  {
+            messages.add(message);
+        }
     }
 
     public void removeChannel(Channel channel) {

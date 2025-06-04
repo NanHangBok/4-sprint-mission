@@ -2,12 +2,9 @@ package com.sprint.mission.discodeit.service.jcf;
 
 import com.sprint.mission.discodeit.entity.Channel;
 import com.sprint.mission.discodeit.entity.Message;
-import com.sprint.mission.discodeit.entity.Status;
 import com.sprint.mission.discodeit.entity.User;
-import com.sprint.mission.discodeit.factory.Factory;
 import com.sprint.mission.discodeit.service.ChannelService;
 import com.sprint.mission.discodeit.service.MessageService;
-import com.sprint.mission.discodeit.service.UserService;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -109,8 +106,10 @@ public class JCFChannelService implements ChannelService {
 
             /***********************************
              * 전체 메시지 중 해당 채널의 메시지 삭제
-             ***********************************/g
-            jcfMessageService.removeMessages(channel.getMessages());  // 채널 내 모든 메세지 삭제
+             ***********************************/
+            for(Message message : channel.getMessages()) {
+                jcfMessageService.removeMessage(message);
+            }// 채널 내 모든 메세지 삭제
         }
     }
 
@@ -149,14 +148,6 @@ public class JCFChannelService implements ChannelService {
         if (user.isActive()) {
             channel.addUser(user);  // 해당 유저에 채널을 추가하고
             channel.setUpdatedAt(System.currentTimeMillis());  // 채널의 업데이트 시간 수정
-        }
-    }
-
-    public void removeMessage(UUID channelId,Message message) {
-        Optional<Channel> channel = getChannelById(channelId);
-        if (channel.isPresent() && channel.get()
-                                            .getMessages().contains(message)) {
-            channel.get().getMessages().remove(message);
         }
     }
 }

@@ -5,14 +5,14 @@ import java.util.UUID;
 
 public class Message extends BasedEntity {
     private String content;
-    private UUID userId;
-    private UUID ChannelId;
+    private User user;
+    private Channel channel;
 
-    public Message(String content, UUID userId, UUID channelId) {
+    public Message(String content, User user, Channel channel) {
         super();
         this.content = content;
-        this.userId = userId;
-        this.ChannelId = channelId;
+        this.user = user;
+        this.channel = channel;
     }
 
     @Override
@@ -22,8 +22,8 @@ public class Message extends BasedEntity {
                 ", messageCreatedAt=" + getCreatedAt() +
                 ", messageUpdatedAt=" + getUpdatedAt() +
                 ", content='" + content +
-                ", userId=" + userId +
-                ", ChannelId=" + ChannelId +
+                ", userId=" + user.getId() +
+                ", ChannelId=" + channel.getId() +
                 '}';
     }
 
@@ -31,12 +31,12 @@ public class Message extends BasedEntity {
         return content;
     }
 
-    public UUID getUserId() {
-        return userId;
+    public User getUser() {
+        return user;
     }
 
-    public UUID getChannelId() {
-        return ChannelId;
+    public Channel getChannel() {
+        return channel;
     }
 
     public void setContent(String content) {

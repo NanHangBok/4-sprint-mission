@@ -4,7 +4,6 @@ import com.sprint.mission.discodeit.entity.Channel;
 import com.sprint.mission.discodeit.entity.Message;
 import com.sprint.mission.discodeit.entity.User;
 import com.sprint.mission.discodeit.entity.Status;
-import com.sprint.mission.discodeit.service.ChannelService;
 import com.sprint.mission.discodeit.service.MessageService;
 import com.sprint.mission.discodeit.service.UserService;
 
@@ -16,7 +15,6 @@ import java.util.*;
  * 2025.05.30 김민수
  ********************************************/
 public class JCFUserService implements UserService {
-    private ChannelService jcfChannelService;
     private MessageService jcfMessageService;
 
     private final List<User> data;
@@ -54,6 +52,13 @@ public class JCFUserService implements UserService {
         return user;
     }
 
+    /********************************************
+     * 유저 정보 업데이트
+     * @param userId  유저의 아이디 / 수정되지 않음 / 유저를 찾는 용도
+     * @param userName  유저의 이름 / 수정될 수 있음
+     * @param password  유저의 패스워드 / 수정될 수 잇음
+     * @param status  유저의 상태 / enum 클래스 / (ONLINE,OFFLINE,AWAY,BUSY) 중 하나를 입력받음
+     ********************************************/
     @Override
     public void updateUser(UUID userId, String userName, String password, Status status){
         Optional<User> tmp = data.stream()
@@ -138,29 +143,21 @@ public class JCFUserService implements UserService {
              * 유저가 작성한 메시지를 전체 메시지 내역에서 삭제
              ********************************************/
             List<Message> userMessages = user.getMessages();
-            jcfMessageService.removeMessages(userMessages);
+            for (Message message : userMessages)
+            jcfMessageService.removeMessage(message);
             // 해당 유저의 모든 대화 내역 삭제
         }
     }
 
     public void leaveChannel(User user, Channel channel) {
         if(data.contains(user)) {
-            UUID channelId = channel.getId();
             for (Message message : user.getMessages()) {
-                if(message.getChannelId().equals(channelId)) {
+                if(message.getChannel().equals(channel)) {
                     jcfMessageService.removeMessage(message);
                 }
             }
             user.getChannels().remove(channel);
             channel.removeUser(user);
-        }
-    }
-
-    public void removeMessage(UUID userId, Message message){
-        Optional<User> user = getUsersById(userId);
-        if(user.isPresent() && user.get()
-                                    .getMessages().contains(message)) {
-            user.get().getMessages().remove(message);
         }
     }
 }

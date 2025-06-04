@@ -27,10 +27,10 @@ public class JavaApplication {
          *  Factory 폴더 따로 빼기 / COMPLETE
          *  엔티티 공통 필드 basedEntity로 따로 빼기 ( id, createdAt, UpdatedAt ) / COMPLETE
          *  setUpdated는 Service에서 / COMPLETE
-         *
+         *  -
          *  updateField 사용하지 않기  / COMPLETE
          *  status getter 생성자 ONLINE("온라인") = value  / COMPLETE
-         *  JCF 최대한 서비스에서 안 불러오기
+         *  JCF 최대한 서비스에서 안 불러오기  / MessageService가 채널과 유저에 의존하지 않게(채널 서비스와 유저 서비스에 접근하지 않도록) 수정
          ****************************************/
         /****************************************
          *  정상 데이터 테스트
@@ -148,11 +148,11 @@ public class JavaApplication {
         System.out.println("------------------3. Message 테스트------------------");
         System.out.println("---------등록---------");
 
-        Message msg1 = jcfMessageService.createMessage("내용1",u1.getId(),ch1.getId());
-        Message msg2 = jcfMessageService.createMessage("내용2",u2.getId(),ch1.getId());
-        Message msg3 = jcfMessageService.createMessage("내용3",u1.getId(),ch2.getId());
-        Message msg4 = jcfMessageService.createMessage("내용4",u3.getId(),ch2.getId());
-        Message msg5 = jcfMessageService.createMessage("내용5",u2.getId(),ch2.getId());
+        Message msg1 = jcfMessageService.createMessage("내용1",u1,ch1);
+        Message msg2 = jcfMessageService.createMessage("내용2",u2,ch1);
+        Message msg3 = jcfMessageService.createMessage("내용3",u1,ch2);
+        Message msg4 = jcfMessageService.createMessage("내용4",u3,ch2);
+        Message msg5 = jcfMessageService.createMessage("내용5",u2,ch2);
         System.out.println();
 
         System.out.println("---------다건 조회---------");
@@ -232,15 +232,14 @@ public class JavaApplication {
         UUID tempUID = UUID.randomUUID();
         User tempUser = new User("더미","tempPW","TEMPTEMP@TEMP.TEMP");
         Channel tempChannel = new Channel(tempUser,"더미채널");
-        Message tempMessage = new Message("더미내용",tempUser.getId(),tempChannel.getId());
+        Message tempMessage = new Message("더미내용",tempUser,tempChannel);
 
         // 실존 채널에 더미 유저 추가 ( users에 안들어가 있음 )
         jcfChannelService.addUserToChannel(testChannel,tempUser);
 
         // 각종 더미 메시지
-        jcfMessageService.createMessage("더미유저의 메시지",tempUser.getId(),tempChannel.getId());
-        jcfMessageService.createMessage("더미 UID에 메시지",tempUID,testChannel.getId());
-        jcfMessageService.createMessage("실존 유저이 더미 채널에 메시지",testUser1.getId(),tempChannel.getId());
+        jcfMessageService.createMessage("더미유저의 메시지",tempUser,tempChannel);
+        jcfMessageService.createMessage("실존 유저이 더미 채널에 메시지",testUser1,tempChannel);
 
         System.out.println(tempChannel.getUserNames());
         System.out.println("<UNK> <UNK> <UNK>");
@@ -251,8 +250,8 @@ public class JavaApplication {
         testChannel.removeUser(testUser2);
         System.out.println(testUser2.getChannelNames());
         System.out.println("---");
-        Message m1 = jcfMessageService.createMessage("<UNK> <UNK>",testUser1.getId(),testChannel.getId());
-        Message m2 = jcfMessageService.createMessage("<TEST> TEST CONTENT",testUser2.getId(),testChannel.getId());
+        Message m1 = jcfMessageService.createMessage("<UNK> <UNK>",testUser1,testChannel);
+        Message m2 = jcfMessageService.createMessage("<TEST> TEST CONTENT",testUser2,testChannel);
         System.out.println(testChannel.getMessageContents());
         testChannel.removeMessage(m1);
         System.out.println(testChannel.getMessageContents());
