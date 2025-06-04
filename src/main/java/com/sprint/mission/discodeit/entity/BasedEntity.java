@@ -3,10 +3,10 @@ package com.sprint.mission.discodeit.entity;
 import java.util.UUID;
 
 public class BasedEntity {
-    private final UUID id;
-    private final Long createdAt;
-    private Long updatedAt;
-    private boolean isActive;
+    private final UUID id;  // 랜덤한 UUID 값으로 중복 방지
+    private final Long createdAt;  // 생성 시간
+    private Long updatedAt;  // 최종 업데이트 시간
+    private boolean isActive;  // 객체가 존재하는가 ( 컨트롤 하기 적합한 가 )
 
     public BasedEntity() {
         Long time = System.currentTimeMillis();

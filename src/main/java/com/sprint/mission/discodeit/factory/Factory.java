@@ -26,8 +26,8 @@ public class Factory {
     }
     private Factory() {
         messageService = new JCFMessageService();
-        userService = new JCFUserService(getMessageService());
-        channelService = new JCFChannelService(getMessageService());
+        userService = new JCFUserService(getMessageService());  // 유저서비스는 메시지서비스를 주입받는다
+        channelService = new JCFChannelService(getMessageService());  // 채널서비스는 메시지서비스를 주입받는다
     }
 
     public UserService getUserService() {

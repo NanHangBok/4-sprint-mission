@@ -34,7 +34,7 @@ public class JavaApplication {
          *  -
          *  stream().map으로 수정  / COMPLETE
          *  channel과 유저에서 addMessage와 removeMessage를 메세지와 상호 보완적으로 수정  / COMPLETE
-         *  updateUser 몇 개의 인자가 오든 대응 가능하게 수정
+         *  updateUser 몇 개의 인자가 오든 대응 가능하게 수정 / COMPLETE
          ****************************************/
         /****************************************
          *  정상 데이터 테스트

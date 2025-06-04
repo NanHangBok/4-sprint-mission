@@ -79,69 +79,11 @@ public class JCFUserService implements UserService {
             }
         }
     }
-    //    @Override
-//    public void updateUser(UUID userId, String userName, String password, Status status){
-//        Optional<User> tmp = data.stream()
-//                .filter(user -> user.getId().equals(userId))
-//                .findFirst();
-//        if(tmp.isPresent()) {
-//            tmp.get().setUserName(userName);
-//            tmp.get().setPassword(password);
-//            tmp.get().setStatus(status);
-//            tmp.get().setUpdatedAt(System.currentTimeMillis());
-//        }
-//    }
-//    // 유저 내용 수정
-//    @Override
-//    public void updateUser(UUID userId, UpdateField updateField, String updatedText) {
-//        Optional<User> user = data.stream()
-//                .filter(u -> u.getId().equals(userId))
-//                .findFirst();
-//        if (user.isPresent()) {
-//            switch(updateField) {
-//                /********************************************
-//                 * CASE TYPE_NAME : 유저의 이름 수정
-//                 * CASE TYPE_PASSWORD : 패스워드 변경
-//                 ********************************************/
-//                case TYPE_NAME:
-//                    user.get()
-//                            .setUserName(updatedText);  // 유저의 이름 수정
-//                    user.get()
-//                            .setUpdatedAt(System.currentTimeMillis()); // 최종 업데이트 시간
-//                    System.out.println("UserName 업데이트 성공");
-//                    break;
-//                case TYPE_PASSWORD :
-//                    user.get()
-//                            .setPassword(updatedText);
-//                    user.get()
-//                            .setUpdatedAt(System.currentTimeMillis());
-//                    System.out.println("Password 변경 완료");
-//            }
-//        } else {
-//            System.out.println("해당유저 없음");
-//        }
-//    }
-//
-//    @Override
-//    public void updateUser(UUID userId, UpdateField updateField, Status updatedStatus) {
-//        Optional<User> user = data.stream()
-//                .filter(u -> u.getId().equals(userId))
-//                .findFirst();
-//        if (user.isPresent()) {
-//            user.get().setStatus(updatedStatus);
-//            user.get().setUpdatedAt(System.currentTimeMillis());
-//            System.out.println("상태 변경 완료");
-//        } else {
-//            System.out.println("해당유저 없음");
-//        }
-//    }
 
-    // 유저 삭제
     /********************************************
      *  유저 삭제 메서드
      * @param userId 아이디를 입력으로 받음
      ********************************************/
-
     @Override
     public void deleteUser(UUID userId) {
         Optional<User> us = data.stream().filter(u -> u.getId().equals(userId)).findFirst();

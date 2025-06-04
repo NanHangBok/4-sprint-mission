@@ -13,10 +13,11 @@ import java.util.UUID;
  *********************************************/
 public class Channel extends BasedEntity {
 
-    private final UUID hostUserId;
+    private final UUID hostUserId;  // 채널 생성자(Host)의 UUID
     private String channelName;
     private final List<User> users;
     private final List<Message> messages;
+
     public Channel(User host, String channelName) {
         super();
         this.hostUserId = host.getId();
@@ -73,15 +74,19 @@ public class Channel extends BasedEntity {
         this.channelName = channelName;
     }
 
-    /**
+    /********************
      * add, delete
-     */
+     ********************/
+
+    // 채널에 유저 추가
     public void addUser(User user) {
         if (!users.contains(user)) {
             users.add(user);
             user.addChannel(this);
         }
     }
+
+    // 채널에 메시지 추가 ( 채널에서 발생한 메시지 )
     public void addMessage(Message message){
         if (!messages.contains(message)) {
             messages.add(message);
@@ -89,6 +94,7 @@ public class Channel extends BasedEntity {
         }
     }
 
+    // 채널에서 유저 삭제 ( 유저 퇴장 )
     public void removeUser(User user) {
         if (users.contains(user)) {
             users.remove(user);
@@ -96,6 +102,7 @@ public class Channel extends BasedEntity {
         }
     }
 
+    // 채널에서 메시지 삭제
     public void removeMessage(Message message) {
         if (messages.contains(message)) {
             messages.remove(message);

@@ -11,7 +11,7 @@ public class User extends BasedEntity{
     private String email;
     private String password;
     private Status status;
-    private boolean isActive;
+
     public User(String userName, String password, String email) {
         super();
         this.userName = userName;
@@ -21,6 +21,15 @@ public class User extends BasedEntity{
         this.password = password;
         this.status = Status.ONLINE;
     }
+
+    /********************
+     * 유저 업데이트를 위해 status를 추가한 생성자
+     * 유저는 이름, 패스워드, 이메일, 상태를 변경할 수 있다.
+     * @param userName  유저의 이름
+     * @param password  유저의 패스워드
+     * @param email  유저의 이메일
+     * @param status  유저의 상태 / enum 클래스 사용
+     ********************/
     public User(String userName, String password, String email, Status status) {
         super();
         this.channels = new ArrayList<>();
@@ -41,7 +50,7 @@ public class User extends BasedEntity{
                 ", password= " + password +
                 ", channels=" + getChannelNames() +  // 유저가 존재하는 채널의 이름 리스트
                 ", messages=" + getMessageContents() +  // 유저가 작성한 메시지의 내용 리스트
-                ", status=" + status.getValue() +
+                ", status=" + status.getValue() +  // status.getValue()로 상태 값을 변수명이 아닌 변수의 값을 받는다
                 '}';
     }
 
@@ -102,14 +111,14 @@ public class User extends BasedEntity{
      * add, delete
      */
     public void addChannel(Channel channel){
-        if (!channels.contains(channel)) {
+        if (!channels.contains(channel)) {  // 채널이 유저의 채널리스트에 존재하지 않으며
             channels.add(channel);
             channel.addUser(this);
         }
     }
 
     public void addMessage(Message message){
-        if(!messages.contains(message) && message.getUser().equals(this))  {
+        if(!messages.contains(message) && message.getUser().equals(this))  {  // 메시지가 유저의 메시지리스트에 존재하지 않으며 메시지의 작성자가 동일해야 한다
             messages.add(message);
             message.addUser(this);
         }

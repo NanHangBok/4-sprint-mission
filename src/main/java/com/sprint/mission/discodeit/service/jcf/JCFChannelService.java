@@ -68,28 +68,7 @@ public class JCFChannelService implements ChannelService {
             tmp.get().setUpdatedAt(System.currentTimeMillis());
         }
     }
-//    // 채널 내용 수정
-//    @Override
-//    public void updateChannel(UUID channelId, UpdateField updateField, String updatedText) {
-//        Optional<Channel> tmp = data.stream()
-//                .filter(ch -> ch.getId().equals(channelId))
-//                .findFirst();
-//        if (tmp.isPresent()) {
-//            switch (updateField) {
-//                /***************
-//                 *  CASE TYPE_NAME : 채널명 수정
-//                 *  CASE 2 이하 추가
-//                 ***************/
-//                case TYPE_NAME:
-//                    tmp.get()
-//                            .setChannelName(updatedText); // 채널명 수정
-//                    tmp.get()
-//                            .setUpdatedAt(System.currentTimeMillis()); // 채널 최종 업데이트 시간
-//                    System.out.println("채널명 수정 완료");
-//                    break;
-//            }
-//        }
-//    }
+
     // 채널 삭제
     @Override
     public void deleteChannel(Channel channel) {

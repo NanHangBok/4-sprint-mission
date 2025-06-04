@@ -65,28 +65,6 @@ public class JCFMessageService implements MessageService {
             tmp.get().setUpdatedAt(System.currentTimeMillis());
         }
     }
-//    // 메세지 내용 수정
-//    @Override
-//    public void updateMessage(UUID messageId, UpdateField updateField, String updatedText) {
-//        Optional<Message> tmp = data.stream()
-//                .filter(msg -> msg.getId().equals(messageId))
-//                .findFirst();
-//        if (tmp.isPresent()) {
-//            switch (updateField) {
-//                /******************************
-//                 *  CASE TYPE_CONTENT : 내용 수정
-//                 *  CASE 2 이후 추가
-//                 ******************************/
-//                case TYPE_CONTENT :
-//                    tmp.get()
-//                            .setContent(updatedText);  // 내용 수정
-//                    tmp.get()
-//                            .setUpdatedAt(System.currentTimeMillis());  // 최종 업데이트 시간
-//                    System.out.println("메시지 내용 수정 완료");
-//                    break;
-//            }
-//        }
-//    }
 
     // 메시지 삭제
     public void removeMessage(Message message) {
