@@ -18,24 +18,7 @@ public class JavaApplication {
         UserService jcfUserService = factory.getUserService();
         ChannelService jcfChannelService = factory.getChannelService();
         MessageService jcfMessageService = factory.getMessageService();
-        /****************************************
-         *  외부에서 Factory 금지  / COMPLETE
-         *  user와 userid 사용하는거 통일 시키기  / COMPLETE
-         *  메서드 이름 바꾸기 deleteChannelUser  / COMPLETE..?
-         *  isActive enum으로 구현하기  / COMPLETE -> status로 필드명 변경
-         *  update select말고 전체를 입력받아서 수정된 부분만 수정하기 혹은 enum 사용하기  / COMPLETE + enums 패키지 추가
-         *  Factory 폴더 따로 빼기 / COMPLETE
-         *  엔티티 공통 필드 basedEntity로 따로 빼기 ( id, createdAt, UpdatedAt ) / COMPLETE
-         *  setUpdated는 Service에서 / COMPLETE
-         *  -
-         *  updateField 사용하지 않기  / COMPLETE
-         *  status getter 생성자 ONLINE("온라인") = value  / COMPLETE
-         *  JCF 최대한 서비스에서 안 불러오기  / MessageService가 채널과 유저에 의존하지 않게(채널 서비스와 유저 서비스에 접근하지 않도록) 수정
-         *  -
-         *  stream().map으로 수정  / COMPLETE
-         *  channel과 유저에서 addMessage와 removeMessage를 메세지와 상호 보완적으로 수정  / COMPLETE
-         *  updateUser 몇 개의 인자가 오든 대응 가능하게 수정 / COMPLETE
-         ****************************************/
+
         /****************************************
          *  정상 데이터 테스트
          ****************************************/
