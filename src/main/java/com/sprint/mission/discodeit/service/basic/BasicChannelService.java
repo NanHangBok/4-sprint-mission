@@ -1,4 +1,4 @@
-package com.sprint.mission.discodeit.service.jcf;
+package com.sprint.mission.discodeit.service.basic;
 
 import com.sprint.mission.discodeit.entity.ActiveStatus;
 import com.sprint.mission.discodeit.entity.Channel;
@@ -10,64 +10,50 @@ import com.sprint.mission.discodeit.repository.UserRepository;
 import com.sprint.mission.discodeit.service.ChannelService;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 
-/********************************************
- * 채널 서비스 인터페이스 구현체
- * CRUD 실행
- * 채널 내 유저 추가 및 삭제
- * 2025.05.30 김민수
- * *
- * 코드 리팩토링 2025. 06. 02 김민수
- ********************************************/
-public class JCFChannelService implements ChannelService {
+public class BasicChannelService implements ChannelService {
 
     private final ChannelRepository channelRepository;
     private final UserRepository userRepository;
     private final MessageRepository messageRepository;
 
-    public JCFChannelService(ChannelRepository channelRepository, UserRepository userRepository, MessageRepository messageRepository) {
+    public BasicChannelService(ChannelRepository channelRepository, UserRepository userRepository, MessageRepository messageRepository) {
         this.channelRepository = channelRepository;
         this.userRepository = userRepository;
         this.messageRepository = messageRepository;
     }
 
-    public void validatedChannel(Channel channel) {
+    public void validateActiveChannel(Channel channel) {
         if (!channel.isActive().equals(ActiveStatus.ACTIVE)) throw new IllegalStateException("Channel is not active");
     }
 
-    // 채널 생성
     @Override
     public Channel createChannel(User user, String channelName) {
         Channel channel = new Channel(user.getId(), channelName);
-        if (user.isActive().equals(ActiveStatus.ACTIVE)) {
-            addUserToChannel(channel, user);
-            channel.setActive(ActiveStatus.ACTIVE);
-            channelRepository.save(channel);
-            userRepository.save(user);
-        }
+        if (!(user.isActive().equals(ActiveStatus.ACTIVE))) throw new IllegalStateException("User is not active");
+        channel.setActive(ActiveStatus.ACTIVE);
+        addUserToChannel(channel, user);
+        channelRepository.save(channel);
+        userRepository.save(user);
+
         return channel;
     }
 
-    // 현재 존재하는 모든 채널 확인
     @Override
     public List<Channel> getAllChannels() {
         return channelRepository.findAll();
     }
 
-
-    // 채널의 ID를 사용하여 채널 검색
     @Override
     public Channel getChannelById(UUID channelId) {
         return channelRepository.findById(channelId);
     }
 
-    // 채널 업데이트 ( 정보 수정 )
-    // 현재는 수정 가능한 입력이 channelName 1개
     @Override
     public void updateChannel(Channel channel, String channelName) {
-        validatedChannel(channel);
+        validateActiveChannel(channel);
+
         channel.setChannelName(channelName);
         channel.setUpdatedAt(System.currentTimeMillis());
         channelRepository.save(channel);
@@ -76,7 +62,10 @@ public class JCFChannelService implements ChannelService {
     // 채널 삭제
     @Override
     public void deleteChannel(Channel channel) {
-        validatedChannel(channel);
+        validateActiveChannel(channel);
+
+        channel.setActive(ActiveStatus.DELETE);
+        channelRepository.delete(channel);  // 전체 채널 리스트에서 해당 채널 삭제
 
         /***********************************
          * 채널을 가지고 있는 유저에게 채널 삭제
@@ -96,9 +85,6 @@ public class JCFChannelService implements ChannelService {
                 .forEach(message -> {
                     removeMessage(channel,message);
                 });// 채널 내 모든 메세지 삭제
-
-        channelRepository.delete(channel);  // 전체 채널 리스트에서 해당 채널 삭제
-        channel.setActive(ActiveStatus.DELETE);
     }
 
     /***********************************
@@ -108,17 +94,15 @@ public class JCFChannelService implements ChannelService {
      ***********************************/
     @Override
     public void removeUserFromChannel(Channel channel, UUID userId) {
-        Optional<User> target = channel.getUsers().stream()
+        User user = channel.getUsers().stream()
                 .filter(u -> u.getId().equals(userId))
-                .findFirst();
-        target.ifPresentOrElse(
-                user -> {
-                    user.removeChannel(channel);  // 유저에서 해당 채널을 삭제하고
-                    channel.setUpdatedAt(System.currentTimeMillis());  // 채널의 업데이트 시간 수정
-                    channelRepository.save(channel);
-                    userRepository.save(user);
-                },
-                () -> System.out.println("해당유저가 채널에 없습니다."));
+                .findFirst()
+                .orElseThrow(() -> new IllegalArgumentException("The user does not belong to the channel"));
+
+        user.removeChannel(channel);  // 유저에서 해당 채널을 삭제하고
+        channel.setUpdatedAt(System.currentTimeMillis());  // 채널의 업데이트 시간 수정
+        channelRepository.save(channel);
+        userRepository.save(user);
     }
 
     /***********************************
@@ -128,31 +112,30 @@ public class JCFChannelService implements ChannelService {
      ***********************************/
     @Override
     public void addUserToChannel(Channel channel, User user) {
-        if (user.isActive().equals(ActiveStatus.ACTIVE)) {
-            channel.addUser(user);  // 해당 유저에 채널을 추가하고
-            channel.setUpdatedAt(System.currentTimeMillis());  // 채널의 업데이트 시간 수정
-            channelRepository.save(channel);
-            userRepository.save(user);
-        } else {
-            System.out.println("해당 유저를 찾을 수 없습니다.");
-        }
+        validateActiveChannel(channel);
+        if (!user.isActive().equals(ActiveStatus.ACTIVE)) throw new IllegalStateException("User is not active");
+
+        channel.addUser(user);  // 해당 유저에 채널을 추가하고
+        channel.setUpdatedAt(System.currentTimeMillis());  // 채널의 업데이트 시간 수정
+        channelRepository.save(channel);
+        userRepository.save(user);
     }
 
+    // 메세지에 내부 정보 삭제
     @Override
     public void removeMessage(Channel channel, Message message) {
-        if (channel.getMessages().contains(message)) {
-            User sender = message.getUser();
-            sender.removeMessage(message);
-            channel.removeMessage(message);
+        validateActiveChannel(channel);
+        if (!channel.getMessages().contains(message)) throw new IllegalStateException("Message does not exist");
 
-            messageRepository.delete(message);
-            userRepository.save(sender);
-            channelRepository.save(channel);
-            message.setActive(ActiveStatus.DELETE);
-            message.setUpdatedAt(System.currentTimeMillis());
-            messageRepository.delete(message);
-        } else {
-            System.out.println("해당 메시지를 찾을 수 없습니다.");
-        }
+        User sender = message.getUser();
+        sender.removeMessage(message);
+        channel.removeMessage(message);
+
+        messageRepository.delete(message);
+        userRepository.save(sender);
+        channelRepository.save(channel);
+        message.setActive(ActiveStatus.DELETE);
+        message.setUpdatedAt(System.currentTimeMillis());
+        messageRepository.delete(message);
     }
 }

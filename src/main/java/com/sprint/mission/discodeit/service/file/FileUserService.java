@@ -1,4 +1,4 @@
-package com.sprint.mission.discodeit.service.jcf;
+package com.sprint.mission.discodeit.service.file;
 
 import com.sprint.mission.discodeit.entity.ActiveStatus;
 import com.sprint.mission.discodeit.entity.Channel;
@@ -13,25 +13,21 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
-/********************************************
- * 유저 서비스 인터페이스 구현체
- * CRUD 실행
- * 2025.05.30 김민수
- ********************************************/
-public class JCFUserService implements UserService {
+public class FileUserService implements UserService {
 
-    private final UserRepository userRepository;
-    private final ChannelRepository channelRepository;
-    private final MessageRepository messageRepository;
+    UserRepository userRepository;
+    ChannelRepository channelRepository;
+    MessageRepository messageRepository;
     private boolean emailMatch;
-    public JCFUserService(UserRepository userRepository, ChannelRepository channelRepository, MessageRepository messageRepository) {
+
+    public FileUserService(UserRepository userRepository, ChannelRepository channelRepository, MessageRepository messageRepository) {
         this.userRepository = userRepository;
         this.channelRepository = channelRepository;
         this.messageRepository = messageRepository;
     }
 
     public void validatedUser(User user) {
-        if (!user.isActive().equals(ActiveStatus.ACTIVE)) throw new IllegalArgumentException("User is not Active");
+        if (!user.isActive().equals(ActiveStatus.ACTIVE)) new IllegalArgumentException("User is not active");
     }
 
     // 동일한 이메일이 존재하는지 확인
@@ -63,7 +59,8 @@ public class JCFUserService implements UserService {
     // 특정 ID를 가진 유저 가져오기
     @Override
     public User getUsersById(UUID userId) {
-        return userRepository.findById(userId);
+        User user = userRepository.findById(userId);
+        return user;
     }
 
     /********************************************
@@ -73,7 +70,7 @@ public class JCFUserService implements UserService {
      ********************************************/
     @Override
     public void updateUser(User user, User updateUser) {
-        User target = getUsersById(user.getId());
+        User target = userRepository.findById(user.getId());
         validatedUser(target);
         if (updateUser.getUserName() != null) {
             user.setUserName(updateUser.getUserName());
@@ -134,7 +131,7 @@ public class JCFUserService implements UserService {
         user.getMessages().stream()
                 .filter(message -> message.getChannelId().equals(channel.getId()))
                 .forEach(message -> {
-                    removeMessage(user,message);
+                    removeMessage(user, message);
                 });
         user.getChannels().remove(channel);
         userRepository.save(user);
@@ -144,20 +141,15 @@ public class JCFUserService implements UserService {
 
     @Override
     public void removeMessage(User user, Message message) {
-        if (user.getMessages().contains(message)) {
+        if (user.getMessages().contains(message) && message.isActive().equals(ActiveStatus.ACTIVE)) {
             Channel channel = message.getChannel();
             user.removeMessage(message);
             channel.removeMessage(message);
-
-            messageRepository.delete(message);
-            userRepository.save(user);
             channelRepository.save(channel);
+            channel.setUpdatedAt(System.currentTimeMillis());
             message.setActive(ActiveStatus.DELETE);
             message.setUpdatedAt(System.currentTimeMillis());
             messageRepository.delete(message);
-        } else {
-            System.out.println("메시지를 찾을 수 없습니다.");
         }
     }
-
 }

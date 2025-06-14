@@ -1,4 +1,4 @@
-package com.sprint.mission.discodeit.service.jcf;
+package com.sprint.mission.discodeit.service.basic;
 
 import com.sprint.mission.discodeit.entity.ActiveStatus;
 import com.sprint.mission.discodeit.entity.Channel;
@@ -11,26 +11,20 @@ import com.sprint.mission.discodeit.service.MessageService;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 
-/***********************************
- * 메세지 서비스 인터페이스 구현체
- * CRUD 실행
- * 2025.05.30 김민수
- ***********************************/
-public class JCFMessageService implements MessageService {
-
+public class BasicMessageService implements MessageService {
     private final MessageRepository messageRepository;
     private final UserRepository userRepository;
     private final ChannelRepository channelRepository;
-    public JCFMessageService(MessageRepository messageRepository, UserRepository userRepository, ChannelRepository channelRepository) {
+
+    public BasicMessageService(MessageRepository messageRepository, UserRepository userRepository, ChannelRepository channelRepository) {
         this.messageRepository = messageRepository;
         this.userRepository = userRepository;
         this.channelRepository = channelRepository;
     }
 
-    public void validatedMessage(Message message) {
+    public void validateActiveMessage(Message message) {
         if (!message.isActive().equals(ActiveStatus.ACTIVE)) throw new IllegalArgumentException("Message is not active");
     }
 
@@ -38,18 +32,15 @@ public class JCFMessageService implements MessageService {
     @Override
     public Message createMessage(String content, User user, Channel channel) {
         Message message = new Message(content,user,channel);
-        if (user.isActive().equals(ActiveStatus.ACTIVE)
-            && channel.isActive().equals(ActiveStatus.ACTIVE)) {
-            channel.addMessage(message);
-            user.addMessage(message);
-            message.setActive(ActiveStatus.ACTIVE);
-            channelRepository.save(channel);
-            userRepository.save(user);
-            messageRepository.save(message);
-            return message;
-        } else {
-            return message;
-        }
+        if (!user.isActive().equals(ActiveStatus.ACTIVE)
+                || !channel.isActive().equals(ActiveStatus.ACTIVE)) throw new IllegalArgumentException("User is not active");
+        message.setActive(ActiveStatus.ACTIVE);
+        channel.addMessage(message);
+        user.addMessage(message);
+        messageRepository.save(message);
+        channelRepository.save(channel);
+        userRepository.save(user);
+        return message;
     }
 
 
@@ -59,17 +50,6 @@ public class JCFMessageService implements MessageService {
         return messageRepository.findAll();
     }
 
-    @Override
-    public List<Message> getActiveMessages() {
-        List<Message> list = getMessages();
-        List<Message> activeMessages = new ArrayList<>();
-        for (Message message : list) {
-            if (message.getUserId() != null && message.getChannelId() != null) {
-                activeMessages.add(message);
-            }
-        }
-        return activeMessages;
-    }
     // 특정 ID를 가진 메시지 확인
     @Override
     public Message getMessagesById(UUID messageId) {
@@ -80,24 +60,44 @@ public class JCFMessageService implements MessageService {
     // 현재는 내용 1개만 수정 가능
     @Override
     public void updateMessage(Message message, String content) {
-        validatedMessage(message);
+        validateActiveMessage(message);
+
+        Message msg = messageRepository.findById(message.getId());
+        User user = userRepository.findById(msg.getUserId());
+        Channel channel = channelRepository.findById(msg.getChannelId());
+
         message.setContent(content);
         message.setUpdatedAt(System.currentTimeMillis());
+
+        user.removeMessage(message);
+        channel.removeMessage(message);
+        message.addUser(user);
+        message.addChannel(channel);
+
+        userRepository.save(user);
+        channelRepository.save(channel);
+        messageRepository.save(message);
     }
 
     // 메시지 삭제
     public void removeMessage(Message message) {
-        validatedMessage(message);
+        validateActiveMessage(message);
+
+        message.setActive(ActiveStatus.DELETE);
+        messageRepository.delete(message);
+
         User sender = message.getUser();
         Channel channel = message.getChannel();
         sender.removeMessage(message);
         channel.removeMessage(message);
-
-        messageRepository.delete(message);
         userRepository.save(sender);
         channelRepository.save(channel);
-        message.setActive(ActiveStatus.DELETE);
-        message.setUpdatedAt(System.currentTimeMillis());
-        messageRepository.delete(message);
     }
+
+    // 활성화 된 모든 메시지 확인
+    @Override
+    public List<Message> getActiveMessages() {
+        return messageRepository.findAllActive();
+    }
+
 }

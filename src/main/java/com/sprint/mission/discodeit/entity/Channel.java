@@ -1,63 +1,119 @@
 package com.sprint.mission.discodeit.entity;
+
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
-public class Channel extends BaseEntity {
-    private String channel;
-    private final List<Message> messages;
-    private final List<User> users;
+/*********************************************
+ *  채널 엔티티
+ *  채널 객체의 정보 및 관리
+ *  2025. 06. 02 김민수
+ *********************************************/
+public class Channel extends BasedEntity implements Serializable {
+    private static final long serialVersionUID = 1L;
 
-    public Channel(String channel) {
+    private final UUID hostUserId;  // 채널 생성자(Host)의 UUID
+    private String channelName;
+    private final List<User> users= new ArrayList<>();
+    private final List<Message> messages= new ArrayList<>();
+
+    public Channel(UUID hostUserId, String channelName) {
         super();
-        this.channel = channel;
+        this.hostUserId = hostUserId;
+        this.channelName = channelName;
+    }
 
-        this.messages = new ArrayList<>();
-        this.users = new ArrayList<>();
+    @Override
+    public String toString() {
+        return "Channel{" +
+                "channelId=" + super.getId() +
+                ", channelCreatedAt=" + super.getCreatedAt() +
+                ", channelUpdatedAt=" + super.getUpdatedAt() +
+                ", hostUserId=" + hostUserId +
+                ", channelName='" + channelName + '\'' +
+                ", users=" + getUserNames() +  // 채널에 존재하는 유저의 이름 리스트
+                ", messages=" + getMessageContents() +  // 채널에 존재하는 메시지의 내용 리스트
+                '}';
+    }
+
+    /**
+     * getter
+     */
+    public UUID getHostUserId() {
+        return hostUserId;
+    }
+
+    public String getChannelName() {
+        return channelName;
     }
 
     public List<User> getUsers() {
         return users;
     }
 
-    public String getChannel() {
-        return channel;
-    }
-
-    public void updateChannel(String updateChannel){
-        this.channel = updateChannel;
-        updateTimeStamp();
-    }
-
-    //추가
-    public void addUser(User user){
-        if(!users.contains(user)) {
-            users.add(user);
-            user.addChannel(this);
-        }
-    }
-    //추가
-    public void addMessage(Message message){
-        if(!messages.contains(message)) {
-            messages.add(message);
-            message.addChannel(this);
-        }
-    }
-    public void deleteMessage(Message message){
-        if(!messages.contains(message)){
-            messages.remove(message);
-            message.deleteChannel(this);
-        }
-    }
-
-    public void deleteUser(User user){
-        if(!users.contains(user)){
-            users.remove(user);
-            user.deleteChannel(this);
-        }
-    }
-
-    //추가
-    public List<Message> getMessages(){
+    public List<Message> getMessages() {
         return messages;
     }
+
+    public List<String> getUserNames() {
+        return users.stream().map(User::getUserName)
+                .toList();
+    }
+
+    public List<String> getMessageContents() {
+        return messages.stream().map(Message::getContent)
+                .toList();
+    }
+    /*********
+     * setter
+     *********/
+    public void setChannelName(String channelName) {
+        this.channelName = channelName;
+    }
+
+    /********************
+     * add, delete
+     ********************/
+
+    // 채널에 유저 추가
+    public void addUser(User user) {
+        if (users.contains(user)) {
+            System.out.println("해당 유저는 이미 존재합니다.");
+            return;
+        }
+        users.add(user);
+        user.addChannel(this);
+    }
+
+    // 채널에 메시지 추가 ( 채널에서 발생한 메시지 )
+    public void addMessage(Message message){
+        if (messages.contains(message)) {
+            System.out.println("해당 메시지는 이미 존재합니다.");
+            return;
+        }
+        messages.add(message);
+        message.addChannel(this);
+    }
+
+    // 채널에서 유저 삭제 ( 유저 퇴장 )
+    public void removeUser(User user) {
+        if (!users.contains(user)) {
+            System.out.println("해당 유저는 이미 삭제되었습니다.");
+            return;
+        }
+        users.remove(user);
+        user.removeChannel(this);
+    }
+
+    // 채널에서 메시지 삭제
+    public void removeMessage(Message message) {
+        if (!messages.contains(message)) {
+            System.out.println("해당 메시지는 이미 삭제되었습니다.");
+            return;
+        }
+        messages.remove(message);
+        message.removeChannel();
+    }
+
 }

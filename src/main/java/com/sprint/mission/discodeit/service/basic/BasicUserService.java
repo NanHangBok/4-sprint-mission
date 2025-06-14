@@ -1,4 +1,4 @@
-package com.sprint.mission.discodeit.service.jcf;
+package com.sprint.mission.discodeit.service.basic;
 
 import com.sprint.mission.discodeit.entity.ActiveStatus;
 import com.sprint.mission.discodeit.entity.Channel;
@@ -10,28 +10,21 @@ import com.sprint.mission.discodeit.repository.UserRepository;
 import com.sprint.mission.discodeit.service.UserService;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 
-/********************************************
- * 유저 서비스 인터페이스 구현체
- * CRUD 실행
- * 2025.05.30 김민수
- ********************************************/
-public class JCFUserService implements UserService {
+public class BasicUserService implements UserService {
+    UserRepository userRepository;
+    ChannelRepository channelRepository;
+    MessageRepository messageRepository;
 
-    private final UserRepository userRepository;
-    private final ChannelRepository channelRepository;
-    private final MessageRepository messageRepository;
-    private boolean emailMatch;
-    public JCFUserService(UserRepository userRepository, ChannelRepository channelRepository, MessageRepository messageRepository) {
+    public BasicUserService(UserRepository userRepository, ChannelRepository channelRepository, MessageRepository messageRepository) {
         this.userRepository = userRepository;
         this.channelRepository = channelRepository;
         this.messageRepository = messageRepository;
     }
 
-    public void validatedUser(User user) {
-        if (!user.isActive().equals(ActiveStatus.ACTIVE)) throw new IllegalArgumentException("User is not Active");
+    public void validateActiveUsre(User user) {
+        if (!user.isActive().equals(ActiveStatus.ACTIVE)) throw new IllegalArgumentException("User is not active");
     }
 
     // 동일한 이메일이 존재하는지 확인
@@ -45,12 +38,11 @@ public class JCFUserService implements UserService {
     @Override
     public User createUser(String name, String password, String email) {
         User user = new User(name, password, email);
-        emailMatch = userRepository.findAll().stream().
-                anyMatch(user1 -> user1.getEmail().equals(email));
-        if (!emailMatch) {
-            user.setActive(ActiveStatus.ACTIVE);
-            userRepository.save(user);
-        }
+        if (isDuplicateEmail(email)) throw new IllegalArgumentException("Email already exists");
+
+        user.setActive(ActiveStatus.ACTIVE);
+        userRepository.save(user);
+
         return user;
     }
 
@@ -63,7 +55,8 @@ public class JCFUserService implements UserService {
     // 특정 ID를 가진 유저 가져오기
     @Override
     public User getUsersById(UUID userId) {
-        return userRepository.findById(userId);
+        User user = userRepository.findById(userId);
+        return user;
     }
 
     /********************************************
@@ -73,24 +66,32 @@ public class JCFUserService implements UserService {
      ********************************************/
     @Override
     public void updateUser(User user, User updateUser) {
-        User target = getUsersById(user.getId());
-        validatedUser(target);
+        User target = userRepository.findById(user.getId());
+        validateActiveUsre(target);
+
+        boolean isUpdated = false;
+
         if (updateUser.getUserName() != null) {
             user.setUserName(updateUser.getUserName());
+            isUpdated = true;
         }
         if (updateUser.getPassword() != null) {
             user.setPassword(updateUser.getPassword());
+            isUpdated = true;
         }
         if (updateUser.getEmail() != null) {
             user.setEmail(updateUser.getEmail());
+            isUpdated = true;
         }
         if (updateUser.getStatus() != null) {
             user.setStatus(updateUser.getStatus());
+            isUpdated = true;
         }
-        if (updateUser.getUserName() != null || updateUser.getPassword() != null || updateUser.getStatus() != null) {
+
+        if (isUpdated) {
             user.setUpdatedAt(System.currentTimeMillis());
+            userRepository.save(user);
         }
-        userRepository.save(user);
     }
 
     /********************************************
@@ -99,7 +100,8 @@ public class JCFUserService implements UserService {
      ********************************************/
     @Override
     public void deleteUser(User user) {
-        validatedUser(user);
+        validateActiveUsre(user);
+
         /********************************************
          * 유저가 있던 채널에서 유저 삭제
          ********************************************/
@@ -114,13 +116,16 @@ public class JCFUserService implements UserService {
         /********************************************
          * 유저가 작성한 메시지를 전체 메시지 내역에서 삭제
          ********************************************/
-        user.getMessages().stream()
-                .forEach(message -> {
-                    removeMessage(user,message);
-                });
-        // 해당 유저의 모든 대화 내역 삭제
-        userRepository.delete(user);
+        List<Message> messages = user.getMessages();
+        for (Message message : messages) {
+            removeMessage(user,message);
+        }
+
+        // 유저가 가진 채널과 정보 모두 삭제
+        user.removeAllChannels();
+        user.removeAllMessages();
         user.setActive(ActiveStatus.DELETE);
+        userRepository.delete(user);
     }
 
     /**
@@ -130,7 +135,8 @@ public class JCFUserService implements UserService {
      * @param channel
      */
     public void leaveChannel(User user, Channel channel) {
-        validatedUser(user);
+        validateActiveUsre(user);
+
         user.getMessages().stream()
                 .filter(message -> message.getChannelId().equals(channel.getId()))
                 .forEach(message -> {
@@ -144,20 +150,14 @@ public class JCFUserService implements UserService {
 
     @Override
     public void removeMessage(User user, Message message) {
-        if (user.getMessages().contains(message)) {
-            Channel channel = message.getChannel();
-            user.removeMessage(message);
-            channel.removeMessage(message);
-
-            messageRepository.delete(message);
-            userRepository.save(user);
-            channelRepository.save(channel);
-            message.setActive(ActiveStatus.DELETE);
-            message.setUpdatedAt(System.currentTimeMillis());
-            messageRepository.delete(message);
-        } else {
-            System.out.println("메시지를 찾을 수 없습니다.");
-        }
+        if (!user.getMessages().contains(message)) throw new IllegalArgumentException("Message does not exist");
+        Channel channel = message.getChannel();
+        channel.removeMessage(message);
+        channelRepository.save(channel);
+        message.removeUser();
+        message.removeChannel();
+        message.setUpdatedAt(System.currentTimeMillis());
+        message.setActive(ActiveStatus.DELETE);
+        messageRepository.delete(message);
     }
-
 }

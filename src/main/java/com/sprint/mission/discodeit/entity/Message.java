@@ -1,10 +1,11 @@
+
 package com.sprint.mission.discodeit.entity;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.io.Serializable;
 import java.util.UUID;
 
-public class Message extends BaseEntity {
+public class Message extends BasedEntity implements Serializable {
+    private static final long serialVersionUID = 1L;
     private String content;
     private User user;
     private Channel channel;
@@ -16,30 +17,69 @@ public class Message extends BaseEntity {
         this.channel = channel;
     }
 
+    @Override
+    public String toString() {
+        return "Message{" +
+                "messageId=" + getId() +
+                ", messageCreatedAt=" + getCreatedAt() +
+                ", messageUpdatedAt=" + getUpdatedAt() +
+                ", content='" + content +
+                "', userId=" + user.getId() +
+                ", ChannelId=" + channel.getId() +
+                '}';
+    }
+
     public String getContent() {
         return content;
     }
 
-
-    public void addUser(User user){
-        this.user = user;
+    public User getUser() {
+        return user;
     }
 
-    public void deleteUser(User user){
-        this.user = user;
+    public Channel getChannel() {
+        return channel;
     }
 
-    public void addChannel(Channel channel){
-        this.channel = channel;
+    public UUID getUserId() {
+        return user.getId();
     }
 
-    public void deleteChannel(Channel channel){
-        this.channel = channel;
+    public UUID getChannelId() {
+        return channel.getId();
     }
 
-    public void updateContent(String newContent){
-        this.content = newContent;
-        updateTimeStamp();
+    public void setContent(String content) {
+        this.content = content;
     }
 
+    // 작성한 유저
+    public void addUser(User user) {
+        if (this.user == null){
+            this.user = user;
+            user.addMessage(this);
+        }
+    }
+
+    // 작성된 채널
+    public void addChannel(Channel channel) {
+        if (this.channel == null){
+            this.channel = channel;
+            channel.addMessage(this);
+        }
+    }
+
+    // 유저가 삭제하거나 유저가 삭제된 경우
+    public void removeUser() {
+        if (this.user != null) {
+            this.user = null;
+        }
+    }
+
+    // 채널에서 삭제된 경우
+    public void removeChannel() {
+        if (this.channel != null) {
+            this.channel = null;
+        }
+    }
 }
