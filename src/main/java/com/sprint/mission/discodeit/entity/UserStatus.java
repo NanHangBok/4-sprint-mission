@@ -1,18 +1,21 @@
 package com.sprint.mission.discodeit.entity;
 
-public enum UserStatus {
-    ONLINE("온라인"),
-    OFFLINE("오프라인"),
-    AWAY("자리비움"),
-    BUSY("다른 용무 중");
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.Setter;
 
-    private String value;
+import java.time.Instant;
+import java.util.UUID;
 
-    UserStatus(String value) {
-        this.value = value;
-    }
+@Getter
+@Setter
+@AllArgsConstructor
+public class UserStatus extends BasedEntity {
+    private UUID userId;
+    private Instant lastActiveAt;
+    public boolean isRecentlyActive() {
+        if (lastActiveAt.isAfter(Instant.now().minusSeconds(300))) return true;
 
-    public String getValue() {
-        return value;
+        return false;
     }
 }

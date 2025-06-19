@@ -3,19 +3,17 @@ package com.sprint.mission.discodeit.repository.file;
 import com.sprint.mission.discodeit.entity.Channel;
 import com.sprint.mission.discodeit.entity.User;
 import com.sprint.mission.discodeit.repository.UserRepository;
+import org.springframework.stereotype.Repository;
 
 import java.io.*;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Collectors;
 
+@Repository
 public class FileUserRepository implements UserRepository {
 
     // 대상 파일 경로와 줄바꿈 문자 설정(본인 OS 기준)
     private static final String FILE_PATH = "src/main/resources/Users.ser";
-    private static final String LINE_SEPARATOR = System.lineSeparator();
 
     @Override
     public List<User> findAll() {
@@ -51,6 +49,16 @@ public class FileUserRepository implements UserRepository {
                 .filter(u -> u.getId().equals(id))
                 .findFirst()
                 .orElseThrow(() -> new IllegalArgumentException("User not found"));
+        return user;
+    }
+
+    @Override
+    public User findByName(String name) {
+        List<User> list = findAll();
+        User user = list.stream()
+                .filter(u -> u.getName().equals(name))
+                .findFirst()
+                .orElseThrow(() -> new NoSuchElementException("User not found"));
         return user;
     }
 

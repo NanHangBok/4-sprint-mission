@@ -1,5 +1,8 @@
 package com.sprint.mission.discodeit.entity;
 
+import lombok.Getter;
+import lombok.Setter;
+
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
@@ -10,18 +13,33 @@ import java.util.UUID;
  *  채널 객체의 정보 및 관리
  *  2025. 06. 02 김민수
  *********************************************/
+
+@Getter
+@Setter
 public class Channel extends BasedEntity implements Serializable {
     private static final long serialVersionUID = 1L;
 
     private final UUID hostUserId;  // 채널 생성자(Host)의 UUID
     private String channelName;
-    private final List<User> users= new ArrayList<>();
-    private final List<Message> messages= new ArrayList<>();
+    private ChannelType channelType;
+    private final List<User> users = new ArrayList<>();
+    private final List<UUID> userIds = new ArrayList<>();
+    private final List<Message> messages = new ArrayList<>();
+    private final List<UUID> messageIds = new ArrayList<>();
+    private String description;
 
-    public Channel(UUID hostUserId, String channelName) {
+    public Channel(UUID hostUserId, String channelName, String description) {
         super();
         this.hostUserId = hostUserId;
+        this.userIds.add(hostUserId);
         this.channelName = channelName;
+        this.description = description;
+        this.channelType = ChannelType.PUBLIC;
+    }
+
+    public Channel(UUID hostUserId) {
+        this.hostUserId = hostUserId;
+        this.channelType = ChannelType.PRIVATE;
     }
 
     @Override
@@ -40,24 +58,9 @@ public class Channel extends BasedEntity implements Serializable {
     /**
      * getter
      */
-    public UUID getHostUserId() {
-        return hostUserId;
-    }
-
-    public String getChannelName() {
-        return channelName;
-    }
-
-    public List<User> getUsers() {
-        return users;
-    }
-
-    public List<Message> getMessages() {
-        return messages;
-    }
 
     public List<String> getUserNames() {
-        return users.stream().map(User::getUserName)
+        return users.stream().map(User::getName)
                 .toList();
     }
 
@@ -71,7 +74,6 @@ public class Channel extends BasedEntity implements Serializable {
     public void setChannelName(String channelName) {
         this.channelName = channelName;
     }
-
     /********************
      * add, delete
      ********************/

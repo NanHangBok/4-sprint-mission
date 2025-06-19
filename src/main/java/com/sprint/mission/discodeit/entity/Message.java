@@ -1,20 +1,25 @@
 
 package com.sprint.mission.discodeit.entity;
 
+import lombok.Getter;
+
 import java.io.Serializable;
+import java.util.List;
 import java.util.UUID;
 
+@Getter
 public class Message extends BasedEntity implements Serializable {
     private static final long serialVersionUID = 1L;
     private String content;
-    private User user;
-    private Channel channel;
+    private UUID userId;
+    private UUID channelId;
+    private List<UUID> attachmentIds;
 
-    public Message(String content, User user, Channel channel) {
+    public Message(UUID userId, UUID channelId, String content) {
         super();
         this.content = content;
-        this.user = user;
-        this.channel = channel;
+        this.userId = this.userId;
+        this.channelId = this.channelId;
     }
 
     @Override
@@ -24,29 +29,17 @@ public class Message extends BasedEntity implements Serializable {
                 ", messageCreatedAt=" + getCreatedAt() +
                 ", messageUpdatedAt=" + getUpdatedAt() +
                 ", content='" + content +
-                "', userId=" + user.getId() +
-                ", ChannelId=" + channel.getId() +
+                "', userId=" + userId +
+                ", ChannelId=" + channelId +
                 '}';
     }
 
-    public String getContent() {
-        return content;
-    }
-
-    public User getUser() {
-        return user;
-    }
-
-    public Channel getChannel() {
-        return channel;
-    }
-
     public UUID getUserId() {
-        return user.getId();
+        return userId;
     }
 
     public UUID getChannelId() {
-        return channel.getId();
+        return channelId;
     }
 
     public void setContent(String content) {
@@ -55,31 +48,31 @@ public class Message extends BasedEntity implements Serializable {
 
     // 작성한 유저
     public void addUser(User user) {
-        if (this.user == null){
-            this.user = user;
+        if (this.userId == null){
+            this.userId = user.getId();
             user.addMessage(this);
         }
     }
 
     // 작성된 채널
     public void addChannel(Channel channel) {
-        if (this.channel == null){
-            this.channel = channel;
+        if (this.channelId == null){
+            this.channelId = channel.getId();
             channel.addMessage(this);
         }
     }
 
     // 유저가 삭제하거나 유저가 삭제된 경우
     public void removeUser() {
-        if (this.user != null) {
-            this.user = null;
+        if (this.userId != null) {
+            this.userId = null;
         }
     }
 
     // 채널에서 삭제된 경우
     public void removeChannel() {
-        if (this.channel != null) {
-            this.channel = null;
+        if (this.channelId != null) {
+            this.channelId = null;
         }
     }
 }

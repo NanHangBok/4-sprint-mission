@@ -45,7 +45,7 @@ public class JCFMessageRepository implements MessageRepository {
     public List<Message> findAllActive() {
         List<Message> activeMessages = new ArrayList<>();
         for (Message message : data) {
-            if (message.isActive().equals(ActiveStatus.ACTIVE)) {
+            if (message.getActive().equals(ActiveStatus.ACTIVE)) {
                 activeMessages.add(message);
             }
         }

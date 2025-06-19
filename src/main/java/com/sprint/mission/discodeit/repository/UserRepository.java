@@ -11,4 +11,5 @@ public interface UserRepository {
     public User findById(UUID id);
     public void delete(User user);
     public void save(User user);
+    public User findByName(String name);
 }

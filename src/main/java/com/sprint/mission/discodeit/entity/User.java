@@ -1,41 +1,53 @@
 package com.sprint.mission.discodeit.entity;
 
+import lombok.Getter;
+
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
+@Getter
 public class User extends BasedEntity implements Serializable {
     private static final long serialVersionUID = 1L;
 
-    private String userName;
+    private UUID profileId;
+    private String name;
     private final List<Channel> channels = new ArrayList<>();
     private final List<Message> messages = new ArrayList<>();
     private String email;
     private String password;
-    private UserStatus userStatus;
+    private PresenceStatus presenceStatus;
 
-    public User(String userName, String password, String email) {
+    public User(String name, String password, String email) {
         super();
-        this.userName = userName;
+        this.name = name;
         this.email = email;
         this.password = password;
-        this.userStatus = UserStatus.ONLINE;
+        this.presenceStatus = PresenceStatus.ONLINE;
     }
 
+    public User(String name, String password, String email, UUID profileId) {
+        this.name = name;
+        this.email = email;
+        this.password = password;
+        this.profileId = profileId;
+        this.presenceStatus = PresenceStatus.ONLINE;
+    }
     /********************
      * 유저 업데이트를 위해 status를 추가한 생성자
      * 유저는 이름, 패스워드, 이메일, 상태를 변경할 수 있다.
-     * @param userName  유저의 이름
+     * @param name  유저의 이름
      * @param password  유저의 패스워드
      * @param email  유저의 이메일
-     * @param userStatus  유저의 상태 / enum 클래스 사용
+     * @param presenceStatus  유저의 상태 / enum 클래스 사용
      ********************/
-    public User(String userName, String password, String email, UserStatus userStatus) {
+    public User(String name, String password, String email, PresenceStatus presenceStatus) {
         super();
-        this.userName = userName;
+        this.name = name;
         this.password = password;
         this.email = email;
-        this.userStatus = userStatus;
+        this.presenceStatus = presenceStatus;
     }
     @Override
     public String toString() {
@@ -43,31 +55,18 @@ public class User extends BasedEntity implements Serializable {
                 "userId=" + getId() +
                 ", userCreatedAt=" + getCreatedAt() +
                 ", userUpdatedAt=" + getUpdatedAt() +
-                ", userName='" + userName + '\'' +
+                ", userName='" + name + '\'' +
                 ", email= " + email +
                 ", password= " + password +
                 ", channels=" + getChannelNames() +  // 유저가 존재하는 채널의 이름 리스트
                 ", messages=" + getMessageContents() +  // 유저가 작성한 메시지의 내용 리스트
-                ", status=" + userStatus.getValue() +  // status.getValue()로 상태 값을 변수명이 아닌 변수의 값을 받는다
+                ", status=" + presenceStatus.getValue() +  // status.getValue()로 상태 값을 변수명이 아닌 변수의 값을 받는다
                 '}';
     }
 
     /**
      * getter
      */
-
-    public String getUserName() {
-        return userName;
-    }
-
-    public List<Channel> getChannels() {
-        return channels;
-    }
-
-    public List<Message> getMessages() {
-        return messages;
-    }
-
     public List<String> getChannelNames() {
         return channels.stream().map(Channel::getChannelName)
                 .toList();
@@ -78,31 +77,25 @@ public class User extends BasedEntity implements Serializable {
                 .toList();
     }
 
-    public String getEmail() {
-        return email;
-    }
-
-    public String getPassword() { return password; }
-
-    public UserStatus getStatus() { return userStatus; }
-
     /**
      * setter
      */
 
-    public void setUserName(String userName) {
-        this.userName = userName;
+    public void setName(String name) {
+        this.name = name;
     }
 
     public void setPassword(String password) {
         this.password = password;
     }
 
-    public void setStatus(UserStatus userStatus) {
-        this.userStatus = userStatus;
+    public void setPresenceStatus(PresenceStatus presenceStatus) {
+        this.presenceStatus = presenceStatus;
     }
 
     public void setEmail(String email) { this.email = email; }
+
+    public void setProfileId(UUID profileId) { this.profileId = profileId; }
 
     /**
      * add, delete
