@@ -4,11 +4,11 @@ import com.sprint.mission.discodeit.entity.PresenceStatus;
 
 import java.util.UUID;
 
-public record UpdateUserDto(
+public record UserUpdateDto(
         UUID id,
         String name,
         String password,
         PresenceStatus presenceStatus,
-        byte[] binaryContent
+        BinaryContentPostDto binaryContentPostDto
 ) {
 }

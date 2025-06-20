@@ -39,15 +39,15 @@ public class User extends BasedEntity implements Serializable {
      * 유저는 이름, 패스워드, 이메일, 상태를 변경할 수 있다.
      * @param name  유저의 이름
      * @param password  유저의 패스워드
-     * @param email  유저의 이메일
      * @param presenceStatus  유저의 상태 / enum 클래스 사용
+     * @param profileId  유저 프로필 이미지
      ********************/
-    public User(String name, String password, String email, PresenceStatus presenceStatus) {
+    public User(String name, String password, PresenceStatus presenceStatus, UUID profileId) {
         super();
         this.name = name;
         this.password = password;
-        this.email = email;
         this.presenceStatus = presenceStatus;
+        this.profileId = profileId;
     }
     @Override
     public String toString() {
@@ -103,7 +103,7 @@ public class User extends BasedEntity implements Serializable {
     public void addChannel(Channel channel){
         if (channels.contains(channel)) return;
         channels.add(channel);
-        channel.addUser(this);
+//        channel.addUser(this);
     }
 
     public void addMessage(Message message){
@@ -115,7 +115,7 @@ public class User extends BasedEntity implements Serializable {
     public void removeChannel(Channel channel) {
         if(!channels.contains(channel)) return;
         channels.remove(channel);
-        channel.removeUser(this);
+//        channel.removeUser(this);
     }
     public void removeMessage(Message message){
         if(!messages.contains(message)) return;

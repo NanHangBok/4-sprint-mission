@@ -5,14 +5,24 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 
+import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 
 @Getter
 @Setter
-@RequiredArgsConstructor
-public class BinaryContent extends BasedEntity{
-    private UUID userId;
-    private UUID messageId;
+public class BinaryContent {
+    private UUID id;
+    private Instant createdAt;
+    private ActiveStatus active;
+
+    private BinaryContentType contentType;
     private final byte[] content;
+
+    public BinaryContent(byte[] content, BinaryContentType contentType) {
+        this.id = UUID.randomUUID();
+        this.createdAt = Instant.now();
+        this.active = ActiveStatus.ACTIVE;
+        this.content = content;
+    }
 }

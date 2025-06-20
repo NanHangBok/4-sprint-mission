@@ -1,8 +1,9 @@
 package com.sprint.mission.discodeit.repository.file;
 
-import com.sprint.mission.discodeit.entity.Channel;
 import com.sprint.mission.discodeit.entity.User;
 import com.sprint.mission.discodeit.repository.UserRepository;
+import org.springframework.context.annotation.Primary;
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Repository;
 
 import java.io.*;
@@ -10,9 +11,8 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 @Repository
+@Profile("file")
 public class FileUserRepository implements UserRepository {
-
-    // 대상 파일 경로와 줄바꿈 문자 설정(본인 OS 기준)
     private static final String FILE_PATH = "src/main/resources/Users.ser";
 
     @Override

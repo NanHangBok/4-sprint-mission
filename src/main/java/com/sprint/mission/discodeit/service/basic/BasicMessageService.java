@@ -1,8 +1,10 @@
 package com.sprint.mission.discodeit.service.basic;
 
-import com.sprint.mission.discodeit.dto.CreateMessageDto;
-import com.sprint.mission.discodeit.dto.UpdateMessageDto;
+import com.sprint.mission.discodeit.dto.BinaryContentPostDto;
+import com.sprint.mission.discodeit.dto.MessagePostDto;
+import com.sprint.mission.discodeit.dto.MessageUpdateDto;
 import com.sprint.mission.discodeit.entity.*;
+import com.sprint.mission.discodeit.mapper.BinaryContentMapper;
 import com.sprint.mission.discodeit.repository.BinaryContentRepository;
 import com.sprint.mission.discodeit.repository.ChannelRepository;
 import com.sprint.mission.discodeit.repository.MessageRepository;
@@ -22,6 +24,8 @@ public class BasicMessageService implements MessageService {
     private final MessageRepository messageRepository;
     private final UserRepository userRepository;
     private final ChannelRepository channelRepository;
+    private final BinaryContentRepository binaryContentRepository;
+    private final BinaryContentMapper binaryContentMapper;
 
     public void validateActiveMessage(Message message) {
         if (!message.getActive().equals(ActiveStatus.ACTIVE)) throw new IllegalArgumentException("Message is not active");
@@ -29,22 +33,23 @@ public class BasicMessageService implements MessageService {
 
     // 메시지 생성
     @Override
-    public Message createMessage(CreateMessageDto createMessageDto) {
-        Message message = new Message(createMessageDto.userId(),createMessageDto.channelId(),createMessageDto.content());
-        createMessageDto.attachments().stream()
-                .forEach(binaryContent -> {
-                    BinaryContent biContent = new BinaryContent(binaryContent);
-                    biContent.setUserId(createMessageDto.userId());
-                    biContent.setMessageId(message.getId());
-                    message.getAttachmentIds().add(biContent.getId());
-                    binaryContentRepository.save(biContent);
-                });
+    public Message createMessage(MessagePostDto messagePostDto) {
+        Message message = new Message(messagePostDto.userId(), messagePostDto.channelId(), messagePostDto.content());
+        if (messagePostDto.attachments() != null && !messagePostDto.attachments().isEmpty()) {
+            messagePostDto.attachments().stream()
+                    .filter(binaryContent -> binaryContent != null)
+                    .forEach(binaryContent -> {
+                        BinaryContent biContent = binaryContentMapper.toBinaryContent(binaryContent);
+                        message.getAttachmentIds().add(biContent.getId());
+                        binaryContentRepository.save(biContent);
+                    });
+        }
 //        if (!user.getActive().equals(ActiveStatus.ACTIVE)
 //                || !channel.getActive().equals(ActiveStatus.ACTIVE)) throw new IllegalArgumentException("User is not active");
         message.setActive(ActiveStatus.ACTIVE);
 
-        Channel channel = channelRepository.findById(createMessageDto.channelId());
-        User user = userRepository.findById(createMessageDto.userId());
+        Channel channel = channelRepository.findById(messagePostDto.channelId());
+        User user = userRepository.findById(messagePostDto.userId());
         channel.addMessage(message);
         user.addMessage(message);
         messageRepository.save(message);
@@ -71,18 +76,18 @@ public class BasicMessageService implements MessageService {
     // 메시지 내용 수정
     // 현재는 내용 1개만 수정 가능
     @Override
-    public void updateMessage(UpdateMessageDto updateMessageDto) {
-        Message message = messageRepository.findById(updateMessageDto.id());
+    public void updateMessage(MessageUpdateDto messageUpdateDto) {
+        Message message = messageRepository.findById(messageUpdateDto.id());
         validateActiveMessage(message);
 
         User user = userRepository.findById(message.getUserId());
         Channel channel = channelRepository.findById(message.getChannelId());
 
-        message.setContent(updateMessageDto.content());
+        message.setContent(messageUpdateDto.content());
         message.setUpdatedAt(Instant.now());
 
         user.removeMessage(message);
-        channel.removeMessage(message);
+        channel.removeMessage(message.getId());
         message.addUser(user);
         message.addChannel(channel);
 
@@ -97,14 +102,16 @@ public class BasicMessageService implements MessageService {
 
         message.setActive(ActiveStatus.DELETE);
         messageRepository.delete(message);
-        message.getAttachmentIds().stream()
-                .forEach(id -> {
-                    BinaryContentRepository.delete(id);
-                });
-        User sender = message.getUserId();
-        Channel channel = message.getChannelId();
+        if (message.getAttachmentIds() != null && !message.getAttachmentIds().isEmpty()) {
+            message.getAttachmentIds().stream()
+                    .forEach(id -> {
+                        binaryContentRepository.delete(id);
+                    });
+        }
+        User sender = userRepository.findById(message.getUserId());
+        Channel channel = channelRepository.findById(message.getChannelId());
         sender.removeMessage(message);
-        channel.removeMessage(message);
+        channel.removeMessage(message.getId());
         userRepository.save(sender);
         channelRepository.save(channel);
     }
@@ -115,4 +122,8 @@ public class BasicMessageService implements MessageService {
         return messageRepository.findAllActive();
     }
 
+    @Override
+    public List<Message> findAll() {
+        return messageRepository.findAll();
+    }
 }

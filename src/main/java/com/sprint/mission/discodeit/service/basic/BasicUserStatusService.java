@@ -1,7 +1,7 @@
 package com.sprint.mission.discodeit.service.basic;
 
-import com.sprint.mission.discodeit.dto.CreateUserStatusDto;
-import com.sprint.mission.discodeit.dto.UpdateUserStatusDto;
+import com.sprint.mission.discodeit.dto.UserStatusPostDto;
+import com.sprint.mission.discodeit.dto.UserStatusUpdateDto;
 import com.sprint.mission.discodeit.entity.UserStatus;
 import com.sprint.mission.discodeit.repository.UserRepository;
 import com.sprint.mission.discodeit.repository.UserStatusRepository;
@@ -30,11 +30,11 @@ public class BasicUserStatusService implements UserStatusService {
                 .anyMatch(userStatus -> userStatus.getUserId().equals(userId))) throw new IllegalArgumentException("User already exists.");
     }
     @Override
-    public UserStatus create(CreateUserStatusDto createUserStatusDto) {
-        validateUser(createUserStatusDto.userId());
-        existsUser(createUserStatusDto.userId());
+    public UserStatus create(UserStatusPostDto userStatusPostDto) {
+        validateUser(userStatusPostDto.userId());
+        existsUser(userStatusPostDto.userId());
 
-        UserStatus userStatus = new UserStatus(createUserStatusDto.userId(), createUserStatusDto.latestActiveAt());
+        UserStatus userStatus = new UserStatus(userStatusPostDto.userId(), userStatusPostDto.latestActiveAt());
         userStatusRepository.save(userStatus);
 
         return null;
@@ -51,9 +51,9 @@ public class BasicUserStatusService implements UserStatusService {
     }
 
     @Override
-    public void update(UpdateUserStatusDto updateUserStatusDto) {
-        UUID userId = updateUserStatusDto.id();
-        Instant latestActiveAt = updateUserStatusDto.latestActiveAt();
+    public void update(UserStatusUpdateDto userStatusUpdateDto) {
+        UUID userId = userStatusUpdateDto.id();
+        Instant latestActiveAt = userStatusUpdateDto.latestActiveAt();
         updateByUserId(userId,latestActiveAt);
     }
 

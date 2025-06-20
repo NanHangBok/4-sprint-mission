@@ -3,6 +3,8 @@ package com.sprint.mission.discodeit.repository.file;
 import com.sprint.mission.discodeit.entity.ActiveStatus;
 import com.sprint.mission.discodeit.entity.Message;
 import com.sprint.mission.discodeit.repository.MessageRepository;
+import org.springframework.context.annotation.Primary;
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Repository;
 
 import java.io.*;
@@ -13,10 +15,10 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Repository
+@Profile("file")
 public class FileMessageRepository implements MessageRepository {
     // 대상 파일 경로와 줄바꿈 문자 설정(본인 OS 기준)
     private static final String FILE_PATH = "src/main/resources/Messages.ser";
-    private static final String LINE_SEPARATOR = System.lineSeparator();
 
     @Override
     public List<Message> findAll() {

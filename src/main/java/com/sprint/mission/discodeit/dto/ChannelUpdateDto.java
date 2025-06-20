@@ -2,9 +2,9 @@ package com.sprint.mission.discodeit.dto;
 
 import java.util.UUID;
 
-public record CreateChannelDto(
-        UUID hostUserId,
-        String channelName,
+public record ChannelUpdateDto(
+        UUID id,
+        String name,
         String description
 ) {
 }

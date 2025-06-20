@@ -3,8 +3,8 @@ package com.sprint.mission.discodeit.dto;
 import java.time.Instant;
 import java.util.UUID;
 
-public record CreateUserStatusDto(
-        UUID userId,
-        Instant latestActiveAt
+public record ReadStatusUpdateDto(
+        UUID id,
+        Instant latestTime
 ) {
 }

@@ -1,9 +1,11 @@
 package com.sprint.mission.discodeit.service.basic;
 
-import com.sprint.mission.discodeit.dto.CreateProfileUserDto;
-import com.sprint.mission.discodeit.dto.ReadUserDto;
-import com.sprint.mission.discodeit.dto.UpdateUserDto;
+import com.sprint.mission.discodeit.dto.UserPostDto;
+import com.sprint.mission.discodeit.dto.UserResponseDto;
+import com.sprint.mission.discodeit.dto.UserUpdateDto;
 import com.sprint.mission.discodeit.entity.*;
+import com.sprint.mission.discodeit.mapper.BinaryContentMapper;
+import com.sprint.mission.discodeit.mapper.UserMapper;
 import com.sprint.mission.discodeit.repository.*;
 import com.sprint.mission.discodeit.service.UserService;
 import lombok.RequiredArgsConstructor;
@@ -17,11 +19,14 @@ import java.util.UUID;
 @Service
 @RequiredArgsConstructor
 public class BasicUserService implements UserService {
+
     private final UserRepository userRepository;
     private final ChannelRepository channelRepository;
     private final MessageRepository messageRepository;
     private final BinaryContentRepository binaryContentRepository;
     private final UserStatusRepository userStatusRepository;
+    private final BinaryContentMapper binaryContentMapper;
+    private final UserMapper userMapper;
 
     public void validateActiveUsre(User user) {
         if (!user.getActive().equals(ActiveStatus.ACTIVE)) throw new IllegalArgumentException("User is not active");
@@ -51,12 +56,12 @@ public class BasicUserService implements UserService {
 //        return user;
 //    }
     @Override
-    public User createUser(CreateProfileUserDto profileUserDto) {
-        if (isDuplicateEmail(profileUserDto.email())
-                || isDuplicateName(profileUserDto.name())) throw new IllegalArgumentException("Email or Username already exists");
-        if (profileUserDto.binaryContent() == null) {
+    public User createUser(UserPostDto userPostDto) {
+        if (isDuplicateEmail(userPostDto.email())
+                || isDuplicateName(userPostDto.name())) throw new IllegalArgumentException("Email or Username already exists");
+        if (userPostDto.binaryContentPostDto() == null) {
             System.out.println("이미지가 포함되지 않아 기본 프로필로 설정됩니다.");
-            User user =  new User(profileUserDto.name(), profileUserDto.password(), profileUserDto.email());
+            User user =  userMapper.toUserForCreate(userPostDto,null);
             user.setActive(ActiveStatus.ACTIVE);
             userRepository.save(user);
 
@@ -64,11 +69,10 @@ public class BasicUserService implements UserService {
             userStatusRepository.save(userStatus);
             return user;
         }
-        BinaryContent binaryContent = new BinaryContent(profileUserDto.binaryContent());
-        User user = new User(profileUserDto.name(), profileUserDto.password(), profileUserDto.email(), binaryContent.getId());
+        BinaryContent binaryContent = binaryContentMapper.toBinaryContent(userPostDto.binaryContentPostDto());
+        User user = userMapper.toUserForCreate(userPostDto,binaryContent.getId());
 
         binaryContent.setActive(ActiveStatus.ACTIVE);
-        binaryContent.setUserId(user.getId());
         binaryContentRepository.save(binaryContent);
 
         user.setActive(ActiveStatus.ACTIVE);
@@ -81,46 +85,57 @@ public class BasicUserService implements UserService {
 
     // 모든 유저 확인
     @Override
-    public List<ReadUserDto> getUsers() {
-        List<ReadUserDto> readUserDtos = new ArrayList<>();
+    public List<UserResponseDto> getUsers() {
+        List<UserResponseDto> userResponseDtos = new ArrayList<>();
         userRepository.findAll()
-                .forEach(user -> readUserDtos.add(new ReadUserDto(user.getName(),user.getEmail(),user.getProfileId(), userStatusRepository.findById(user.getId()))));
+                .forEach(user -> {
+                    UserStatus userStatus = userStatusRepository.findById(user.getId());
+                    userResponseDtos.add(userMapper.toUserResponseDto(user,userStatus));
+                });
 //        return userRepository.findAll();
-        return readUserDtos;
+        return userResponseDtos;
     }
 
     // 특정 ID를 가진 유저 가져오기
     @Override
-    public ReadUserDto getUsersById(UUID userId) {
+    public UserResponseDto getUserById(UUID userId) {
         User user = userRepository.findById(userId);
-        ReadUserDto readUserDto = new ReadUserDto(user.getName(),user.getEmail(),user.getProfileId(),userStatusRepository.findById(userId));
-        return readUserDto;
+        UserStatus userStatus = userStatusRepository.findById(user.getId());
+        UserResponseDto userResponseDto = userMapper.toUserResponseDto(user,userStatus);
+        return userResponseDto;
     }
 
     @Override
-    public void updateUser(UpdateUserDto updateUserDto) {
+    public UserResponseDto getUserByName(String name) {
+        User user = userRepository.findByName(name);
+        UserStatus userStatus = userStatusRepository.findById(user.getId());
+        UserResponseDto userResponseDto = userMapper.toUserResponseDto(user,userStatus);
+        return userResponseDto;
+    }
 
-        User user = userRepository.findById(updateUserDto.id());
+    @Override
+    public void updateUser(UserUpdateDto userUpdateDto) {
+        User user = userRepository.findById(userUpdateDto.id());
         validateActiveUsre(user);
 
         boolean isUpdated = false;
-        if (updateUserDto.name() != null) {
-            user.setName(updateUserDto.name());
+        if (userUpdateDto.name() != null) {
+            user.setName(userUpdateDto.name());
             isUpdated = true;
         }
-        if (updateUserDto.password() != null) {
-            user.setPassword(updateUserDto.password());
+        if (userUpdateDto.password() != null) {
+            user.setPassword(userUpdateDto.password());
             isUpdated = true;
         }
-        if (updateUserDto.presenceStatus() != null) {
-            user.setPresenceStatus(updateUserDto.presenceStatus());
+        if (userUpdateDto.presenceStatus() != null) {
+            user.setPresenceStatus(userUpdateDto.presenceStatus());
             isUpdated = true;
         }
-        if (updateUserDto.binaryContent() != null) {
-            BinaryContent binaryContent = new BinaryContent(updateUserDto.binaryContent());
+        if (userUpdateDto.binaryContentPostDto() != null) {
+            BinaryContent binaryContent =
+                    binaryContentMapper.toBinaryContent(userUpdateDto.binaryContentPostDto());
             user.setProfileId(binaryContent.getId());
             binaryContent.setActive(ActiveStatus.ACTIVE);
-            binaryContent.setUserId(user.getId());
             binaryContentRepository.save(binaryContent);
             isUpdated = true;
         }
@@ -130,12 +145,9 @@ public class BasicUserService implements UserService {
         }
     }
 
-    /********************************************
-     *  유저 삭제 메서드
-     * @param user 아이디를 입력으로 받음
-     ********************************************/
     @Override
-    public void deleteUser(User user) {
+    public void deleteUser(UUID userId) {
+        User user = userRepository.findById(userId);
         validateActiveUsre(user);
 
         // 유저가 가진 채널과 정보 모두 삭제
@@ -144,7 +156,10 @@ public class BasicUserService implements UserService {
         user.setActive(ActiveStatus.DELETE);
         userRepository.delete(user);
 
-        binaryContentRepository.delete(user.getId());
+        // 프로필 이미지가 있는 경우에만 제거한다.
+        if (user.getProfileId() != null) {
+            binaryContentRepository.delete(user.getProfileId());
+        }
         userStatusRepository.delete(user.getId());
 //        /********************************************
 //         * 유저가 있던 채널에서 유저 삭제
@@ -183,15 +198,15 @@ public class BasicUserService implements UserService {
                 });
         user.getChannels().remove(channel);
         userRepository.save(user);
-        channel.removeUser(user);
+//        channel.removeUser(user);
         channelRepository.save(channel);
     }
 
     @Override
     public void removeMessage(User user, Message message) {
         if (!user.getMessages().contains(message)) throw new IllegalArgumentException("Message does not exist");
-        Channel channel = message.getChannelId();
-        channel.removeMessage(message);
+        Channel channel = channelRepository.findById(message.getChannelId());
+        channel.removeMessage(message.getId());
         channelRepository.save(channel);
         message.removeUser();
         message.removeChannel();

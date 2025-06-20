@@ -1,7 +1,7 @@
 package com.sprint.mission.discodeit.service.basic;
 
-import com.sprint.mission.discodeit.dto.CreateReadStatusDto;
-import com.sprint.mission.discodeit.dto.UpdateReadStatusDto;
+import com.sprint.mission.discodeit.dto.ReadStatusPostDto;
+import com.sprint.mission.discodeit.dto.ReadStatusUpdateDto;
 import com.sprint.mission.discodeit.entity.ReadStatus;
 import com.sprint.mission.discodeit.repository.ChannelRepository;
 import com.sprint.mission.discodeit.repository.ReadStatusRepository;
@@ -11,7 +11,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.UUID;
@@ -24,29 +23,29 @@ public class BasicReadStatusService implements ReadStatusService {
     private final UserRepository userRepository;
     private final ChannelRepository channelRepository;
 
-    public boolean validateByUserOrChannel(CreateReadStatusDto createReadStatusDto) {
+    public boolean validateByUserOrChannel(ReadStatusPostDto readStatusPostDto) {
         if (userRepository.findAll().stream()
-                .noneMatch(user -> user.equals(createReadStatusDto.userId()))) return false;
+                .noneMatch(user -> user.equals(readStatusPostDto.userId()))) return false;
         if (channelRepository.findAll().stream()
-                .noneMatch(channel -> channel.equals(createReadStatusDto.channelId()))) return false;
+                .noneMatch(channel -> channel.equals(readStatusPostDto.channelId()))) return false;
         return true;
     }
 
-    public boolean existsByUserAndChannel(CreateReadStatusDto createReadStatusDto){
+    public boolean existsByUserAndChannel(ReadStatusPostDto readStatusPostDto){
         if (readStatusRepository.findAll().stream()
-                .anyMatch(readStatus -> readStatus.getUserId().equals(createReadStatusDto.userId())
-                        && readStatus.getChannelId().equals(createReadStatusDto.channelId())))
+                .anyMatch(readStatus -> readStatus.getUserId().equals(readStatusPostDto.userId())
+                        && readStatus.getChannelId().equals(readStatusPostDto.channelId())))
             return false;
 
         return true;
     }
     @Override
-    public ReadStatus create(CreateReadStatusDto createReadStatusDto) {
-        if (!validateByUserOrChannel(createReadStatusDto)) throw new NoSuchElementException("User or Channel not found");
+    public ReadStatus create(ReadStatusPostDto readStatusPostDto) {
+        if (!validateByUserOrChannel(readStatusPostDto)) throw new NoSuchElementException("User or Channel not found");
 
-        if (existsByUserAndChannel(createReadStatusDto)) throw new IllegalArgumentException("User and Channel relationship already exists");
+        if (existsByUserAndChannel(readStatusPostDto)) throw new IllegalArgumentException("User and Channel relationship already exists");
 
-        ReadStatus readStatus = new ReadStatus(createReadStatusDto.userId(), createReadStatusDto.channelId(), Instant.now());
+        ReadStatus readStatus = new ReadStatus(readStatusPostDto.userId(), readStatusPostDto.channelId(), Instant.now());
         readStatusRepository.save(readStatus);
         return null;
     }
@@ -65,13 +64,13 @@ public class BasicReadStatusService implements ReadStatusService {
     }
 
     @Override
-    public void update(UpdateReadStatusDto updateReadStatusDto) {
-        ReadStatus readStatus = readStatusRepository.findById(updateReadStatusDto.id());
+    public void update(ReadStatusUpdateDto readStatusUpdateDto) {
+        ReadStatus readStatus = readStatusRepository.findById(readStatusUpdateDto.id());
 
         boolean isUpdated = false;
 
-        if (updateReadStatusDto.latestTime() != null) {
-            readStatus.setUpdatedAt(updateReadStatusDto.latestTime());
+        if (readStatusUpdateDto.latestTime() != null) {
+            readStatus.setUpdatedAt(readStatusUpdateDto.latestTime());
             isUpdated = true;
         }
 

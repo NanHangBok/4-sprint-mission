@@ -1,10 +1,10 @@
 package com.sprint.mission.discodeit.dto;
 
+import java.time.Instant;
 import java.util.UUID;
 
-public record CreateBinaryContentDto(
+public record UserStatusPostDto(
         UUID userId,
-        UUID messageId,
-        byte[] content
+        Instant latestActiveAt
 ) {
 }

@@ -2,6 +2,9 @@ package com.sprint.mission.discodeit.repository.jcf;
 
 import com.sprint.mission.discodeit.entity.User;
 import com.sprint.mission.discodeit.repository.UserRepository;
+import org.springframework.context.annotation.Primary;
+import org.springframework.context.annotation.Profile;
+import org.springframework.stereotype.Repository;
 
 import java.io.*;
 import java.util.ArrayList;
@@ -10,7 +13,11 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+@Repository
+@Profile("jcf")
+@Primary
 public class JCFUserRepository implements UserRepository {
+
     private List<User> data = new ArrayList<>();
 
     public List<User> findAll() {
@@ -26,6 +33,14 @@ public class JCFUserRepository implements UserRepository {
         return user;
     }
 
+    @Override
+    public User findByName(String name) {
+        User user = data.stream()
+                .filter(u -> u.getName().equals(name))
+                .findFirst()
+                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+        return user;
+    }
 
     @Override
     public void save(User user) {

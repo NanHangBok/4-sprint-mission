@@ -6,9 +6,9 @@ import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 
-public record ReadChannelDto(
+public record ChannelResponseDto(
         UUID userId,
-        UUID channelId,
+        String channelName,
         ChannelType channelType,
         List<UUID> joinedUserIds,
         Instant lastMessageTime

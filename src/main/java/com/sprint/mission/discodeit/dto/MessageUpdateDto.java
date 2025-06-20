@@ -2,7 +2,7 @@ package com.sprint.mission.discodeit.dto;
 
 import java.util.UUID;
 
-public record UpdateMessageDto(
+public record MessageUpdateDto(
         UUID id,
         String content
 ) {
