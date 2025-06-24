@@ -3,8 +3,11 @@ package com.sprint.mission.discodeit.repository.file;
 import com.sprint.mission.discodeit.entity.BinaryContent;
 import com.sprint.mission.discodeit.entity.ReadStatus;
 import com.sprint.mission.discodeit.repository.ReadStatusRepository;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Primary;
 import org.springframework.context.annotation.Profile;
+import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Repository;
 
 import java.io.*;
@@ -13,19 +16,22 @@ import java.util.List;
 import java.util.UUID;
 
 @Repository
-@Profile("file")
+//@Profile("file")
+//@ConditionalOnProperty(name = "discodeit.repository.type", havingValue = "file")
 public class FileReadStatusRepository implements ReadStatusRepository {
-    private static final String FILE_PATH = "src/main/resources/ReadUser.ser";
+    @Value("${discodeit.repository.file-directory}/ReadUsers.ser")
+    private String FILE_PATH;
+//    private String FILE_PATH = "src/main/resources/ReadUser.ser";
     @Override
     public List<ReadStatus> findAll() {
-
         List<ReadStatus> list = new ArrayList<>();
 
-        // try with resource 구문으로 작성
         try (FileInputStream fis = new FileInputStream(FILE_PATH);
              ObjectInputStream ois = new ObjectInputStream(fis)) {
             list = (List<ReadStatus>) ois.readObject();
-        } catch (IOException | ClassNotFoundException e) {
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (ClassNotFoundException e) {
             e.printStackTrace();
         }
 
@@ -33,7 +39,6 @@ public class FileReadStatusRepository implements ReadStatusRepository {
     }
 
     public void saveAll(List<ReadStatus> readStatus) {
-        // try with resource 구문으로 작성
         try (FileOutputStream fos = new FileOutputStream(FILE_PATH);
              ObjectOutputStream oos = new ObjectOutputStream(fos)) {
             oos.writeObject(readStatus);

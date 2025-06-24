@@ -8,8 +8,7 @@ import java.util.List;
 import java.util.UUID;
 
 @Getter
-public class Message extends BasedEntity implements Serializable {
-    private static final long serialVersionUID = 1L;
+public class Message extends BasedEntity{
     private String content;
     private UUID userId;
     private UUID channelId;
@@ -18,8 +17,8 @@ public class Message extends BasedEntity implements Serializable {
     public Message(UUID userId, UUID channelId, String content) {
         super();
         this.content = content;
-        this.userId = this.userId;
-        this.channelId = this.channelId;
+        this.userId = userId;
+        this.channelId = channelId;
     }
 
     @Override
@@ -48,31 +47,38 @@ public class Message extends BasedEntity implements Serializable {
 
     // 작성한 유저
     public void addUser(User user) {
-        if (this.userId == null){
-            this.userId = user.getId();
-            user.addMessage(this);
+        if (this.userId != null) {
+            System.out.println("유저 등록 완료");
+            return;
         }
+        this.userId = user.getId();
     }
 
     // 작성된 채널
     public void addChannel(Channel channel) {
-        if (this.channelId == null){
-            this.channelId = channel.getId();
-            channel.addMessage(this);
+        if (this.channelId != null) {
+            System.out.println("채널 등록 완료");
+            return;
         }
+        this.channelId = channel.getId();
+        channel.addMessageToChannel(this);
     }
 
     // 유저가 삭제하거나 유저가 삭제된 경우
     public void removeUser() {
-        if (this.userId != null) {
-            this.userId = null;
+        if (this.userId == null) {
+            System.out.println("유저 삭제 완료");
+            return;
         }
+        this.userId = null;
     }
 
     // 채널에서 삭제된 경우
     public void removeChannel() {
-        if (this.channelId != null) {
-            this.channelId = null;
+        if (this.channelId == null) {
+            System.out.println("채널 삭제 완료");
+            return;
         }
+        this.channelId = null;
     }
 }

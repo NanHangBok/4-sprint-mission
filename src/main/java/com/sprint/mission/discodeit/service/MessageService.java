@@ -1,6 +1,7 @@
 package com.sprint.mission.discodeit.service;
 
 import com.sprint.mission.discodeit.dto.MessagePostDto;
+import com.sprint.mission.discodeit.dto.MessageResponseDto;
 import com.sprint.mission.discodeit.dto.MessageUpdateDto;
 import com.sprint.mission.discodeit.entity.Message;
 
@@ -8,11 +9,11 @@ import java.util.List;
 import java.util.UUID;
 
 public interface MessageService {
-    public Message createMessage(MessagePostDto messagePostDto);
-    public List<Message> findallByChannelId(UUID channelId);
-    public Message getMessagesById(UUID messageId);
+    public MessageResponseDto createMessage(MessagePostDto messagePostDto);
+    public List<MessageResponseDto> findallByChannelId(UUID channelId);
+    public MessageResponseDto getMessagesById(UUID messageId);
     public void updateMessage(MessageUpdateDto messageUpdateDto);;
     public void removeMessage(Message messgae);
-    public List<Message> getActiveMessages();
-    public List<Message> findAll();
+    public List<MessageResponseDto> getActiveMessages();
+    public List<MessageResponseDto> findAll();
 }

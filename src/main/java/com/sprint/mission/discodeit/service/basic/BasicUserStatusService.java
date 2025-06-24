@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 import java.time.Instant;
 import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -20,19 +21,20 @@ public class BasicUserStatusService implements UserStatusService {
     private final UserStatusRepository userStatusRepository;
     private final UserRepository userRepository;
 
-    public void validateUser(UUID userId) {
+    private void validateUser(UUID userId) {
         if (!userRepository.findAll().stream()
                 .anyMatch(user -> user.equals(userId))) throw new NoSuchElementException("User not found");
     }
 
-    public void existsUser(UUID userId) {
+    private void existsUserStatus(UUID userId) {
         if (!userStatusRepository.findAll().stream()
                 .anyMatch(userStatus -> userStatus.getUserId().equals(userId))) throw new IllegalArgumentException("User already exists.");
     }
+
     @Override
     public UserStatus create(UserStatusPostDto userStatusPostDto) {
         validateUser(userStatusPostDto.userId());
-        existsUser(userStatusPostDto.userId());
+        existsUserStatus(userStatusPostDto.userId());
 
         UserStatus userStatus = new UserStatus(userStatusPostDto.userId(), userStatusPostDto.latestActiveAt());
         userStatusRepository.save(userStatus);
@@ -52,18 +54,29 @@ public class BasicUserStatusService implements UserStatusService {
 
     @Override
     public void update(UserStatusUpdateDto userStatusUpdateDto) {
-        UUID userId = userStatusUpdateDto.id();
-        Instant latestActiveAt = userStatusUpdateDto.latestActiveAt();
-        updateByUserId(userId,latestActiveAt);
+        UserStatus findUserStatus = userStatusRepository.findById(userStatusUpdateDto.id());
+
+        if (findUserStatus.getLastActiveAt().isAfter(userStatusUpdateDto.latestActiveAt())) {
+            System.out.println("저장되어있는 데이터가 동일하거나 더 최신입니다.");
+            return;
+        }
+        Optional.ofNullable(userStatusUpdateDto.latestActiveAt()).ifPresent(findUserStatus::setLastActiveAt);
+        findUserStatus.setUpdatedAt(userStatusUpdateDto.latestActiveAt());
+
+        userStatusRepository.save(findUserStatus);
     }
 
     @Override
     public void updateByUserId(UUID userId, Instant latestActiveAt) {
-        UserStatus userStatus = userStatusRepository.findById(userId);
+        UserStatus findUserStatus = userStatusRepository.findByUserId(userId);
+        if (findUserStatus.getLastActiveAt().isAfter(latestActiveAt)) {
+            System.out.println("저장되어있는 데이터가 동일하거나 더 최신입니다.");
+            return;
+        }
+        findUserStatus.setLastActiveAt(latestActiveAt);
+        findUserStatus.setUpdatedAt(latestActiveAt);
 
-        userStatus.setLastActiveAt(latestActiveAt);
-        userStatus.setUpdatedAt(Instant.now());
-        userStatusRepository.save(userStatus);
+        userStatusRepository.save(findUserStatus);
     }
 
     @Override

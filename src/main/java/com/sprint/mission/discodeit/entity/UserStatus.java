@@ -18,4 +18,20 @@ public class UserStatus extends BasedEntity {
 
         return false;
     }
+
+    @Override
+    public String toString() {
+        return "UserStatus{" +
+                "userId=" + userId +
+                ", lastActiveAt=" + lastActiveAt +
+                '}';
+    }
+
+    public void update(Instant newLastActiveAt) {
+        if (lastActiveAt.isAfter(newLastActiveAt)) {
+            System.out.println("가지고 있는 데이터가 더 최신입니다.");
+            return;
+        }
+        this.lastActiveAt = newLastActiveAt;
+    }
 }

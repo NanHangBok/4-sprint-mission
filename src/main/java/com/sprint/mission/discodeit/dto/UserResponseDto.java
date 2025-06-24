@@ -5,7 +5,7 @@ import com.sprint.mission.discodeit.entity.UserStatus;
 import java.util.UUID;
 
 public record UserResponseDto(
-        String name,
+        String nickname,
         String email,
         UUID profile,
         UserStatus userStatus

@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service;
 import java.time.Instant;
 import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -23,7 +24,7 @@ public class BasicReadStatusService implements ReadStatusService {
     private final UserRepository userRepository;
     private final ChannelRepository channelRepository;
 
-    public boolean validateByUserOrChannel(ReadStatusPostDto readStatusPostDto) {
+    private boolean validateByUserOrChannel(ReadStatusPostDto readStatusPostDto) {
         if (userRepository.findAll().stream()
                 .noneMatch(user -> user.equals(readStatusPostDto.userId()))) return false;
         if (channelRepository.findAll().stream()
@@ -31,7 +32,7 @@ public class BasicReadStatusService implements ReadStatusService {
         return true;
     }
 
-    public boolean existsByUserAndChannel(ReadStatusPostDto readStatusPostDto){
+    private boolean existsByUserAndChannel(ReadStatusPostDto readStatusPostDto){
         if (readStatusRepository.findAll().stream()
                 .anyMatch(readStatus -> readStatus.getUserId().equals(readStatusPostDto.userId())
                         && readStatus.getChannelId().equals(readStatusPostDto.channelId())))
@@ -47,7 +48,7 @@ public class BasicReadStatusService implements ReadStatusService {
 
         ReadStatus readStatus = new ReadStatus(readStatusPostDto.userId(), readStatusPostDto.channelId(), Instant.now());
         readStatusRepository.save(readStatus);
-        return null;
+        return readStatus;
     }
 
     @Override
@@ -65,22 +66,20 @@ public class BasicReadStatusService implements ReadStatusService {
 
     @Override
     public void update(ReadStatusUpdateDto readStatusUpdateDto) {
-        ReadStatus readStatus = readStatusRepository.findById(readStatusUpdateDto.id());
+        ReadStatus findReadStatus = readStatusRepository.findById(readStatusUpdateDto.id());
 
-        boolean isUpdated = false;
-
-        if (readStatusUpdateDto.latestTime() != null) {
-            readStatus.setUpdatedAt(readStatusUpdateDto.latestTime());
-            isUpdated = true;
-        }
-
-        if (isUpdated) {
-            readStatusRepository.save(readStatus);
-        }
+        Optional.ofNullable(readStatusUpdateDto.latestTime()).ifPresent(findReadStatus::setLatestTime);
+        readStatusRepository.save(findReadStatus);
     }
 
     @Override
     public void delete(UUID id) {
         readStatusRepository.delete(id);
+    }
+
+    //
+
+    public List<ReadStatus> findAll() {
+        return readStatusRepository.findAll();
     }
 }

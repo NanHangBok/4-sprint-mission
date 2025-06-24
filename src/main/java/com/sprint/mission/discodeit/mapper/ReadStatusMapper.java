@@ -9,7 +9,7 @@ import java.time.Instant;
 
 @Component
 public class ReadStatusMapper {
-    public ReadStatus toReadStatusForCreate(ReadStatusPostDto postDto){
+    public ReadStatus toReadStatus(ReadStatusPostDto postDto){
         return new ReadStatus(postDto.userId(),postDto.channelId(), Instant.now());
     }
 }

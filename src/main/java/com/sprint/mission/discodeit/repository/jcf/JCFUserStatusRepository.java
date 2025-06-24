@@ -2,8 +2,6 @@ package com.sprint.mission.discodeit.repository.jcf;
 
 import com.sprint.mission.discodeit.entity.UserStatus;
 import com.sprint.mission.discodeit.repository.UserStatusRepository;
-import org.springframework.context.annotation.Primary;
-import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Repository;
 
 import java.util.ArrayList;
@@ -11,18 +9,28 @@ import java.util.List;
 import java.util.UUID;
 
 @Repository
-@Profile("jcf")
-@Primary
+//@Profile("jcf")
+//@Primary
+//@ConditionalOnProperty(name = "discodeit.repository.type", havingValue = "jcf", matchIfMissing = true)
 public class JCFUserStatusRepository implements UserStatusRepository {
     private final List<UserStatus> data = new ArrayList<>();
 
     @Override
     public void delete(UUID id) {
-        data.removeIf(us -> us.getId().equals(id));
+        data.removeIf(us -> us.getUserId().equals(id));
     }
 
     @Override
-    public UserStatus findById(UUID userId) {
+    public UserStatus findById(UUID id) {
+        UserStatus userStatus = data.stream()
+                .filter(us -> us.getId().equals(id))
+                .findFirst()
+                .orElseThrow(() -> new IllegalArgumentException("UserStatus not found"));
+        return userStatus;
+    }
+
+    @Override
+    public UserStatus findByUserId(UUID userId) {
         UserStatus userStatus = data.stream()
                 .filter(us -> us.getUserId().equals(userId))
                 .findFirst()

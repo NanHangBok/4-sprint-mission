@@ -6,7 +6,7 @@ import java.util.UUID;
 
 public record UserUpdateDto(
         UUID id,
-        String name,
+        String nickname,
         String password,
         PresenceStatus presenceStatus,
         BinaryContentPostDto binaryContentPostDto

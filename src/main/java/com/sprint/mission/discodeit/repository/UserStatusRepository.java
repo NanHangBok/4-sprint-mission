@@ -10,6 +10,8 @@ public interface UserStatusRepository {
 
     UserStatus findById(UUID userId);
 
+    UserStatus findByUserId(UUID userId);
+
     void save(UserStatus userStatus);
 
     List<UserStatus> findAll();

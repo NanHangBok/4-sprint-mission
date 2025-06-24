@@ -14,12 +14,13 @@ public class BasicAuthService implements AuthService {
 
     @Override
     public User login(UserLoginDto userLoginDto) {
+        if (userLoginDto.password() == null || userLoginDto.username() == null) throw new IllegalArgumentException("Username or Password is invalid");
         if (userRepository.findAll()
                 .stream()
                 .anyMatch(user -> user.getName().equals(userLoginDto.username())
                                     && user.getPassword().equals(userLoginDto.password()))) {
             return userRepository.findByName(userLoginDto.username());
-        } else throw new IllegalArgumentException();
+        } else throw new IllegalArgumentException("Username or password is invalid");
 
     }
 }

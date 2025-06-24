@@ -2,8 +2,11 @@ package com.sprint.mission.discodeit.repository.file;
 
 import com.sprint.mission.discodeit.entity.User;
 import com.sprint.mission.discodeit.repository.UserRepository;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Primary;
 import org.springframework.context.annotation.Profile;
+import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Repository;
 
 import java.io.*;
@@ -11,20 +14,23 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 @Repository
-@Profile("file")
+//@Profile("file")
+//@ConditionalOnProperty(name = "discodeit.repository.type", havingValue = "file")
 public class FileUserRepository implements UserRepository {
-    private static final String FILE_PATH = "src/main/resources/Users.ser";
+    @Value("${discodeit.repository.file-directory}/Users.ser")
+    private String FILE_PATH;
+//    private String FILE_PATH = "src/main/resources/Users.ser";
 
     @Override
     public List<User> findAll() {
-
         List<User> list = new ArrayList<>();
 
-        // try with resource 구문으로 작성
         try (FileInputStream fis = new FileInputStream(FILE_PATH);
             ObjectInputStream ois = new ObjectInputStream(fis)) {
             list = (List<User>) ois.readObject();
-        } catch (IOException | ClassNotFoundException e) {
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (ClassNotFoundException e) {
             e.printStackTrace();
         }
 
@@ -32,8 +38,6 @@ public class FileUserRepository implements UserRepository {
     }
 
     public void saveAll(List<User> users) {
-
-        // try with resource 구문으로 작성
         try (FileOutputStream fos = new FileOutputStream(FILE_PATH);
             ObjectOutputStream oos = new ObjectOutputStream(fos)) {
             oos.writeObject(users);

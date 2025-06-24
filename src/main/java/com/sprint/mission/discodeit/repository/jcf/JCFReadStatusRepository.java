@@ -3,8 +3,11 @@ package com.sprint.mission.discodeit.repository.jcf;
 import com.sprint.mission.discodeit.entity.ReadStatus;
 import com.sprint.mission.discodeit.repository.BinaryContentRepository;
 import com.sprint.mission.discodeit.repository.ReadStatusRepository;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Primary;
 import org.springframework.context.annotation.Profile;
+import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Repository;
 
 import java.util.ArrayList;
@@ -12,8 +15,9 @@ import java.util.List;
 import java.util.UUID;
 
 @Repository
-@Profile("jcf")
-@Primary
+//@Profile("jcf")
+//@Primary
+//@ConditionalOnProperty(name = "discodeit.repository.type", havingValue = "jcf", matchIfMissing = true)
 public class JCFReadStatusRepository implements ReadStatusRepository {
     private final List<ReadStatus> data = new ArrayList<>();
 

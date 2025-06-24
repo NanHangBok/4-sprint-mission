@@ -1,12 +1,15 @@
 package com.sprint.mission.discodeit.service.basic;
 
 import com.sprint.mission.discodeit.dto.BinaryContentPostDto;
+import com.sprint.mission.discodeit.dto.BinaryContentResponseDto;
 import com.sprint.mission.discodeit.entity.BinaryContent;
+import com.sprint.mission.discodeit.mapper.BinaryContentMapper;
 import com.sprint.mission.discodeit.repository.BinaryContentRepository;
 import com.sprint.mission.discodeit.service.BinaryContentService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -14,25 +17,41 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class BasicBinaryContentService implements BinaryContentService {
     private final BinaryContentRepository binaryContentRepository;
+    private final BinaryContentMapper binaryContentMapper;
+
     @Override
-    public BinaryContent create(BinaryContentPostDto binaryContentPostDto) {
+    public BinaryContentResponseDto create(BinaryContentPostDto binaryContentPostDto) {
         BinaryContent binaryContent = new BinaryContent(binaryContentPostDto.content(),binaryContentPostDto.contentType());
         binaryContentRepository.save(binaryContent);
-        return binaryContent;
+        return binaryContentMapper.toBinaryContentResponseDto(binaryContent);
     }
 
     @Override
-    public BinaryContent find(UUID id) {
-        return binaryContentRepository.findById(id);
+    public BinaryContentResponseDto find(UUID id) {
+        return binaryContentMapper.toBinaryContentResponseDto(binaryContentRepository.findById(id));
     }
 
     @Override
-    public List<BinaryContent> findAllByIdIn(List<UUID> ids) {
-        return binaryContentRepository.findAll();
+    public List<BinaryContentResponseDto> findAllByIdIn(List<UUID> ids) {
+        List<BinaryContentResponseDto> binaryContentResponseDtos = new ArrayList<>();
+        binaryContentRepository.findAllById(ids).stream()
+                .forEach(binaryContent ->
+                        binaryContentResponseDtos.add(binaryContentMapper.toBinaryContentResponseDto(binaryContent)));
+        return binaryContentResponseDtos;
     }
 
     @Override
     public void delete(UUID id) {
         binaryContentRepository.delete(id);
+    }
+
+    //
+
+    public List<BinaryContentResponseDto> findAll() {
+        List<BinaryContentResponseDto> binaryContentResponseDtos = new ArrayList<>();
+        binaryContentRepository.findAll().stream()
+                .forEach(binaryContent ->
+                        binaryContentResponseDtos.add(binaryContentMapper.toBinaryContentResponseDto(binaryContent)));
+        return binaryContentResponseDtos;
     }
 }

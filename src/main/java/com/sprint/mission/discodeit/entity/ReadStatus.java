@@ -14,4 +14,13 @@ public class ReadStatus extends BasedEntity{
     private UUID userId;
     private UUID channelId;
     private Instant latestTime;
+
+    @Override
+    public String toString() {
+        return "ReadStatus{" +
+                "userId=" + userId +
+                ", channelId=" + channelId +
+                ", latestTime=" + latestTime +
+                '}';
+    }
 }

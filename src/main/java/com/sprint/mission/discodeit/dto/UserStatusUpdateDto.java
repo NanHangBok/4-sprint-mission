@@ -5,6 +5,7 @@ import java.util.UUID;
 
 public record UserStatusUpdateDto(
         UUID id,
+        UUID userId,
         Instant latestActiveAt
 ) {
 }

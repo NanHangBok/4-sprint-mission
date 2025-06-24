@@ -1,7 +1,7 @@
 package com.sprint.mission.discodeit.service.basic;
 
-import com.sprint.mission.discodeit.dto.BinaryContentPostDto;
 import com.sprint.mission.discodeit.dto.MessagePostDto;
+import com.sprint.mission.discodeit.dto.MessageResponseDto;
 import com.sprint.mission.discodeit.dto.MessageUpdateDto;
 import com.sprint.mission.discodeit.entity.*;
 import com.sprint.mission.discodeit.mapper.BinaryContentMapper;
@@ -15,8 +15,8 @@ import org.springframework.stereotype.Service;
 
 import java.time.Instant;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -27,14 +27,27 @@ public class BasicMessageService implements MessageService {
     private final BinaryContentRepository binaryContentRepository;
     private final BinaryContentMapper binaryContentMapper;
 
-    public void validateActiveMessage(Message message) {
+    private void validateActiveMessage(Message message) {
         if (!message.getActive().equals(ActiveStatus.ACTIVE)) throw new IllegalArgumentException("Message is not active");
     }
 
     // 메시지 생성
+
+    /******
+     * 여기서부터 하셈 MessageMapper까지 만듦
+     * Mapper는 message와 BinaryContentPostDto를 받음
+     * @param messagePostDto
+     * @return
+     */
     @Override
-    public Message createMessage(MessagePostDto messagePostDto) {
+    public MessageResponseDto createMessage(MessagePostDto messagePostDto) {
         Message message = new Message(messagePostDto.userId(), messagePostDto.channelId(), messagePostDto.content());
+        Channel channel = channelRepository.findById(messagePostDto.channelId());
+        User user = userRepository.findById(messagePostDto.userId());
+
+        if (!user.getActive().equals(ActiveStatus.ACTIVE)
+                || !channel.getActive().equals(ActiveStatus.ACTIVE)) throw new IllegalArgumentException("User is not active");
+
         if (messagePostDto.attachments() != null && !messagePostDto.attachments().isEmpty()) {
             messagePostDto.attachments().stream()
                     .filter(binaryContent -> binaryContent != null)
@@ -44,27 +57,21 @@ public class BasicMessageService implements MessageService {
                         binaryContentRepository.save(biContent);
                     });
         }
-//        if (!user.getActive().equals(ActiveStatus.ACTIVE)
-//                || !channel.getActive().equals(ActiveStatus.ACTIVE)) throw new IllegalArgumentException("User is not active");
         message.setActive(ActiveStatus.ACTIVE);
-
-        Channel channel = channelRepository.findById(messagePostDto.channelId());
-        User user = userRepository.findById(messagePostDto.userId());
-        channel.addMessage(message);
-        user.addMessage(message);
         messageRepository.save(message);
+
+        channel.addMessageToChannel(message);
         channelRepository.save(channel);
-        userRepository.save(user);
+
         return message;
     }
-
 
     // 모든 메시지 확인
     @Override
     public List<Message> findallByChannelId(UUID channelId) {
         return messageRepository.findAll().stream()
                 .filter(message -> message.getChannelId().equals(channelId))
-                .collect(Collectors.toList());
+                .toList();
     }
 
     // 특정 ID를 가진 메시지 확인
@@ -77,23 +84,13 @@ public class BasicMessageService implements MessageService {
     // 현재는 내용 1개만 수정 가능
     @Override
     public void updateMessage(MessageUpdateDto messageUpdateDto) {
-        Message message = messageRepository.findById(messageUpdateDto.id());
-        validateActiveMessage(message);
+        Message findMessage = messageRepository.findById(messageUpdateDto.id());
+        validateActiveMessage(findMessage);
 
-        User user = userRepository.findById(message.getUserId());
-        Channel channel = channelRepository.findById(message.getChannelId());
+        Optional.ofNullable(messageUpdateDto.content()).ifPresent(findMessage::setContent);
+        findMessage.setUpdatedAt(Instant.now());
 
-        message.setContent(messageUpdateDto.content());
-        message.setUpdatedAt(Instant.now());
-
-        user.removeMessage(message);
-        channel.removeMessage(message.getId());
-        message.addUser(user);
-        message.addChannel(channel);
-
-        userRepository.save(user);
-        channelRepository.save(channel);
-        messageRepository.save(message);
+        messageRepository.save(findMessage);
     }
 
     // 메시지 삭제
@@ -108,11 +105,8 @@ public class BasicMessageService implements MessageService {
                         binaryContentRepository.delete(id);
                     });
         }
-        User sender = userRepository.findById(message.getUserId());
-        Channel channel = channelRepository.findById(message.getChannelId());
-        sender.removeMessage(message);
-        channel.removeMessage(message.getId());
-        userRepository.save(sender);
+        Channel channel =  channelRepository.findById(message.getChannelId());
+        channel.removeMessageFromChannel(message);
         channelRepository.save(channel);
     }
 
