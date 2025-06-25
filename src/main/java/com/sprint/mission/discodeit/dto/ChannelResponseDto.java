@@ -7,7 +7,9 @@ import java.util.List;
 import java.util.UUID;
 
 public record ChannelResponseDto(
+        UUID id,
         UUID userId,
+        UUID recipientId,
         String channelName,
         ChannelType channelType,
         List<UUID> joinedUserIds,

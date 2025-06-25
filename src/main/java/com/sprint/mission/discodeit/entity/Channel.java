@@ -20,6 +20,7 @@ import java.util.UUID;
 @NoArgsConstructor
 public class Channel extends BasedEntity {
     private UUID hostUserId;  // 채널 생성자(Host)의 UUID
+    private UUID recipientId;
     private String channelName;
     private ChannelType channelType;
     private final List<UUID> userIds = new ArrayList<>();
@@ -35,8 +36,8 @@ public class Channel extends BasedEntity {
     }
 
     public Channel(UUID user1, UUID user2) {
-        this.userIds.add(user1);
-        this.userIds.add(user2);
+        this.hostUserId = user1;
+        this.recipientId = user2;
         this.channelType = ChannelType.PRIVATE;
     }
 
@@ -71,5 +72,10 @@ public class Channel extends BasedEntity {
         if (!this.messageIds.contains(message.getId())) throw new IllegalArgumentException("Message already removed");
         this.messageIds.remove(message.getId());
         message.removeChannel();
+    }
+
+    public void addUser(UUID userId) {
+        if (this.userIds.contains(userId)) throw new IllegalArgumentException("User already exists");
+        this.userIds.add(userId);
     }
 }

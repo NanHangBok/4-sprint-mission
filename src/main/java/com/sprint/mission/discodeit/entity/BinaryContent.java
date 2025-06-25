@@ -29,6 +29,7 @@ public class BinaryContent implements Serializable {
         this.createdAt = Instant.now();
         this.active = ActiveStatus.ACTIVE;
         this.content = content;
+        this.contentType = contentType;
     }
 
     @Override

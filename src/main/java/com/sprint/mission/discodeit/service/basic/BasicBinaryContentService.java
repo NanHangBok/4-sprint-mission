@@ -1,5 +1,5 @@
 package com.sprint.mission.discodeit.service.basic;
-
+;
 import com.sprint.mission.discodeit.dto.BinaryContentPostDto;
 import com.sprint.mission.discodeit.dto.BinaryContentResponseDto;
 import com.sprint.mission.discodeit.entity.BinaryContent;

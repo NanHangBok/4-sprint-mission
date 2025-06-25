@@ -1,8 +1,6 @@
 package com.sprint.mission.discodeit.mapper;
 
-import com.sprint.mission.discodeit.dto.ChannelPostDto;
-import com.sprint.mission.discodeit.dto.ChannelPrivatePostDto;
-import com.sprint.mission.discodeit.dto.ChannelResponseDto;
+import com.sprint.mission.discodeit.dto.*;
 import com.sprint.mission.discodeit.entity.Channel;
 import org.springframework.stereotype.Component;
 
@@ -17,6 +15,14 @@ public class ChannelMapper {
         return new Channel(channelPrivatePostDto.user1(),channelPrivatePostDto.user2());
     }
     public ChannelResponseDto toChannelResponseDto(Channel channel, Instant latestMessageTime) {
-        return new ChannelResponseDto(channel.getHostUserId(), channel.getChannelName(), channel.getChannelType(), channel.getUserIds(), latestMessageTime);
+        return new ChannelResponseDto(channel.getId(), channel.getHostUserId(), channel.getRecipientId(), channel.getChannelName(), channel.getChannelType(), channel.getUserIds(), latestMessageTime);
+    }
+
+    public ChannelPublicCreateResponseDto toChannelPublicCreateResponseDto(Channel channel) {
+        return new ChannelPublicCreateResponseDto(channel.getId(),channel.getChannelType(),channel.getChannelName(),channel.getDescription());
+    }
+
+    public ChannelPrivateCreateResponseDto toChannelPrivateCreateResponseDto(Channel channel) {
+        return new ChannelPrivateCreateResponseDto(channel.getId(), channel.getChannelType(), channel.getHostUserId(), channel.getRecipientId());
     }
 }

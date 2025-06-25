@@ -12,6 +12,6 @@ public class BinaryContentMapper {
     }
 
     public BinaryContentResponseDto toBinaryContentResponseDto(BinaryContent binaryContent) {
-        return new BinaryContentResponseDto(binaryContent.getContent());
+        return new BinaryContentResponseDto(binaryContent.getId(),binaryContent.getContentType(), binaryContent.getContent());
     }
 }

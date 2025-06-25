@@ -1,9 +1,6 @@
 package com.sprint.mission.discodeit.service.basic;
 
-import com.sprint.mission.discodeit.dto.ChannelPostDto;
-import com.sprint.mission.discodeit.dto.ChannelPrivatePostDto;
-import com.sprint.mission.discodeit.dto.ChannelResponseDto;
-import com.sprint.mission.discodeit.dto.ChannelUpdateDto;
+import com.sprint.mission.discodeit.dto.*;
 import com.sprint.mission.discodeit.entity.*;
 import com.sprint.mission.discodeit.mapper.ChannelMapper;
 import com.sprint.mission.discodeit.mapper.ReadStatusMapper;
@@ -45,16 +42,16 @@ public class BasicChannelService implements ChannelService {
     }
 
     @Override
-    public Channel createPublicChannel(ChannelPostDto channelPostDto) {
+    public ChannelPublicCreateResponseDto createPublicChannel(ChannelPostDto channelPostDto) {
         Channel channel = channelMapper.toPublicChannel(channelPostDto);
         channel.setActive(ActiveStatus.ACTIVE);
         channelRepository.save(channel);
 
-        return channel;
+        return channelMapper.toChannelPublicCreateResponseDto(channel);
     }
 
     @Override
-    public Channel createPrivateChannel(ChannelPrivatePostDto channelPrivatePostDto) {
+    public ChannelPrivateCreateResponseDto createPrivateChannel(ChannelPrivatePostDto channelPrivatePostDto) {
         Channel channel = channelMapper.toPrivateChannel(channelPrivatePostDto);
         channel.setActive(ActiveStatus.ACTIVE);
         channelRepository.save(channel);
@@ -64,7 +61,7 @@ public class BasicChannelService implements ChannelService {
         readStatusRepository.save(readStatus);
         readStatusRepository.save(readStatus2);
 
-        return channel;
+        return channelMapper.toChannelPrivateCreateResponseDto(channel);
     }
 
     @Override
@@ -88,7 +85,7 @@ public class BasicChannelService implements ChannelService {
     }
 
     @Override
-    public void updateChannel(ChannelUpdateDto channelUpdateDto) {
+    public ChannelResponseDto updateChannel(ChannelUpdateDto channelUpdateDto) {
         validateActiveChannel(channelUpdateDto.id());
         validatePublicChannel(channelUpdateDto.id());
 
@@ -98,6 +95,8 @@ public class BasicChannelService implements ChannelService {
         findChannel.setUpdatedAt(Instant.now());
 
         channelRepository.save(findChannel);
+        Instant latestMessage = findLatestMessage(findChannel.getMessageIds());
+        return channelMapper.toChannelResponseDto(findChannel, latestMessage);
     }
 
     @Override
@@ -108,19 +107,21 @@ public class BasicChannelService implements ChannelService {
          * 전체 메시지 중 해당 채널의 메시지 삭제
          ***********************************/
         channel.getMessageIds().stream()
-                .forEach(message -> {
-                    removeMessage(channel,message);
+                .forEach(messageId -> {
+                    removeMessage(channel,messageId);
                 });// 채널 내 모든 메세지 삭제
         channel.setActive(ActiveStatus.DELETE);
         channelRepository.delete(channel);  // 전체 채널 리스트에서 해당 채널 삭제
         readStatusRepository.delete(channel.getId());
     }
 
-    // 메세지에 내부 정보 삭제
-    @Override
-    public void removeMessage(Channel channel, UUID messageId) {
+    private void removeMessage(Channel channel, UUID messageId) {
         validateActiveChannel(channel.getId());
-        if (!channel.getMessageIds().contains(messageId)) throw new IllegalStateException("Message does not exist");
+//        if (!channel.getMessageIds().contains(messageId)) throw new IllegalStateException("Message does not exist");
+        if (!channel.getMessageIds().contains(messageId)) {
+            System.out.println(messageId + " Message does not exist");
+            return;
+        }
 
         Message message = messageRepository.findById(messageId);
         channel.removeMessageFromChannel(message);
@@ -130,9 +131,21 @@ public class BasicChannelService implements ChannelService {
         messageRepository.delete(message);
     }
 
+    public void addUser(UUID channelId, UUID userId) {
+        Channel channel = channelRepository.findById(channelId);
+        channel.addUser(userId);
+        ReadStatus readStatus = new ReadStatus(channelId,userId,Instant.now());
+        readStatusRepository.save(readStatus);
+    }
     // 테스트용 내용확인
     @Override
-    public List<Channel> findAllChannels() {
-        return channelRepository.findAll();
+    public List<ChannelResponseDto> findAllChannels() {
+        List<ChannelResponseDto> channelResponseDtos = new ArrayList<>();
+        channelRepository.findAll().stream()
+                .forEach(channel -> {
+                    Instant  latestTime = findLatestMessage(channel.getMessageIds());
+                    channelResponseDtos.add(channelMapper.toChannelResponseDto(channel,latestTime));
+                });
+        return channelResponseDtos;
     }
 }

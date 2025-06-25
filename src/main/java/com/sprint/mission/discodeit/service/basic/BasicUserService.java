@@ -4,6 +4,7 @@ import com.sprint.mission.discodeit.dto.*;
 import com.sprint.mission.discodeit.entity.*;
 import com.sprint.mission.discodeit.mapper.BinaryContentMapper;
 import com.sprint.mission.discodeit.mapper.UserMapper;
+import com.sprint.mission.discodeit.mapper.UserStatusMapper;
 import com.sprint.mission.discodeit.repository.*;
 import com.sprint.mission.discodeit.service.UserService;
 import lombok.RequiredArgsConstructor;
@@ -20,12 +21,11 @@ import java.util.UUID;
 public class BasicUserService implements UserService {
 
     private final UserRepository userRepository;
-    private final ChannelRepository channelRepository;
-    private final MessageRepository messageRepository;
     private final BinaryContentRepository binaryContentRepository;
     private final UserStatusRepository userStatusRepository;
     private final BinaryContentMapper binaryContentMapper;
     private final UserMapper userMapper;
+    private final UserStatusMapper userStatusMapper;
 
     public void validateActiveUser(User user) {
         if (!user.getActive().equals(ActiveStatus.ACTIVE)) throw new IllegalArgumentException("User is not active");
@@ -34,16 +34,16 @@ public class BasicUserService implements UserService {
     // 동일한 이메일이 존재하는지 확인
     private void isDuplicateEmail(String email) {
         if (userRepository.findAll().stream()
-                .noneMatch(user -> user.getEmail().equals(email))) throw new IllegalArgumentException("Email already exists");
+                .anyMatch(user -> user.getEmail().equals(email))) throw new IllegalArgumentException("Email already exists");
     }
 
     private void isDuplicateName(String name) {
         if (userRepository.findAll().stream()
-                .noneMatch(user -> user.getName().equals(name))) throw new IllegalArgumentException("Username already exists");
+                .anyMatch(user -> user.getName().equals(name))) throw new IllegalArgumentException("Username already exists");
     }
 
     @Override
-    public User createUser(UserPostDto userPostDto) {
+    public UserCreateResponseDto createUser(UserPostDto userPostDto) {
         isDuplicateEmail(userPostDto.email());
         isDuplicateName(userPostDto.name());
 
@@ -64,17 +64,21 @@ public class BasicUserService implements UserService {
 
         UserStatus userStatus = new UserStatus(user.getId(),Instant.now());
         userStatusRepository.save(userStatus);
-        return user;
+
+        UserStatusResponseDto userStatusResponseDto = userStatusMapper.toUserStatusResponseDto(userStatus);
+        UserCreateResponseDto userResponseDto = userMapper.toUserCreateResponseDto(user,userStatusResponseDto);
+        return userResponseDto;
     }
 
     // 모든 유저 확인
     @Override
-    public List<UserResponseDto> getUsers() {
+    public List<UserResponseDto> findAllUsers() {
         List<UserResponseDto> userResponseDtos = new ArrayList<>();
         userRepository.findAll()
                 .forEach(user -> {
                     UserStatus userStatus = userStatusRepository.findByUserId(user.getId());
-                    userResponseDtos.add(userMapper.toUserResponseDto(user,userStatus));
+                    UserStatusResponseDto userStatusResponseDto = userStatusMapper.toUserStatusResponseDto(userStatus);
+                    userResponseDtos.add(userMapper.toUserResponseDto(user,userStatusResponseDto));
                 });
 //        return userRepository.findAll();
         return userResponseDtos;
@@ -82,10 +86,11 @@ public class BasicUserService implements UserService {
 
     // 특정 ID를 가진 유저 가져오기
     @Override
-    public UserResponseDto getUserById(UUID userId) {
+    public UserResponseDto findUserById(UUID userId) {
         User user = userRepository.findById(userId);
         UserStatus userStatus = userStatusRepository.findByUserId(user.getId());
-        UserResponseDto userResponseDto = userMapper.toUserResponseDto(user,userStatus);
+        UserStatusResponseDto userStatusResponseDto = userStatusMapper.toUserStatusResponseDto(userStatus);
+        UserResponseDto userResponseDto = userMapper.toUserResponseDto(user,userStatusResponseDto);
         return userResponseDto;
     }
 
@@ -93,12 +98,13 @@ public class BasicUserService implements UserService {
     public UserResponseDto getUserByName(String name) {
         User user = userRepository.findByName(name);
         UserStatus userStatus = userStatusRepository.findById(user.getId());
-        UserResponseDto userResponseDto = userMapper.toUserResponseDto(user,userStatus);
+        UserStatusResponseDto userStatusResponseDto = userStatusMapper.toUserStatusResponseDto(userStatus);
+        UserResponseDto userResponseDto = userMapper.toUserResponseDto(user,userStatusResponseDto);
         return userResponseDto;
     }
 
     @Override
-    public void updateUser(UserUpdateDto userUpdateDto) {
+    public UserResponseDto updateUser(UserUpdateDto userUpdateDto) {
         User findUser = userRepository.findById(userUpdateDto.id());
 
         Optional.ofNullable(userUpdateDto.nickname())
@@ -121,6 +127,9 @@ public class BasicUserService implements UserService {
         userStatus.update(now);
         userRepository.save(findUser);
         userStatusRepository.save(userStatus);
+
+        UserStatusResponseDto userStatusResponseDto = userStatusMapper.toUserStatusResponseDto(userStatus);
+        return userMapper.toUserResponseDto(findUser,userStatusResponseDto);
     }
 
     @Override
@@ -138,6 +147,6 @@ public class BasicUserService implements UserService {
         user.setActive(ActiveStatus.DELETE);
         userRepository.delete(user);
 
-        userStatusRepository.delete(user.getId());
+        userStatusRepository.deleteByUserId(user.getId());
     }
 }

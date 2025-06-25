@@ -14,6 +14,7 @@ import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Repository
 //@Profile("file")
@@ -53,7 +54,7 @@ public class FileReadStatusRepository implements ReadStatusRepository {
         if(list.stream().anyMatch(r -> r.getId().equals(readStatus.getId()))) {
             List<ReadStatus> updateList = list.stream()
                     .map(r -> r.getId().equals(readStatus.getId()) ? readStatus : r)
-                    .toList();
+                    .collect(Collectors.toList());
             saveAll(updateList);
         } else {
             list.add(readStatus);
@@ -67,7 +68,7 @@ public class FileReadStatusRepository implements ReadStatusRepository {
         return list.stream()
                 .filter(r -> r.getId().equals(id))
                 .findFirst()
-                .orElseThrow(() -> new RuntimeException("Could not find read status with id " + id));
+                .orElseThrow(() -> new RuntimeException("Readstatus not found"));
     }
 
     @Override

@@ -12,8 +12,8 @@ public interface MessageService {
     public MessageResponseDto createMessage(MessagePostDto messagePostDto);
     public List<MessageResponseDto> findallByChannelId(UUID channelId);
     public MessageResponseDto getMessagesById(UUID messageId);
-    public void updateMessage(MessageUpdateDto messageUpdateDto);;
-    public void removeMessage(Message messgae);
+    public MessageResponseDto updateMessage(MessageUpdateDto messageUpdateDto);;
+    public void removeMessage(UUID messageId);
     public List<MessageResponseDto> getActiveMessages();
     public List<MessageResponseDto> findAll();
 }

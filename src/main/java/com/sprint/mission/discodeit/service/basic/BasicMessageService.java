@@ -1,10 +1,9 @@
 package com.sprint.mission.discodeit.service.basic;
 
-import com.sprint.mission.discodeit.dto.MessagePostDto;
-import com.sprint.mission.discodeit.dto.MessageResponseDto;
-import com.sprint.mission.discodeit.dto.MessageUpdateDto;
+import com.sprint.mission.discodeit.dto.*;
 import com.sprint.mission.discodeit.entity.*;
 import com.sprint.mission.discodeit.mapper.BinaryContentMapper;
+import com.sprint.mission.discodeit.mapper.MessageMapper;
 import com.sprint.mission.discodeit.repository.BinaryContentRepository;
 import com.sprint.mission.discodeit.repository.ChannelRepository;
 import com.sprint.mission.discodeit.repository.MessageRepository;
@@ -14,6 +13,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -26,6 +26,7 @@ public class BasicMessageService implements MessageService {
     private final ChannelRepository channelRepository;
     private final BinaryContentRepository binaryContentRepository;
     private final BinaryContentMapper binaryContentMapper;
+    private final MessageMapper messageMapper;
 
     private void validateActiveMessage(Message message) {
         if (!message.getActive().equals(ActiveStatus.ACTIVE)) throw new IllegalArgumentException("Message is not active");
@@ -62,28 +63,31 @@ public class BasicMessageService implements MessageService {
 
         channel.addMessageToChannel(message);
         channelRepository.save(channel);
-
-        return message;
+        MessageResponseDto messageResponseDto = messageMapper.toMessageResponseDto(message);
+        return messageResponseDto;
     }
 
     // 모든 메시지 확인
     @Override
-    public List<Message> findallByChannelId(UUID channelId) {
-        return messageRepository.findAll().stream()
+    public List<MessageResponseDto> findallByChannelId(UUID channelId) {
+        List<MessageResponseDto> messageResponseDtos = new ArrayList<>();
+        messageRepository.findAll().stream()
                 .filter(message -> message.getChannelId().equals(channelId))
-                .toList();
+                .forEach(message -> messageResponseDtos.add(messageMapper.toMessageResponseDto(message)));
+
+        return  messageResponseDtos;
     }
 
     // 특정 ID를 가진 메시지 확인
     @Override
-    public Message getMessagesById(UUID messageId) {
-        return messageRepository.findById(messageId);
+    public MessageResponseDto getMessagesById(UUID messageId) {
+        return messageMapper.toMessageResponseDto(messageRepository.findById(messageId));
     }
 
     // 메시지 내용 수정
     // 현재는 내용 1개만 수정 가능
     @Override
-    public void updateMessage(MessageUpdateDto messageUpdateDto) {
+    public MessageResponseDto updateMessage(MessageUpdateDto messageUpdateDto) {
         Message findMessage = messageRepository.findById(messageUpdateDto.id());
         validateActiveMessage(findMessage);
 
@@ -91,33 +95,42 @@ public class BasicMessageService implements MessageService {
         findMessage.setUpdatedAt(Instant.now());
 
         messageRepository.save(findMessage);
+
+        return messageMapper.toMessageResponseDto(findMessage);
     }
 
     // 메시지 삭제
-    public void removeMessage(Message message) {
-        validateActiveMessage(message);
+    public void removeMessage(UUID messageId) {
+        Message findMessage = messageRepository.findById(messageId);
+        validateActiveMessage(findMessage);
 
-        message.setActive(ActiveStatus.DELETE);
-        messageRepository.delete(message);
-        if (message.getAttachmentIds() != null && !message.getAttachmentIds().isEmpty()) {
-            message.getAttachmentIds().stream()
+        findMessage.setActive(ActiveStatus.DELETE);
+        messageRepository.delete(findMessage);
+        if (findMessage.getAttachmentIds() != null && !findMessage.getAttachmentIds().isEmpty()) {
+            findMessage.getAttachmentIds().stream()
                     .forEach(id -> {
                         binaryContentRepository.delete(id);
                     });
         }
-        Channel channel =  channelRepository.findById(message.getChannelId());
-        channel.removeMessageFromChannel(message);
+        Channel channel =  channelRepository.findById(findMessage.getChannelId());
+        channel.removeMessageFromChannel(findMessage);
         channelRepository.save(channel);
     }
 
     // 활성화 된 모든 메시지 확인
     @Override
-    public List<Message> getActiveMessages() {
-        return messageRepository.findAllActive();
+    public List<MessageResponseDto> getActiveMessages() {
+        List<MessageResponseDto> activeMessageResponseDtos = new ArrayList<>();
+        messageRepository.findAllActive().stream()
+                .forEach(message -> activeMessageResponseDtos.add(messageMapper.toMessageResponseDto(message)));
+        return activeMessageResponseDtos;
     }
 
     @Override
-    public List<Message> findAll() {
-        return messageRepository.findAll();
+    public List<MessageResponseDto> findAll() {
+        List<MessageResponseDto> messageResponseDtos = new ArrayList<>();
+        messageRepository.findAll().stream()
+                .forEach(message -> messageResponseDtos.add(messageMapper.toMessageResponseDto(message)));
+        return messageResponseDtos;
     }
 }

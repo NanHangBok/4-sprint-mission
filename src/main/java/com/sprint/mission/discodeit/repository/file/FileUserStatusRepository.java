@@ -51,7 +51,7 @@ public class FileUserStatusRepository implements UserStatusRepository {
     @Override
     public void delete(UUID id) {
         List<UserStatus> list = findAll();
-        list.removeIf(r -> r.getUserId().equals(id));
+        list.removeIf(userStatus -> userStatus.getId().equals(id));
         saveAll(list);
     }
 
@@ -86,5 +86,12 @@ public class FileUserStatusRepository implements UserStatusRepository {
             list.add(userStatus);
             saveAll(list);
         }
+    }
+
+    @Override
+    public void deleteByUserId(UUID userId) {
+        List<UserStatus> list = findAll();
+        list.removeIf(userStatus -> userStatus.getUserId().equals(userId));
+        saveAll(list);
     }
 }

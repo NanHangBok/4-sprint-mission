@@ -1,8 +1,10 @@
 package com.sprint.mission.discodeit.service.basic;
 
 import com.sprint.mission.discodeit.dto.UserStatusPostDto;
+import com.sprint.mission.discodeit.dto.UserStatusResponseDto;
 import com.sprint.mission.discodeit.dto.UserStatusUpdateDto;
 import com.sprint.mission.discodeit.entity.UserStatus;
+import com.sprint.mission.discodeit.mapper.UserStatusMapper;
 import com.sprint.mission.discodeit.repository.UserRepository;
 import com.sprint.mission.discodeit.repository.UserStatusRepository;
 import com.sprint.mission.discodeit.service.UserStatusService;
@@ -10,20 +12,18 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
-import java.util.List;
-import java.util.NoSuchElementException;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 
 @Service
 @RequiredArgsConstructor
 public class BasicUserStatusService implements UserStatusService {
     private final UserStatusRepository userStatusRepository;
     private final UserRepository userRepository;
+    private final UserStatusMapper userStatusMapper;
 
     private void validateUser(UUID userId) {
         if (!userRepository.findAll().stream()
-                .anyMatch(user -> user.equals(userId))) throw new NoSuchElementException("User not found");
+                .anyMatch(user -> user.getId().equals(userId))) throw new NoSuchElementException("User not found");
     }
 
     private void existsUserStatus(UUID userId) {
@@ -32,55 +32,66 @@ public class BasicUserStatusService implements UserStatusService {
     }
 
     @Override
-    public UserStatus create(UserStatusPostDto userStatusPostDto) {
+    public UserStatusResponseDto create(UserStatusPostDto userStatusPostDto) {
         validateUser(userStatusPostDto.userId());
         existsUserStatus(userStatusPostDto.userId());
 
         UserStatus userStatus = new UserStatus(userStatusPostDto.userId(), userStatusPostDto.latestActiveAt());
         userStatusRepository.save(userStatus);
 
-        return null;
+        return userStatusMapper.toUserStatusResponseDto(userStatus);
     }
 
     @Override
-    public UserStatus find(UUID id) {
-        return userStatusRepository.findById(id);
+    public UserStatusResponseDto find(UUID id) {
+        return userStatusMapper.toUserStatusResponseDto(userStatusRepository.findById(id));
     }
 
     @Override
-    public List<UserStatus> findAll() {
-        return userStatusRepository.findAll();
+    public UserStatusResponseDto findByUserId(UUID userId) {
+        return userStatusMapper.toUserStatusResponseDto(userStatusRepository.findByUserId(userId));
     }
 
     @Override
-    public void update(UserStatusUpdateDto userStatusUpdateDto) {
+    public List<UserStatusResponseDto> findAll() {
+        List<UserStatusResponseDto> userStatusResponseDtos = new ArrayList<>();
+        userStatusRepository.findAll().stream()
+                .forEach(userStatus -> userStatusResponseDtos.add(userStatusMapper.toUserStatusResponseDto(userStatus)));
+        return userStatusResponseDtos;
+    }
+
+    @Override
+    public UserStatusResponseDto update(UserStatusUpdateDto userStatusUpdateDto) {
         UserStatus findUserStatus = userStatusRepository.findById(userStatusUpdateDto.id());
 
-        if (findUserStatus.getLastActiveAt().isAfter(userStatusUpdateDto.latestActiveAt())) {
-            System.out.println("저장되어있는 데이터가 동일하거나 더 최신입니다.");
-            return;
-        }
+        if (findUserStatus.getLastActiveAt().isAfter(userStatusUpdateDto.latestActiveAt())) throw new IllegalArgumentException("새로운 기록이 기존 기록보다 이전입니다.");
+
         Optional.ofNullable(userStatusUpdateDto.latestActiveAt()).ifPresent(findUserStatus::setLastActiveAt);
         findUserStatus.setUpdatedAt(userStatusUpdateDto.latestActiveAt());
 
         userStatusRepository.save(findUserStatus);
+        return userStatusMapper.toUserStatusResponseDto(findUserStatus);
     }
 
     @Override
-    public void updateByUserId(UUID userId, Instant latestActiveAt) {
+    public UserStatusResponseDto updateByUserId(UUID userId, Instant latestActiveAt) {
         UserStatus findUserStatus = userStatusRepository.findByUserId(userId);
-        if (findUserStatus.getLastActiveAt().isAfter(latestActiveAt)) {
-            System.out.println("저장되어있는 데이터가 동일하거나 더 최신입니다.");
-            return;
-        }
+        if (findUserStatus.getLastActiveAt().isAfter(latestActiveAt)) throw new IllegalArgumentException("새로운 기록이 기존 기록보다 이전입니다.");
+
         findUserStatus.setLastActiveAt(latestActiveAt);
         findUserStatus.setUpdatedAt(latestActiveAt);
 
         userStatusRepository.save(findUserStatus);
+        return userStatusMapper.toUserStatusResponseDto(findUserStatus);
     }
 
     @Override
     public void delete(UUID id) {
         userStatusRepository.delete(id);
+    }
+
+    @Override
+    public void deleteByUserId(UUID userId) {
+        userStatusRepository.deleteByUserId(userId);
     }
 }

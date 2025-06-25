@@ -1,13 +1,12 @@
 package com.sprint.mission.discodeit.dto;
 
-import java.util.List;
+import java.time.Instant;
 import java.util.UUID;
 
-public record MessageResponseDto(
+public record ReadStatusResponseDto(
         UUID id,
         UUID userId,
         UUID channelId,
-        String content,
-        List<UUID> attachmentIds
+        Instant latestTime
 ) {
 }

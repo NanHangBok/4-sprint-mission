@@ -4,6 +4,7 @@ package com.sprint.mission.discodeit.entity;
 import lombok.Getter;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -12,7 +13,7 @@ public class Message extends BasedEntity{
     private String content;
     private UUID userId;
     private UUID channelId;
-    private List<UUID> attachmentIds;
+    private List<UUID> attachmentIds = new ArrayList<>();
 
     public Message(UUID userId, UUID channelId, String content) {
         super();
