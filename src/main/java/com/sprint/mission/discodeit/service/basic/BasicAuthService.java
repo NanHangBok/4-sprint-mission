@@ -2,7 +2,6 @@ package com.sprint.mission.discodeit.service.basic;
 
 import com.sprint.mission.discodeit.dto.UserLoginDto;
 import com.sprint.mission.discodeit.dto.UserLoginResponseDto;
-import com.sprint.mission.discodeit.dto.UserResponseDto;
 import com.sprint.mission.discodeit.entity.User;
 import com.sprint.mission.discodeit.mapper.UserMapper;
 import com.sprint.mission.discodeit.repository.UserRepository;

@@ -1,25 +1,14 @@
 package com.sprint.mission.discodeit.repository.jcf;
 
 import com.sprint.mission.discodeit.entity.Channel;
-import com.sprint.mission.discodeit.repository.BinaryContentRepository;
 import com.sprint.mission.discodeit.repository.ChannelRepository;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.context.annotation.Primary;
-import org.springframework.context.annotation.Profile;
-import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Repository;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 @Repository
-//@Profile("jcf")
-//@Primary
-//@ConditionalOnProperty(name = "discodeit.repository.type", havingValue = "jcf", matchIfMissing = true)
 public class JCFChannelRepository implements ChannelRepository {
     private List<Channel> data = new ArrayList<>();
 

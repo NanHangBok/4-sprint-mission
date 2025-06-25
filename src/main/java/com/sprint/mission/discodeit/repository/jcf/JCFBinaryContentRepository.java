@@ -2,13 +2,6 @@ package com.sprint.mission.discodeit.repository.jcf;
 
 import com.sprint.mission.discodeit.entity.BinaryContent;
 import com.sprint.mission.discodeit.repository.BinaryContentRepository;
-import com.sprint.mission.discodeit.repository.MessageRepository;
-import jakarta.annotation.PostConstruct;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.context.annotation.Primary;
-import org.springframework.context.annotation.Profile;
-import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Repository;
 
 import java.util.ArrayList;
@@ -16,9 +9,6 @@ import java.util.List;
 import java.util.UUID;
 
 @Repository
-//@Profile("jcf")
-//@Primary
-//@ConditionalOnProperty(name = "discodeit.repository.type", havingValue = "jcf", matchIfMissing = true)
 public class JCFBinaryContentRepository implements BinaryContentRepository {
     private final List<BinaryContent> data = new ArrayList<>();
     @Override

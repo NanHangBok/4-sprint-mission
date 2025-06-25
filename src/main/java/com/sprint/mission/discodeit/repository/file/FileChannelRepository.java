@@ -17,12 +17,9 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Repository
-//@Profile("file")
-//@ConditionalOnProperty(name = "discodeit.repository.type", havingValue = "file")
 public class FileChannelRepository implements ChannelRepository {
     @Value("${discodeit.repository.file-directory}/Channels.ser")
     private String FILE_PATH;
-//    private String FILE_PATH = "src/main/resources/Channels.ser";
 
     @Override
     public List<Channel> findAll() {

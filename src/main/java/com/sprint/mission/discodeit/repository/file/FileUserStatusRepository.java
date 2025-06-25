@@ -3,10 +3,6 @@ package com.sprint.mission.discodeit.repository.file;
 import com.sprint.mission.discodeit.entity.UserStatus;
 import com.sprint.mission.discodeit.repository.UserStatusRepository;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.context.annotation.Primary;
-import org.springframework.context.annotation.Profile;
-import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Repository;
 
 import java.io.*;
@@ -16,12 +12,9 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Repository
-//@Profile("file")
-//@ConditionalOnProperty(name = "discodeit.repository.type", havingValue = "file")
 public class FileUserStatusRepository implements UserStatusRepository {
     @Value("${discodeit.repository.file-directory}/UserStatuses.ser")
     private String FILE_PATH;
-//    private String FILE_PATH = "src/main/resources/UserStatus.ser";
 
     @Override
     public List<UserStatus> findAll() {

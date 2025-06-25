@@ -9,9 +9,6 @@ import java.util.List;
 import java.util.UUID;
 
 @Repository
-//@Profile("jcf")
-//@Primary
-//@ConditionalOnProperty(name = "discodeit.repository.type", havingValue = "jcf", matchIfMissing = true)
 public class JCFUserStatusRepository implements UserStatusRepository {
     private final List<UserStatus> data = new ArrayList<>();
 

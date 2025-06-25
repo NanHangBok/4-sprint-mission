@@ -21,16 +21,6 @@ public class BasicUserStatusService implements UserStatusService {
     private final UserRepository userRepository;
     private final UserStatusMapper userStatusMapper;
 
-    private void validateUser(UUID userId) {
-        if (!userRepository.findAll().stream()
-                .anyMatch(user -> user.getId().equals(userId))) throw new NoSuchElementException("User not found");
-    }
-
-    private void existsUserStatus(UUID userId) {
-        if (!userStatusRepository.findAll().stream()
-                .anyMatch(userStatus -> userStatus.getUserId().equals(userId))) throw new IllegalArgumentException("User already exists.");
-    }
-
     @Override
     public UserStatusResponseDto create(UserStatusPostDto userStatusPostDto) {
         validateUser(userStatusPostDto.userId());
@@ -93,5 +83,15 @@ public class BasicUserStatusService implements UserStatusService {
     @Override
     public void deleteByUserId(UUID userId) {
         userStatusRepository.deleteByUserId(userId);
+    }
+
+    private void validateUser(UUID userId) {
+        if (!userRepository.findAll().stream()
+                .anyMatch(user -> user.getId().equals(userId))) throw new NoSuchElementException("User not found");
+    }
+
+    private void existsUserStatus(UUID userId) {
+        if (!userStatusRepository.findAll().stream()
+                .anyMatch(userStatus -> userStatus.getUserId().equals(userId))) throw new IllegalArgumentException("User already exists.");
     }
 }

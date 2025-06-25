@@ -204,7 +204,7 @@ public class DiscodeitApplication {
 
 		readStatusResponseDtos.stream()
 				.forEach(dto -> {
-					System.out.println(userId + " : "+dto);
+					System.out.println("유저("+userId + ") : "+dto);
 				});
 		return readStatusResponseDtos;
 	}
@@ -247,6 +247,7 @@ public class DiscodeitApplication {
 
 	static List<UserStatusResponseDto> userStatusFindAllTest(UserStatusService userStatusService) {
 		List<UserStatusResponseDto> userStatusResponseDtos = userStatusService.findAll();
+		System.out.println("전체 순회");
 		userStatusResponseDtos.stream()
 				.forEach(System.out::println);
 		return userStatusResponseDtos;

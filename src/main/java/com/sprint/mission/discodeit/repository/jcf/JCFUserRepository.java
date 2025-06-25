@@ -4,17 +4,11 @@ import com.sprint.mission.discodeit.entity.User;
 import com.sprint.mission.discodeit.repository.UserRepository;
 import org.springframework.stereotype.Repository;
 
-import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 @Repository
-//@Profile("jcf")
-//@Primary
-//@ConditionalOnProperty(name = "discodeit.repository.type", havingValue = "jcf", matchIfMissing = true)
 public class JCFUserRepository implements UserRepository {
 
     private List<User> data = new ArrayList<>();

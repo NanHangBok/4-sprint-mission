@@ -45,8 +45,7 @@ public class BasicBinaryContentService implements BinaryContentService {
         binaryContentRepository.delete(id);
     }
 
-    //
-
+    // 테스트용 findAll()
     public List<BinaryContentResponseDto> findAll() {
         List<BinaryContentResponseDto> binaryContentResponseDtos = new ArrayList<>();
         binaryContentRepository.findAll().stream()

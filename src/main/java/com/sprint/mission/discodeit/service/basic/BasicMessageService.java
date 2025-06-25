@@ -28,18 +28,7 @@ public class BasicMessageService implements MessageService {
     private final BinaryContentMapper binaryContentMapper;
     private final MessageMapper messageMapper;
 
-    private void validateActiveMessage(Message message) {
-        if (!message.getActive().equals(ActiveStatus.ACTIVE)) throw new IllegalArgumentException("Message is not active");
-    }
-
     // 메시지 생성
-
-    /******
-     * 여기서부터 하셈 MessageMapper까지 만듦
-     * Mapper는 message와 BinaryContentPostDto를 받음
-     * @param messagePostDto
-     * @return
-     */
     @Override
     public MessageResponseDto createMessage(MessagePostDto messagePostDto) {
         Message message = new Message(messagePostDto.userId(), messagePostDto.channelId(), messagePostDto.content());
@@ -132,5 +121,9 @@ public class BasicMessageService implements MessageService {
         messageRepository.findAll().stream()
                 .forEach(message -> messageResponseDtos.add(messageMapper.toMessageResponseDto(message)));
         return messageResponseDtos;
+    }
+
+    private void validateActiveMessage(Message message) {
+        if (!message.getActive().equals(ActiveStatus.ACTIVE)) throw new IllegalArgumentException("Message is not active");
     }
 }

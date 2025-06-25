@@ -23,10 +23,7 @@ import java.util.List;
 import java.util.UUID;
 
 @Repository
-//@Profile("file")
-//@ConditionalOnProperty(name = "discodeit.repository.type", havingValue = "file")
 public class FileBinaryContentRepository implements BinaryContentRepository {
-    //    private String FILE_PATH = "src/main/resources/BinaryContent.ser";
     @Value("${discodeit.repository.file-directory}/BinaryContents.ser")
     private String FILE_PATH;
 

@@ -4,26 +4,18 @@ import com.sprint.mission.discodeit.entity.ActiveStatus;
 import com.sprint.mission.discodeit.entity.Message;
 import com.sprint.mission.discodeit.repository.MessageRepository;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.context.annotation.Primary;
-import org.springframework.context.annotation.Profile;
-import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Repository;
 
 import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Repository
-//@Profile("file")
-//@ConditionalOnProperty(name = "discodeit.repository.type", havingValue = "file")
 public class FileMessageRepository implements MessageRepository {
     @Value("${discodeit.repository.file-directory}/Messages.ser")
     private String FILE_PATH;
-//    private String FILE_PATH = "src/main/resources/Messages.ser";
 
     @Override
     public List<Message> findAll() {

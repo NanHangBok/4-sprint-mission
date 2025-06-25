@@ -1,8 +1,6 @@
 spring:
   application:
     name : discodeit
-  profiles:
-    active: jcf
 # jcf / file
 discodeit:
   repository:

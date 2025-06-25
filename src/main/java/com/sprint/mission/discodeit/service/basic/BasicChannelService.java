@@ -23,24 +23,6 @@ public class BasicChannelService implements ChannelService {
     private final ChannelMapper channelMapper;
     private final ReadStatusMapper readStatusMapper;
 
-    private void validateActiveChannel(UUID id) {
-        if (!channelRepository.findById(id).getActive().equals(ActiveStatus.ACTIVE)) throw new IllegalStateException("Channel is not active");
-    }
-
-    private void validatePublicChannel(UUID id) {
-        if(channelRepository.findById(id).getChannelType().equals(ChannelType.PRIVATE)) throw new IllegalStateException("Cannot modify a private channel.");
-    }
-
-    public Instant findLatestMessage(List<UUID> messageIds) {
-        List<Message> messages = messageRepository.findAll().stream()
-                .filter(message -> messageIds.contains(message.getId()))
-                .toList();
-        Optional<Message> latestMessage = messages.stream()
-                .max(Comparator.comparing(Message::getUpdatedAt));
-        if(latestMessage.isEmpty()) return Instant.MIN;
-        return latestMessage.get().getUpdatedAt();
-    }
-
     @Override
     public ChannelPublicCreateResponseDto createPublicChannel(ChannelPostDto channelPostDto) {
         Channel channel = channelMapper.toPublicChannel(channelPostDto);
@@ -117,7 +99,6 @@ public class BasicChannelService implements ChannelService {
 
     private void removeMessage(Channel channel, UUID messageId) {
         validateActiveChannel(channel.getId());
-//        if (!channel.getMessageIds().contains(messageId)) throw new IllegalStateException("Message does not exist");
         if (!channel.getMessageIds().contains(messageId)) {
             System.out.println(messageId + " Message does not exist");
             return;
@@ -137,6 +118,7 @@ public class BasicChannelService implements ChannelService {
         ReadStatus readStatus = new ReadStatus(channelId,userId,Instant.now());
         readStatusRepository.save(readStatus);
     }
+
     // 테스트용 내용확인
     @Override
     public List<ChannelResponseDto> findAllChannels() {
@@ -147,5 +129,23 @@ public class BasicChannelService implements ChannelService {
                     channelResponseDtos.add(channelMapper.toChannelResponseDto(channel,latestTime));
                 });
         return channelResponseDtos;
+    }
+
+    private void validateActiveChannel(UUID id) {
+        if (!channelRepository.findById(id).getActive().equals(ActiveStatus.ACTIVE)) throw new IllegalStateException("Channel is not active");
+    }
+
+    private void validatePublicChannel(UUID id) {
+        if(channelRepository.findById(id).getChannelType().equals(ChannelType.PRIVATE)) throw new IllegalStateException("Cannot modify a private channel.");
+    }
+
+    private Instant findLatestMessage(List<UUID> messageIds) {
+        List<Message> messages = messageRepository.findAll().stream()
+                .filter(message -> messageIds.contains(message.getId()))
+                .toList();
+        Optional<Message> latestMessage = messages.stream()
+                .max(Comparator.comparing(Message::getUpdatedAt));
+        if(latestMessage.isEmpty()) return Instant.MIN;
+        return latestMessage.get().getUpdatedAt();
     }
 }
