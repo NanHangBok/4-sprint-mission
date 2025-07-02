@@ -10,7 +10,7 @@ public interface ChannelService {
     ChannelPrivateCreateResponseDto createPrivateChannel(ChannelPrivatePostDto channelPrivatePostDto);
     List<ChannelResponseDto> findAllByUserId(UUID userId);
     ChannelResponseDto findByChannelId(UUID channelId);
-    ChannelResponseDto updateChannel(ChannelUpdateDto channelUpdateDto);
+    ChannelResponseDto updateChannel(UUID channelId, ChannelUpdateDto channelUpdateDto);
     void deleteChannel(UUID channelId);
 
     List<ChannelResponseDto> findAllChannels();

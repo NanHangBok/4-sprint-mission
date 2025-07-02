@@ -12,10 +12,10 @@ public class ChannelMapper {
         return new Channel(channelPostDto.hostUserId(),channelPostDto.channelName(),channelPostDto.description());
     }
     public Channel toPrivateChannel(ChannelPrivatePostDto channelPrivatePostDto) {
-        return new Channel(channelPrivatePostDto.user1(),channelPrivatePostDto.user2());
+        return new Channel(channelPrivatePostDto.host(),channelPrivatePostDto.recipient());
     }
-    public ChannelResponseDto toChannelResponseDto(Channel channel, Instant latestMessageTime) {
-        return new ChannelResponseDto(channel.getId(), channel.getHostUserId(), channel.getRecipientId(), channel.getChannelName(), channel.getChannelType(), channel.getUserIds(), latestMessageTime);
+    public ChannelResponseDto ofChannelResponseDto(Channel channel, Instant latestMessageTime) {
+        return new ChannelResponseDto(channel.getId(), channel.getHostUserId(), channel.getRecipientId(), channel.getChannelName(), channel.getDescription(), channel.getChannelType(), channel.getUserIds(), latestMessageTime);
     }
 
     public ChannelPublicCreateResponseDto toChannelPublicCreateResponseDto(Channel channel) {

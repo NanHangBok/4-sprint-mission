@@ -13,8 +13,8 @@ public interface UserStatusService {
     UserStatusResponseDto create(UserStatusPostDto userStatusPostDto);
     UserStatusResponseDto find(UUID id);
     List<UserStatusResponseDto> findAll();
-    UserStatusResponseDto update(UserStatusUpdateDto userStatusUpdateDto);
-    UserStatusResponseDto updateByUserId(UUID userId, Instant latestActiveAt);
+    UserStatusResponseDto update(UUID id, UserStatusUpdateDto userStatusUpdateDto);
+    UserStatusResponseDto updateByUserId(UUID userId );
     void delete(UUID id);
 
     UserStatusResponseDto findByUserId(UUID userId);

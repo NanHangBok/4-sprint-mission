@@ -54,7 +54,7 @@ public class FileUserStatusRepository implements UserStatusRepository {
         return list.stream()
                 .filter(userStatus -> userStatus.getId().equals(id))
                 .findFirst()
-                .orElseThrow(() -> new RuntimeException("UserStatus not found"));
+                .orElseThrow(() -> new IllegalArgumentException("UserStatus not found"));
     }
 
     @Override
@@ -63,7 +63,7 @@ public class FileUserStatusRepository implements UserStatusRepository {
         return list.stream()
                 .filter(userStatus -> userStatus.getUserId().equals(userId))
                 .findFirst()
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new IllegalArgumentException("User not found"));
     }
 
     @Override

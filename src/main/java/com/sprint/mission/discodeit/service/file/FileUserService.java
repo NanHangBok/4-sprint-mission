@@ -42,7 +42,7 @@
 //    public User createUser(String name, String password, String email) {
 //        User user = new User(name, password, email);
 //        emailMatch = userRepository.findAll().stream().
-//                anyMatch(user1 -> user1.getEmail().equals(email));
+//                anyMatch(host -> host.getEmail().equals(email));
 //        if (!emailMatch) {
 //            user.setActive(ActiveStatus.ACTIVE);
 //            userRepository.save(user);

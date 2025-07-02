@@ -78,4 +78,8 @@ public class Channel extends BasedEntity {
         if (this.userIds.contains(userId)) throw new IllegalArgumentException("User already exists");
         this.userIds.add(userId);
     }
+
+    public void clearMessages() {
+        this.messageIds.clear();
+    }
 }

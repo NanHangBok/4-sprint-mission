@@ -20,6 +20,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.UUID;
 
 @Repository
@@ -71,7 +72,7 @@ public class FileBinaryContentRepository implements BinaryContentRepository {
         BinaryContent binaryContent = binaryContents.stream()
                 .filter(biContent -> biContent.getId().equals(id))
                 .findFirst()
-                .orElseThrow(() -> new RuntimeException("Could not find binary content with id " + id));
+                .orElseThrow(() -> new IllegalArgumentException("Could not find binary content with id " + id));
         binaryContents.remove(binaryContent);
         saveAll(binaryContents);
     }
@@ -93,5 +94,4 @@ public class FileBinaryContentRepository implements BinaryContentRepository {
                 .findFirst()
                 .orElseThrow(() -> new RuntimeException("Could not find binary content with id " + id));
     }
-
 }

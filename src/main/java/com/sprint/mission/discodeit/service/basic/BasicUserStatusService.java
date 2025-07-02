@@ -10,6 +10,7 @@ import com.sprint.mission.discodeit.repository.UserStatusRepository;
 import com.sprint.mission.discodeit.service.UserStatusService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.web.bind.annotation.*;
 
 import java.time.Instant;
 import java.util.*;
@@ -51,7 +52,7 @@ public class BasicUserStatusService implements UserStatusService {
     }
 
     @Override
-    public UserStatusResponseDto update(UserStatusUpdateDto userStatusUpdateDto) {
+    public UserStatusResponseDto update(UUID id, UserStatusUpdateDto userStatusUpdateDto) {
         UserStatus findUserStatus = userStatusRepository.findById(userStatusUpdateDto.id());
 
         if (findUserStatus.getLastActiveAt().isAfter(userStatusUpdateDto.latestActiveAt())) throw new IllegalArgumentException("새로운 기록이 기존 기록보다 이전입니다.");
@@ -64,7 +65,8 @@ public class BasicUserStatusService implements UserStatusService {
     }
 
     @Override
-    public UserStatusResponseDto updateByUserId(UUID userId, Instant latestActiveAt) {
+    public UserStatusResponseDto updateByUserId(UUID userId) {
+        Instant latestActiveAt = Instant.now();
         UserStatus findUserStatus = userStatusRepository.findByUserId(userId);
         if (findUserStatus.getLastActiveAt().isAfter(latestActiveAt)) throw new IllegalArgumentException("새로운 기록이 기존 기록보다 이전입니다.");
 
@@ -85,13 +87,15 @@ public class BasicUserStatusService implements UserStatusService {
         userStatusRepository.deleteByUserId(userId);
     }
 
+    //
+
     private void validateUser(UUID userId) {
         if (!userRepository.findAll().stream()
-                .anyMatch(user -> user.getId().equals(userId))) throw new NoSuchElementException("User not found");
+                .anyMatch(user -> user.getId().equals(userId))) throw new IllegalArgumentException("User not found");
     }
 
     private void existsUserStatus(UUID userId) {
         if (!userStatusRepository.findAll().stream()
-                .anyMatch(userStatus -> userStatus.getUserId().equals(userId))) throw new IllegalArgumentException("User already exists.");
+                .anyMatch(userStatus -> userStatus.getUserId().equals(userId))) throw new IllegalStateException("User already exists.");
     }
 }

@@ -27,13 +27,13 @@ public class BasicUserService implements UserService {
     private final UserStatusMapper userStatusMapper;
 
     @Override
-    public UserCreateResponseDto createUser(UserPostDto userPostDto) {
-        isDuplicateEmail(userPostDto.email());
-        isDuplicateName(userPostDto.name());
+    public UserCreateResponseDto createUser(UserCreateDto userCreateDto) {
+        isDuplicateEmail(userCreateDto.email());
+        isDuplicateName(userCreateDto.name());
 
         UUID profileId = null;
-        if (userPostDto.binaryContentPostDto() != null) {
-            BinaryContent binaryContent = binaryContentMapper.toBinaryContent(userPostDto.binaryContentPostDto());
+        if (userCreateDto.binaryContentPostDto().content() != null) {
+            BinaryContent binaryContent = binaryContentMapper.toBinaryContent(userCreateDto.binaryContentPostDto());
             profileId = binaryContent.getId();
 
             binaryContent.setActive(ActiveStatus.ACTIVE);
@@ -42,7 +42,7 @@ public class BasicUserService implements UserService {
 
         if (profileId == null) System.out.println("이미지가 포함되지 않아 기본 프로필로 설정됩니다.");
 
-        User user =  userMapper.toUser(userPostDto,profileId);
+        User user =  userMapper.ofUser(userCreateDto,profileId);
         user.setActive(ActiveStatus.ACTIVE);
         userRepository.save(user);
 
@@ -50,7 +50,7 @@ public class BasicUserService implements UserService {
         userStatusRepository.save(userStatus);
 
         UserStatusResponseDto userStatusResponseDto = userStatusMapper.toUserStatusResponseDto(userStatus);
-        UserCreateResponseDto userResponseDto = userMapper.toUserCreateResponseDto(user,userStatusResponseDto);
+        UserCreateResponseDto userResponseDto = userMapper.ofUserCreateResponseDto(user,userStatusResponseDto);
         return userResponseDto;
     }
 
@@ -61,9 +61,20 @@ public class BasicUserService implements UserService {
                 .forEach(user -> {
                     UserStatus userStatus = userStatusRepository.findByUserId(user.getId());
                     UserStatusResponseDto userStatusResponseDto = userStatusMapper.toUserStatusResponseDto(userStatus);
-                    userResponseDtos.add(userMapper.toUserResponseDto(user,userStatusResponseDto));
+                    userResponseDtos.add(userMapper.ofUserResponseDto(user,userStatusResponseDto));
                 });
         return userResponseDtos;
+    }
+
+    @Override
+    public List<UserDto> findAll() {
+        List<UserDto> userDtos = new ArrayList<>();
+        userRepository.findAll().stream()
+                .forEach(user -> {
+                    UserDto userDto = userMapper.toUserDto(user);
+                    userDtos.add(userDto);
+                });
+        return userDtos;
     }
 
     @Override
@@ -71,7 +82,7 @@ public class BasicUserService implements UserService {
         User user = userRepository.findById(userId);
         UserStatus userStatus = userStatusRepository.findByUserId(user.getId());
         UserStatusResponseDto userStatusResponseDto = userStatusMapper.toUserStatusResponseDto(userStatus);
-        UserResponseDto userResponseDto = userMapper.toUserResponseDto(user,userStatusResponseDto);
+        UserResponseDto userResponseDto = userMapper.ofUserResponseDto(user,userStatusResponseDto);
         return userResponseDto;
     }
     @Override
@@ -79,13 +90,13 @@ public class BasicUserService implements UserService {
         User user = userRepository.findByName(name);
         UserStatus userStatus = userStatusRepository.findById(user.getId());
         UserStatusResponseDto userStatusResponseDto = userStatusMapper.toUserStatusResponseDto(userStatus);
-        UserResponseDto userResponseDto = userMapper.toUserResponseDto(user,userStatusResponseDto);
+        UserResponseDto userResponseDto = userMapper.ofUserResponseDto(user,userStatusResponseDto);
         return userResponseDto;
     }
 
     @Override
-    public UserResponseDto updateUser(UserUpdateDto userUpdateDto) {
-        User findUser = userRepository.findById(userUpdateDto.id());
+    public UserResponseDto updateUser(UUID userId, UserUpdateDto userUpdateDto) {
+        User findUser = userRepository.findById(userId);
 
         Optional.ofNullable(userUpdateDto.nickname())
                 .ifPresent(findUser::setNickname);
@@ -109,7 +120,7 @@ public class BasicUserService implements UserService {
         userStatusRepository.save(userStatus);
 
         UserStatusResponseDto userStatusResponseDto = userStatusMapper.toUserStatusResponseDto(userStatus);
-        return userMapper.toUserResponseDto(findUser,userStatusResponseDto);
+        return userMapper.ofUserResponseDto(findUser,userStatusResponseDto);
     }
 
     @Override
@@ -131,17 +142,17 @@ public class BasicUserService implements UserService {
     }
 
     private void validateActiveUser(User user) {
-        if (!user.getActive().equals(ActiveStatus.ACTIVE)) throw new IllegalArgumentException("User is not active");
+        if (!user.getActive().equals(ActiveStatus.ACTIVE)) throw new IllegalStateException("User is not active");
     }
 
     // 동일한 이메일이 존재하는지 확인
     private void isDuplicateEmail(String email) {
         if (userRepository.findAll().stream()
-                .anyMatch(user -> user.getEmail().equals(email))) throw new IllegalArgumentException("Email already exists");
+                .anyMatch(user -> user.getEmail().equals(email))) throw new IllegalStateException("Email already exists");
     }
 
     private void isDuplicateName(String name) {
         if (userRepository.findAll().stream()
-                .anyMatch(user -> user.getName().equals(name))) throw new IllegalArgumentException("Username already exists");
+                .anyMatch(user -> user.getName().equals(name))) throw new IllegalStateException("Username already exists");
     }
 }

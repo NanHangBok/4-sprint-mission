@@ -60,7 +60,7 @@ public class FileReadStatusRepository implements ReadStatusRepository {
         return list.stream()
                 .filter(r -> r.getId().equals(id))
                 .findFirst()
-                .orElseThrow(() -> new RuntimeException("Readstatus not found"));
+                .orElseThrow(() -> new IllegalArgumentException("Readstatus not found"));
     }
 
     @Override
@@ -68,5 +68,13 @@ public class FileReadStatusRepository implements ReadStatusRepository {
         List<ReadStatus> list = findAll();
         list.removeIf(r -> r.getId().equals(id));
         saveAll(list);
+    }
+
+    @Override
+    public ReadStatus findByChannelIdAndUserId(UUID channelId, UUID userId) {
+        ReadStatus findReadStatus = findAll().stream()
+                .filter(readStatus -> readStatus.getChannelId().equals(channelId) && readStatus.getUserId().equals(userId))
+                .findFirst().orElseThrow(() -> new IllegalArgumentException("ReadStatus not found"));
+        return findReadStatus;
     }
 }

@@ -55,7 +55,7 @@ public class FileUserRepository implements UserRepository {
         User user = list.stream()
                 .filter(u -> u.getName().equals(name))
                 .findFirst()
-                .orElseThrow(() -> new NoSuchElementException("User not found"));
+                .orElseThrow(() -> new IllegalArgumentException("User not found"));
         return user;
     }
 

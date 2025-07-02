@@ -30,16 +30,16 @@ public class BasicMessageService implements MessageService {
 
     // 메시지 생성
     @Override
-    public MessageResponseDto createMessage(MessagePostDto messagePostDto) {
-        Message message = new Message(messagePostDto.userId(), messagePostDto.channelId(), messagePostDto.content());
-        Channel channel = channelRepository.findById(messagePostDto.channelId());
-        User user = userRepository.findById(messagePostDto.userId());
+    public MessageResponseDto createMessage(MessageCreateDto messageCreateDto) {
+        Message message = new Message(messageCreateDto.userId(), messageCreateDto.channelId(), messageCreateDto.content());
+        Channel channel = channelRepository.findById(messageCreateDto.channelId());
+        User user = userRepository.findById(messageCreateDto.userId());
 
         if (!user.getActive().equals(ActiveStatus.ACTIVE)
-                || !channel.getActive().equals(ActiveStatus.ACTIVE)) throw new IllegalArgumentException("User is not active");
+                || !channel.getActive().equals(ActiveStatus.ACTIVE)) throw new IllegalStateException("User is not active");
 
-        if (messagePostDto.attachments() != null && !messagePostDto.attachments().isEmpty()) {
-            messagePostDto.attachments().stream()
+        if (messageCreateDto.attachments() != null && !messageCreateDto.attachments().isEmpty()) {
+            messageCreateDto.attachments().stream()
                     .filter(binaryContent -> binaryContent != null)
                     .forEach(binaryContent -> {
                         BinaryContent biContent = binaryContentMapper.toBinaryContent(binaryContent);
@@ -76,8 +76,8 @@ public class BasicMessageService implements MessageService {
     // 메시지 내용 수정
     // 현재는 내용 1개만 수정 가능
     @Override
-    public MessageResponseDto updateMessage(MessageUpdateDto messageUpdateDto) {
-        Message findMessage = messageRepository.findById(messageUpdateDto.id());
+    public MessageResponseDto updateMessage(UUID messageId, MessageUpdateDto messageUpdateDto) {
+        Message findMessage = messageRepository.findById(messageId);
         validateActiveMessage(findMessage);
 
         Optional.ofNullable(messageUpdateDto.content()).ifPresent(findMessage::setContent);
@@ -86,6 +86,26 @@ public class BasicMessageService implements MessageService {
         messageRepository.save(findMessage);
 
         return messageMapper.toMessageResponseDto(findMessage);
+    }
+
+    // 활성화 된 모든 메시지 확인
+    @Override
+    public List<MessageResponseDto> getActiveMessages() {
+        List<MessageResponseDto> activeMessageResponseDtos = new ArrayList<>();
+        messageRepository.findAllActive().stream()
+                .forEach(message -> activeMessageResponseDtos.add(messageMapper.toMessageResponseDto(message)));
+        return activeMessageResponseDtos;
+    }
+    @Override
+    public List<MessageResponseDto> findAll() {
+        List<MessageResponseDto> messageResponseDtos = new ArrayList<>();
+        messageRepository.findAll().stream()
+                .forEach(message -> messageResponseDtos.add(messageMapper.toMessageResponseDto(message)));
+        return messageResponseDtos;
+    }
+
+    private void validateActiveMessage(Message message) {
+        if (!message.getActive().equals(ActiveStatus.ACTIVE)) throw new IllegalStateException("Message is not active");
     }
 
     // 메시지 삭제
@@ -104,26 +124,5 @@ public class BasicMessageService implements MessageService {
         Channel channel =  channelRepository.findById(findMessage.getChannelId());
         channel.removeMessageFromChannel(findMessage);
         channelRepository.save(channel);
-    }
-
-    // 활성화 된 모든 메시지 확인
-    @Override
-    public List<MessageResponseDto> getActiveMessages() {
-        List<MessageResponseDto> activeMessageResponseDtos = new ArrayList<>();
-        messageRepository.findAllActive().stream()
-                .forEach(message -> activeMessageResponseDtos.add(messageMapper.toMessageResponseDto(message)));
-        return activeMessageResponseDtos;
-    }
-
-    @Override
-    public List<MessageResponseDto> findAll() {
-        List<MessageResponseDto> messageResponseDtos = new ArrayList<>();
-        messageRepository.findAll().stream()
-                .forEach(message -> messageResponseDtos.add(messageMapper.toMessageResponseDto(message)));
-        return messageResponseDtos;
-    }
-
-    private void validateActiveMessage(Message message) {
-        if (!message.getActive().equals(ActiveStatus.ACTIVE)) throw new IllegalArgumentException("Message is not active");
     }
 }

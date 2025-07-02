@@ -1,14 +1,13 @@
 package com.sprint.mission.discodeit.entity;
 
-import lombok.AllArgsConstructor;
 import lombok.Getter;
-import lombok.RequiredArgsConstructor;
 import lombok.Setter;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.io.Serializable;
 import java.time.Instant;
 import java.util.Arrays;
-import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 
@@ -21,15 +20,21 @@ public class BinaryContent implements Serializable {
     private Instant createdAt;
     private ActiveStatus active;
 
-    private BinaryContentType contentType;
-    private final byte[] content;
+    private BinaryContentType contentTypeEnum;
+    private String contentType;
+    private final byte[] bytes;
 
-    public BinaryContent(byte[] content, BinaryContentType contentType) {
-        this.id = UUID.randomUUID();
-        this.createdAt = Instant.now();
-        this.active = ActiveStatus.ACTIVE;
-        this.content = content;
-        this.contentType = contentType;
+    public BinaryContent(MultipartFile bytes, BinaryContentType contentType) {
+        try {
+            this.id = UUID.randomUUID();
+            this.createdAt = Instant.now();
+            this.active = ActiveStatus.ACTIVE;
+            this.bytes = bytes.getBytes();
+            this.contentTypeEnum = contentType;
+            this.contentType = contentType.getValue();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Override
@@ -39,7 +44,7 @@ public class BinaryContent implements Serializable {
                 ", createdAt=" + createdAt +
                 ", active=" + active +
                 ", contentType=" + contentType +
-                ", content=" + Arrays.toString(content) +
+                ", content=" + Arrays.toString(bytes) +
                 '}';
     }
 

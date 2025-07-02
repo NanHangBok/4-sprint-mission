@@ -11,6 +11,7 @@ public record ChannelResponseDto(
         UUID userId,
         UUID recipientId,
         String channelName,
+        String description,
         ChannelType channelType,
         List<UUID> joinedUserIds,
         Instant lastMessageTime

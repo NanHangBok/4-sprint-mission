@@ -1,13 +1,12 @@
 package com.sprint.mission.discodeit.dto;
 
-import com.sprint.mission.discodeit.entity.BinaryContentType;
 import org.springframework.web.multipart.MultipartFile;
 
-public record UserPostDto(
+public record UserCreateDto(
         String name,
         String nickname,
         String password,
         String email,
-        BinaryContentType binaryContentType,
-        MultipartFile profile
-) { }
+        BinaryContentPostDto binaryContentPostDto
+) {
+}

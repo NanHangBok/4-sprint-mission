@@ -7,6 +7,7 @@ import org.springframework.stereotype.Repository;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Repository
 public class JCFReadStatusRepository implements ReadStatusRepository {
@@ -39,5 +40,13 @@ public class JCFReadStatusRepository implements ReadStatusRepository {
     @Override
     public void delete(UUID id) {
         data.removeIf(rs -> rs.getId().equals(id));
+    }
+
+    @Override
+    public ReadStatus findByChannelIdAndUserId(UUID channelId, UUID userId) {
+        ReadStatus findReadStatus = findAll().stream()
+                .filter(readStatus -> readStatus.getChannelId().equals(channelId) && readStatus.getUserId().equals(userId))
+                .findFirst().orElseThrow(()->new IllegalArgumentException("Read Status not found"));
+        return findReadStatus;
     }
 }

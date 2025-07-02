@@ -7,9 +7,11 @@ import lombok.Setter;
 @Getter
 @AllArgsConstructor
 public enum BinaryContentType {
-    PROFILE("유저 프로필"),
-    IMAGE("이미지"),
-    FILE("파일");
+    SVG("image/svg+xml"),
+    JPEG("image/jpeg"),
+    PNG("image/png"),
+    FILE("파일"),
+    NONE("존재하지않음");
 
     private String value;
 }

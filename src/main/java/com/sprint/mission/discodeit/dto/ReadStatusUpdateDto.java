@@ -5,6 +5,8 @@ import java.util.UUID;
 
 public record ReadStatusUpdateDto(
         UUID id,
+        UUID channelId,
+        UUID userId,
         Instant latestTime
 ) {
 }
