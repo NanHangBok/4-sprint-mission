@@ -2,6 +2,8 @@ package com.sprint.mission.discodeit.repository.jcf;
 
 import com.sprint.mission.discodeit.entity.ActiveStatus;
 import com.sprint.mission.discodeit.entity.Message;
+import com.sprint.mission.discodeit.exception.BusinessLogicException;
+import com.sprint.mission.discodeit.exception.ExceptionCode;
 import com.sprint.mission.discodeit.repository.MessageRepository;
 import org.springframework.stereotype.Repository;
 
@@ -12,6 +14,7 @@ import java.util.UUID;
 @Repository
 public class JCFMessageRepository implements MessageRepository {
     private List<Message> data = new ArrayList<>();
+
     public List<Message> findAll() {
         return data;
     }
@@ -21,7 +24,7 @@ public class JCFMessageRepository implements MessageRepository {
         Message message = data.stream()
                 .filter(m -> m.getId().equals(id))
                 .findFirst()
-                .orElseThrow(() -> new IllegalArgumentException("Message not found"));
+                .orElseThrow(() -> new BusinessLogicException(ExceptionCode.MESSAGE_NOT_FOUND));
         return message;
     }
 
@@ -30,7 +33,8 @@ public class JCFMessageRepository implements MessageRepository {
         if (data.contains(message)) {
             data.stream()
                     .map(m -> m.equals(message) ? message : m)
-                    .forEach(m -> {});
+                    .forEach(m -> {
+                    });
         } else {
             data.add(message);
         }

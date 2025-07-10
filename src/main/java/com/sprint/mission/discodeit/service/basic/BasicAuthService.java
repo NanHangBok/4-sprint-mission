@@ -1,19 +1,17 @@
 package com.sprint.mission.discodeit.service.basic;
 
-import com.sprint.mission.discodeit.dto.UserLoginDto;
+import com.sprint.mission.discodeit.dto.LoginRequest;
 import com.sprint.mission.discodeit.dto.UserLoginResponseDto;
 import com.sprint.mission.discodeit.entity.User;
+import com.sprint.mission.discodeit.exception.BusinessLogicException;
+import com.sprint.mission.discodeit.exception.ExceptionCode;
 import com.sprint.mission.discodeit.mapper.UserMapper;
 import com.sprint.mission.discodeit.repository.UserRepository;
 import com.sprint.mission.discodeit.service.AuthService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
 
 import java.time.Instant;
-import java.util.NoSuchElementException;
 
 @Service
 @RequiredArgsConstructor
@@ -22,13 +20,19 @@ public class BasicAuthService implements AuthService {
     private final UserMapper userMapper;
 
     @Override
-    public UserLoginResponseDto login(UserLoginDto userLoginDto) {
-        if (userLoginDto.password() == null || userLoginDto.username() == null) throw new IllegalArgumentException("Username or Password is null");
+    public UserLoginResponseDto login(LoginRequest loginRequest) {
+        if (loginRequest.password() == null || loginRequest.username() == null)
+            throw new IllegalArgumentException("Username or Password is null");
+
+        if (userRepository.findAll().stream()
+                .noneMatch(user -> user.getUsername().equals(loginRequest.username())))
+            throw new BusinessLogicException(ExceptionCode.USER_NOT_FOUND);
+
         User finduser = userRepository.findAll().stream()
-                .filter(user -> user.getName().equals(userLoginDto.username())
-                && user.getPassword().equals(userLoginDto.password()))
+                .filter(user -> user.getUsername().equals(loginRequest.username())
+                        && user.getPassword().equals(loginRequest.password()))
                 .findFirst()
-                .orElseThrow(() -> new NoSuchElementException("Username or Password is invalid"));
+                .orElseThrow(() -> new BusinessLogicException(ExceptionCode.WRONG_PASSWORD));
         finduser.setUpdatedAt(Instant.now());
         return userMapper.toUserLoginResponseDto(finduser);
     }

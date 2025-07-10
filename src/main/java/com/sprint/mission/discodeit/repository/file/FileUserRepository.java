@@ -1,6 +1,8 @@
 package com.sprint.mission.discodeit.repository.file;
 
 import com.sprint.mission.discodeit.entity.User;
+import com.sprint.mission.discodeit.exception.BusinessLogicException;
+import com.sprint.mission.discodeit.exception.ExceptionCode;
 import com.sprint.mission.discodeit.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Repository;
@@ -19,7 +21,7 @@ public class FileUserRepository implements UserRepository {
         List<User> list = new ArrayList<>();
 
         try (FileInputStream fis = new FileInputStream(FILE_PATH);
-            ObjectInputStream ois = new ObjectInputStream(fis)) {
+             ObjectInputStream ois = new ObjectInputStream(fis)) {
             list = (List<User>) ois.readObject();
         } catch (IOException e) {
             e.printStackTrace();
@@ -32,7 +34,7 @@ public class FileUserRepository implements UserRepository {
 
     public void saveAll(List<User> users) {
         try (FileOutputStream fos = new FileOutputStream(FILE_PATH);
-            ObjectOutputStream oos = new ObjectOutputStream(fos)) {
+             ObjectOutputStream oos = new ObjectOutputStream(fos)) {
             oos.writeObject(users);
         } catch (IOException e) {
             e.printStackTrace();
@@ -45,7 +47,7 @@ public class FileUserRepository implements UserRepository {
         User user = list.stream()
                 .filter(u -> u.getId().equals(id))
                 .findFirst()
-                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+                .orElseThrow(() -> new BusinessLogicException(ExceptionCode.USER_NOT_FOUND));
         return user;
     }
 
@@ -53,16 +55,16 @@ public class FileUserRepository implements UserRepository {
     public User findByName(String name) {
         List<User> list = findAll();
         User user = list.stream()
-                .filter(u -> u.getName().equals(name))
+                .filter(u -> u.getUsername().equals(name))
                 .findFirst()
-                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+                .orElseThrow(() -> new BusinessLogicException(ExceptionCode.USER_NOT_FOUND));
         return user;
     }
 
     @Override
     public void save(User user) {
         List<User> list = findAll();
-        if(list.stream().anyMatch(user::equals)){
+        if (list.stream().anyMatch(user::equals)) {
             List<User> updatedList = list.stream().map(c -> c.equals(user) ? user : c)
                     .collect(Collectors.toList());
             saveAll(updatedList);

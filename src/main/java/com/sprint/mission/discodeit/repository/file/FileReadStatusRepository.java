@@ -1,6 +1,8 @@
 package com.sprint.mission.discodeit.repository.file;
 
 import com.sprint.mission.discodeit.entity.ReadStatus;
+import com.sprint.mission.discodeit.exception.BusinessLogicException;
+import com.sprint.mission.discodeit.exception.ExceptionCode;
 import com.sprint.mission.discodeit.repository.ReadStatusRepository;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Repository;
@@ -15,6 +17,7 @@ import java.util.stream.Collectors;
 public class FileReadStatusRepository implements ReadStatusRepository {
     @Value("${discodeit.repository.file-directory}/ReadUsers.ser")
     private String FILE_PATH;
+
     @Override
     public List<ReadStatus> findAll() {
         List<ReadStatus> list = new ArrayList<>();
@@ -43,7 +46,7 @@ public class FileReadStatusRepository implements ReadStatusRepository {
     @Override
     public void save(ReadStatus readStatus) {
         List<ReadStatus> list = findAll();
-        if(list.stream().anyMatch(r -> r.getId().equals(readStatus.getId()))) {
+        if (list.stream().anyMatch(r -> r.getId().equals(readStatus.getId()))) {
             List<ReadStatus> updateList = list.stream()
                     .map(r -> r.getId().equals(readStatus.getId()) ? readStatus : r)
                     .collect(Collectors.toList());
@@ -60,7 +63,7 @@ public class FileReadStatusRepository implements ReadStatusRepository {
         return list.stream()
                 .filter(r -> r.getId().equals(id))
                 .findFirst()
-                .orElseThrow(() -> new IllegalArgumentException("Readstatus not found"));
+                .orElseThrow(() -> new BusinessLogicException(ExceptionCode.READSTATUS_NOT_FOUND));
     }
 
     @Override
@@ -74,7 +77,16 @@ public class FileReadStatusRepository implements ReadStatusRepository {
     public ReadStatus findByChannelIdAndUserId(UUID channelId, UUID userId) {
         ReadStatus findReadStatus = findAll().stream()
                 .filter(readStatus -> readStatus.getChannelId().equals(channelId) && readStatus.getUserId().equals(userId))
-                .findFirst().orElseThrow(() -> new IllegalArgumentException("ReadStatus not found"));
+                .findFirst().orElseThrow(() -> new BusinessLogicException(ExceptionCode.READSTATUS_NOT_FOUND));
         return findReadStatus;
+    }
+
+    @Override
+    public List<UUID> findByChannelId(UUID channelId) {
+        List<UUID> list = new ArrayList<>();
+        findAll().stream()
+                .filter(r -> r.getChannelId().equals(channelId))
+                .forEach(r -> list.add(r.getId()));
+        return list;
     }
 }

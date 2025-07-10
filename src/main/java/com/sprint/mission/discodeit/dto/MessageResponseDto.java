@@ -6,7 +6,7 @@ import java.util.UUID;
 
 public record MessageResponseDto(
         UUID id,
-        UUID userId,
+        UUID authorId,
         UUID channelId,
         String content,
         List<UUID> attachmentIds,

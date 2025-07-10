@@ -1,6 +1,8 @@
 package com.sprint.mission.discodeit.repository.jcf;
 
 import com.sprint.mission.discodeit.entity.BinaryContent;
+import com.sprint.mission.discodeit.exception.BusinessLogicException;
+import com.sprint.mission.discodeit.exception.ExceptionCode;
 import com.sprint.mission.discodeit.repository.BinaryContentRepository;
 import org.springframework.stereotype.Repository;
 
@@ -11,6 +13,7 @@ import java.util.UUID;
 @Repository
 public class JCFBinaryContentRepository implements BinaryContentRepository {
     private final List<BinaryContent> data = new ArrayList<>();
+
     @Override
     public void delete(UUID id) {
         data.removeIf(bc -> bc.getId().equals(id));
@@ -32,7 +35,7 @@ public class JCFBinaryContentRepository implements BinaryContentRepository {
     public BinaryContent findById(UUID id) {
         BinaryContent binaryContent = data.stream()
                 .filter(b -> b.getId().equals(id))
-                .findFirst().orElseThrow(()->new IllegalArgumentException("Binary Content not found"));
+                .findFirst().orElseThrow(() -> new BusinessLogicException(ExceptionCode.BINARYCONTENT_NOT_FOUND));
         return binaryContent;
     }
 
@@ -41,10 +44,11 @@ public class JCFBinaryContentRepository implements BinaryContentRepository {
         List<BinaryContent> binaryContents = new ArrayList<>();
         ids.stream()
                 .forEach(id -> {
-                    List<BinaryContent> binaryContentList = findAll().stream()
-                            .filter(binaryContent -> binaryContent.getId().equals(id))
-                            .toList();
-                    binaryContents.addAll(binaryContentList);
+                    BinaryContent binaryContent = data.stream()
+                            .filter(biContent -> biContent.getId().equals(id))
+                            .findFirst()
+                            .orElseThrow(() -> new BusinessLogicException(ExceptionCode.BINARYCONTENT_NOT_FOUND));
+                    binaryContents.add(binaryContent);
                 });
         return binaryContents;
     }

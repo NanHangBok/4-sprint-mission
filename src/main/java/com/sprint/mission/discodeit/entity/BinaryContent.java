@@ -2,9 +2,7 @@ package com.sprint.mission.discodeit.entity;
 
 import lombok.Getter;
 import lombok.Setter;
-import org.springframework.web.multipart.MultipartFile;
 
-import java.io.IOException;
 import java.io.Serializable;
 import java.time.Instant;
 import java.util.Arrays;
@@ -20,21 +18,19 @@ public class BinaryContent implements Serializable {
     private Instant createdAt;
     private ActiveStatus active;
 
-    private BinaryContentType contentTypeEnum;
     private String contentType;
     private final byte[] bytes;
+    private Long size;
+    private String fileName;
 
-    public BinaryContent(MultipartFile bytes, BinaryContentType contentType) {
-        try {
-            this.id = UUID.randomUUID();
-            this.createdAt = Instant.now();
-            this.active = ActiveStatus.ACTIVE;
-            this.bytes = bytes.getBytes();
-            this.contentTypeEnum = contentType;
-            this.contentType = contentType.getValue();
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+    public BinaryContent(byte[] bytes, String contentType, Long size, String fileName) {
+        this.id = UUID.randomUUID();
+        this.createdAt = Instant.now();
+        this.active = ActiveStatus.ACTIVE;
+        this.bytes = bytes;
+        this.contentType = contentType;
+        this.size = size;
+        this.fileName = fileName;
     }
 
     @Override
@@ -44,7 +40,7 @@ public class BinaryContent implements Serializable {
                 ", createdAt=" + createdAt +
                 ", active=" + active +
                 ", contentType=" + contentType +
-                ", content=" + Arrays.toString(bytes) +
+                ", newContent=" + Arrays.toString(bytes) +
                 '}';
     }
 

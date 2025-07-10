@@ -13,7 +13,7 @@
 //import java.util.Optional;
 //import java.util.UUID;
 //
-///********************************************
+/// ********************************************
 // * 유저 서비스 인터페이스 구현체
 // * CRUD 실행
 // * 2025.05.30 김민수
@@ -43,8 +43,8 @@
 //
 //    // 유저 생성
 //    @Override
-//    public User createUser(String name, String password, String email) {
-//        User user = new User(name, password, email);
+//    public User createUser(String newName, String password, String email) {
+//        User user = new User(newName, password, email);
 //        emailMatch = userRepository.findAll().stream().
 //                anyMatch(host -> host.getEmail().equals(email));
 //        if (!emailMatch) {

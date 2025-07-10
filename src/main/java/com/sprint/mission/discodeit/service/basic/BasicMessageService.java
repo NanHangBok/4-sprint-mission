@@ -2,6 +2,8 @@ package com.sprint.mission.discodeit.service.basic;
 
 import com.sprint.mission.discodeit.dto.*;
 import com.sprint.mission.discodeit.entity.*;
+import com.sprint.mission.discodeit.exception.BusinessLogicException;
+import com.sprint.mission.discodeit.exception.ExceptionCode;
 import com.sprint.mission.discodeit.mapper.BinaryContentMapper;
 import com.sprint.mission.discodeit.mapper.MessageMapper;
 import com.sprint.mission.discodeit.repository.BinaryContentRepository;
@@ -28,18 +30,16 @@ public class BasicMessageService implements MessageService {
     private final BinaryContentMapper binaryContentMapper;
     private final MessageMapper messageMapper;
 
-    // 메시지 생성
     @Override
-    public MessageResponseDto createMessage(MessageCreateDto messageCreateDto) {
-        Message message = new Message(messageCreateDto.userId(), messageCreateDto.channelId(), messageCreateDto.content());
-        Channel channel = channelRepository.findById(messageCreateDto.channelId());
-        User user = userRepository.findById(messageCreateDto.userId());
+    public MessageResponseDto createMessage(MessageCreateRequest messageCreateRequest, List<BinaryContentPostDto> attachments) {
+        validateChannel(messageCreateRequest.channelId());
+        Channel channel = channelRepository.findById(messageCreateRequest.channelId());
+        validateUser(messageCreateRequest.authorId());
 
-        if (!user.getActive().equals(ActiveStatus.ACTIVE)
-                || !channel.getActive().equals(ActiveStatus.ACTIVE)) throw new IllegalStateException("User is not active");
+        Message message = messageMapper.toMessage(messageCreateRequest);
 
-        if (messageCreateDto.attachments() != null && !messageCreateDto.attachments().isEmpty()) {
-            messageCreateDto.attachments().stream()
+        if (attachments != null && !attachments.isEmpty()) {
+            attachments.stream()
                     .filter(binaryContent -> binaryContent != null)
                     .forEach(binaryContent -> {
                         BinaryContent biContent = binaryContentMapper.toBinaryContent(binaryContent);
@@ -56,7 +56,6 @@ public class BasicMessageService implements MessageService {
         return messageResponseDto;
     }
 
-    // 모든 메시지 확인
     @Override
     public List<MessageResponseDto> findallByChannelId(UUID channelId) {
         List<MessageResponseDto> messageResponseDtos = new ArrayList<>();
@@ -64,23 +63,20 @@ public class BasicMessageService implements MessageService {
                 .filter(message -> message.getChannelId().equals(channelId))
                 .forEach(message -> messageResponseDtos.add(messageMapper.toMessageResponseDto(message)));
 
-        return  messageResponseDtos;
+        return messageResponseDtos;
     }
 
-    // 특정 ID를 가진 메시지 확인
     @Override
     public MessageResponseDto getMessagesById(UUID messageId) {
         return messageMapper.toMessageResponseDto(messageRepository.findById(messageId));
     }
 
-    // 메시지 내용 수정
-    // 현재는 내용 1개만 수정 가능
     @Override
-    public MessageResponseDto updateMessage(UUID messageId, MessageUpdateDto messageUpdateDto) {
+    public MessageResponseDto updateMessage(UUID messageId, MessageUpdateRequest messageUpdateRequest) {
         Message findMessage = messageRepository.findById(messageId);
         validateActiveMessage(findMessage);
 
-        Optional.ofNullable(messageUpdateDto.content()).ifPresent(findMessage::setContent);
+        Optional.ofNullable(messageUpdateRequest.newContent()).ifPresent(findMessage::setContent);
         findMessage.setUpdatedAt(Instant.now());
 
         messageRepository.save(findMessage);
@@ -88,7 +84,6 @@ public class BasicMessageService implements MessageService {
         return messageMapper.toMessageResponseDto(findMessage);
     }
 
-    // 활성화 된 모든 메시지 확인
     @Override
     public List<MessageResponseDto> getActiveMessages() {
         List<MessageResponseDto> activeMessageResponseDtos = new ArrayList<>();
@@ -96,6 +91,7 @@ public class BasicMessageService implements MessageService {
                 .forEach(message -> activeMessageResponseDtos.add(messageMapper.toMessageResponseDto(message)));
         return activeMessageResponseDtos;
     }
+
     @Override
     public List<MessageResponseDto> findAll() {
         List<MessageResponseDto> messageResponseDtos = new ArrayList<>();
@@ -104,11 +100,7 @@ public class BasicMessageService implements MessageService {
         return messageResponseDtos;
     }
 
-    private void validateActiveMessage(Message message) {
-        if (!message.getActive().equals(ActiveStatus.ACTIVE)) throw new IllegalStateException("Message is not active");
-    }
-
-    // 메시지 삭제
+    @Override
     public void removeMessage(UUID messageId) {
         Message findMessage = messageRepository.findById(messageId);
         validateActiveMessage(findMessage);
@@ -121,8 +113,25 @@ public class BasicMessageService implements MessageService {
                         binaryContentRepository.delete(id);
                     });
         }
-        Channel channel =  channelRepository.findById(findMessage.getChannelId());
+        Channel channel = channelRepository.findById(findMessage.getChannelId());
         channel.removeMessageFromChannel(findMessage);
         channelRepository.save(channel);
+    }
+
+    private void validateActiveMessage(Message message) {
+        if (!message.getActive().equals(ActiveStatus.ACTIVE))
+            throw new BusinessLogicException(ExceptionCode.MESSAGE_NOT_FOUND);
+    }
+
+    private void validateUser(UUID authorId) {
+        if (userRepository.findAll().stream()
+                .noneMatch(user -> user.getId().equals(authorId)))
+            throw new BusinessLogicException(ExceptionCode.CHANNEL_OR_USER_NOT_FOUND);
+    }
+
+    private void validateChannel(UUID channelId) {
+        if (channelRepository.findAll().stream()
+                .noneMatch(channel -> channel.getId().equals(channelId)))
+            throw new BusinessLogicException(ExceptionCode.CHANNEL_OR_USER_NOT_FOUND);
     }
 }

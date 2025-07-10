@@ -1,6 +1,8 @@
 package com.sprint.mission.discodeit.repository.file;
 
 import com.sprint.mission.discodeit.entity.UserStatus;
+import com.sprint.mission.discodeit.exception.BusinessLogicException;
+import com.sprint.mission.discodeit.exception.ExceptionCode;
 import com.sprint.mission.discodeit.repository.UserStatusRepository;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Repository;
@@ -54,7 +56,7 @@ public class FileUserStatusRepository implements UserStatusRepository {
         return list.stream()
                 .filter(userStatus -> userStatus.getId().equals(id))
                 .findFirst()
-                .orElseThrow(() -> new IllegalArgumentException("UserStatus not found"));
+                .orElseThrow(() -> new BusinessLogicException(ExceptionCode.USERSTATUS_NOT_FOUND));
     }
 
     @Override
@@ -63,7 +65,7 @@ public class FileUserStatusRepository implements UserStatusRepository {
         return list.stream()
                 .filter(userStatus -> userStatus.getUserId().equals(userId))
                 .findFirst()
-                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+                .orElseThrow(() -> new BusinessLogicException(ExceptionCode.USER_NOT_FOUND));
     }
 
     @Override

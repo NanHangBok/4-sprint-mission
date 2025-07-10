@@ -39,8 +39,8 @@
 //
 //    // 유저 생성
 //    @Override
-//    public User createUser(String name, String password, String email) {
-//        User user = new User(name, password, email);
+//    public User createUser(String newName, String password, String email) {
+//        User user = new User(newName, password, email);
 //        emailMatch = userRepository.findAll().stream().
 //                anyMatch(host -> host.getEmail().equals(email));
 //        if (!emailMatch) {

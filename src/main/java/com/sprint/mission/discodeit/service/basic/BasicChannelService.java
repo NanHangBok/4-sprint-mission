@@ -2,14 +2,11 @@ package com.sprint.mission.discodeit.service.basic;
 
 import com.sprint.mission.discodeit.dto.*;
 import com.sprint.mission.discodeit.entity.*;
+import com.sprint.mission.discodeit.exception.BusinessLogicException;
+import com.sprint.mission.discodeit.exception.ExceptionCode;
 import com.sprint.mission.discodeit.mapper.ChannelMapper;
-import com.sprint.mission.discodeit.mapper.ReadStatusMapper;
-import com.sprint.mission.discodeit.repository.ChannelRepository;
-import com.sprint.mission.discodeit.repository.MessageRepository;
-import com.sprint.mission.discodeit.repository.ReadStatusRepository;
-import com.sprint.mission.discodeit.repository.UserRepository;
+import com.sprint.mission.discodeit.repository.*;
 import com.sprint.mission.discodeit.service.ChannelService;
-import com.sprint.mission.discodeit.service.MessageService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -23,49 +20,48 @@ public class BasicChannelService implements ChannelService {
     private final MessageRepository messageRepository;
     private final ReadStatusRepository readStatusRepository;
     private final ChannelMapper channelMapper;
-    private final ReadStatusMapper readStatusMapper;
-    private final MessageService messageService;
     private final UserRepository userRepository;
 
     @Override
-    public ChannelPublicCreateResponseDto createPublicChannel(ChannelPostDto channelPostDto) {
-        validateUser(channelPostDto.hostUserId());
-        Channel channel = channelMapper.toPublicChannel(channelPostDto);
+    public ChannelPublicCreateResponseDto createPublicChannel(PublicChannelCreateRequest publicChannelCreateRequest) {
+        Channel channel = channelMapper.toPublicChannel(publicChannelCreateRequest);
         channel.setActive(ActiveStatus.ACTIVE);
         channelRepository.save(channel);
-        ReadStatus readStatus = new ReadStatus(channelPostDto.hostUserId(),channel.getId(),Instant.now());
-        readStatusRepository.save(readStatus);
         return channelMapper.toChannelPublicCreateResponseDto(channel);
     }
 
     @Override
-    public ChannelPrivateCreateResponseDto createPrivateChannel(ChannelPrivatePostDto channelPrivatePostDto) {
-        validateUser(channelPrivatePostDto.host());
-        validateUser(channelPrivatePostDto.recipient());
+    public ChannelPrivateCreateResponseDto createPrivateChannel(PrivateChannelCreateRequest privateChannelCreateRequest) {
+        for (UUID id : privateChannelCreateRequest.participantIds()) {
+            validateUser(id);
+        }
 
-        Channel channel = channelMapper.toPrivateChannel(channelPrivatePostDto);
+        Channel channel = channelMapper.toPrivateChannel(privateChannelCreateRequest);
         channel.setActive(ActiveStatus.ACTIVE);
         channelRepository.save(channel);
 
-        ReadStatus readStatus = new ReadStatus(channelPrivatePostDto.host(),channel.getId(),Instant.now());
-        ReadStatus readStatus2 = new ReadStatus(channelPrivatePostDto.recipient(),channel.getId(),Instant.now());
-        readStatusRepository.save(readStatus);
-        readStatusRepository.save(readStatus2);
+        for (UUID id : privateChannelCreateRequest.participantIds()) {
+            ReadStatus readStatus = new ReadStatus(id, channel.getId(), Instant.now());
+            readStatusRepository.save(readStatus);
+        }
 
-        return channelMapper.toChannelPrivateCreateResponseDto(channel);
+        return channelMapper.toChannelPrivateCreateResponseDto(channel, readStatusRepository.findByChannelId(channel.getId()));
     }
 
     @Override
-    public List<ChannelResponseDto> findAllByUserId(UUID userId) {
-        List<ChannelResponseDto> channelResponseDtos = new ArrayList<>();
+    public List<ChannelDto> findAllByUserId(UUID userId) {
+        validateUser(userId);
+        List<ChannelDto> channelDtos = new ArrayList<>();
         channelRepository.findAll().stream()
-                .filter(channel -> validateUserInChannel(channel,userId)
-                                        || channel.getChannelType().equals(ChannelType.PUBLIC))
+                .filter(channel -> validateUserInChannel(channel, userId)
+
+                        || channel.getType().equals(ChannelType.PUBLIC))
                 .forEach(channel -> {
                     Instant latestTime = findLatestMessage(channel.getMessageIds());
-                    channelResponseDtos.add(channelMapper.ofChannelResponseDto(channel, latestTime));
+                    List<UUID> ids = findAllUserInChannel(channel.getId());
+                    channelDtos.add(channelMapper.ofChannelDto(channel, latestTime, ids));
                 });
-        return channelResponseDtos;
+        return channelDtos;
     }
 
     @Override
@@ -74,16 +70,17 @@ public class BasicChannelService implements ChannelService {
 
         Channel channel = channelRepository.findById(channelId);
         Instant latestTime = findLatestMessage(channel.getMessageIds());
-        return channelMapper.ofChannelResponseDto(channel,latestTime);
+        return channelMapper.ofChannelResponseDto(channel, latestTime);
     }
+
     @Override
-    public ChannelResponseDto updateChannel(UUID channelId, ChannelUpdateDto channelUpdateDto) {
+    public ChannelResponseDto updateChannel(UUID channelId, PublicChannelUpdateRequest publicChannelUpdateRequest) {
         validateActiveChannel(channelId);
         validatePublicChannel(channelId);
 
         Channel findChannel = channelRepository.findById(channelId);
-        Optional.ofNullable(channelUpdateDto.name()).ifPresent(findChannel::setChannelName);
-        Optional.ofNullable(channelUpdateDto.description()).ifPresent(findChannel::setDescription);
+        Optional.ofNullable(publicChannelUpdateRequest.newName()).ifPresent(findChannel::setChannelName);
+        Optional.ofNullable(publicChannelUpdateRequest.newDescription()).ifPresent(findChannel::setDescription);
         findChannel.setUpdatedAt(Instant.now());
 
         channelRepository.save(findChannel);
@@ -101,7 +98,7 @@ public class BasicChannelService implements ChannelService {
         channel.getMessageIds().stream()
                 .forEach(messageId -> {
                     System.out.println(channel);
-                    removeMessage(channel,messageId);
+                    removeMessage(channel, messageId);
                 });// 채널 내 모든 메세지 삭제
         channel.clearMessages();
         channel.setActive(ActiveStatus.DELETE);
@@ -111,11 +108,8 @@ public class BasicChannelService implements ChannelService {
 
     private void removeMessage(Channel channel, UUID messageId) {
         validateActiveChannel(channel.getId());
-        if (!channel.getMessageIds().contains(messageId)) throw new IllegalStateException(messageId + " Message does not exist");
-//        {
-//            System.out.println(messageId + " Message does not exist");
-//            return;
-//        }
+        if (!channel.getMessageIds().contains(messageId))
+            throw new IllegalStateException(messageId + " Message does not exist");
 
         Message message = messageRepository.findById(messageId);
         message.setActive(ActiveStatus.DELETE);
@@ -123,31 +117,34 @@ public class BasicChannelService implements ChannelService {
         messageRepository.delete(message);
     }
 
-    public void addUser(UUID channelId, UUID userId) {
-        Channel channel = channelRepository.findById(channelId);
-        channel.addUser(userId);
-        ReadStatus readStatus = new ReadStatus(channelId,userId,Instant.now());
-        readStatusRepository.save(readStatus);
-    }
 
     // 테스트용 내용확인
-
     @Override
     public List<ChannelResponseDto> findAllChannels() {
         List<ChannelResponseDto> channelResponseDtos = new ArrayList<>();
         channelRepository.findAll().stream()
                 .forEach(channel -> {
-                    Instant  latestTime = findLatestMessage(channel.getMessageIds());
-                    channelResponseDtos.add(channelMapper.ofChannelResponseDto(channel,latestTime));
+                    Instant latestTime = findLatestMessage(channel.getMessageIds());
+                    channelResponseDtos.add(channelMapper.ofChannelResponseDto(channel, latestTime));
                 });
         return channelResponseDtos;
     }
+
+    public void addUser(UUID channelId, UUID userId) {
+        Channel channel = channelRepository.findById(channelId);
+        channel.addUser(userId);
+        ReadStatus readStatus = new ReadStatus(channelId, userId, Instant.now());
+        readStatusRepository.save(readStatus);
+    }
+
     private void validateActiveChannel(UUID id) {
-        if (!channelRepository.findById(id).getActive().equals(ActiveStatus.ACTIVE)) throw new IllegalStateException("Channel is not active");
+        if (!channelRepository.findById(id).getActive().equals(ActiveStatus.ACTIVE))
+            throw new BusinessLogicException(ExceptionCode.CHANNEL_NOT_FOUND);
     }
 
     private void validatePublicChannel(UUID id) {
-        if(channelRepository.findById(id).getChannelType().equals(ChannelType.PRIVATE)) throw new IllegalStateException("Cannot modify a private channel.");
+        if (channelRepository.findById(id).getType().equals(ChannelType.PRIVATE))
+            throw new BusinessLogicException(ExceptionCode.PRIVATE_CHANNEL_CANNOT_UPDATE);
     }
 
     private Instant findLatestMessage(List<UUID> messageIds) {
@@ -156,22 +153,24 @@ public class BasicChannelService implements ChannelService {
                 .toList();
         Optional<Message> latestMessage = messages.stream()
                 .max(Comparator.comparing(Message::getUpdatedAt));
-        if(latestMessage.isEmpty()) return Instant.MIN;
+        if (latestMessage.isEmpty()) return Instant.MIN;
         return latestMessage.get().getUpdatedAt();
     }
 
     private boolean validateUserInChannel(Channel channel, UUID userId) {
-        if (channel.getHostUserId() != null && channel.getHostUserId().equals(userId)) {
-            return true;
-        }
-        if (channel.getRecipientId() != null && channel.getRecipientId().equals(userId)) {
-            return true;
-        }
-
-        return false;
+        return readStatusRepository.findAll().stream()
+                .anyMatch(readStatus -> readStatus.getUserId().equals(userId) && readStatus.getChannelId().equals(channel.getId()));
     }
 
     private void validateUser(UUID userId) {
         userRepository.findById(userId);
+    }
+
+    private List<UUID> findAllUserInChannel(UUID channelId) {
+        List<UUID> ids = new ArrayList<>();
+        readStatusRepository.findAll().stream()
+                .filter(readStatus -> readStatus.getChannelId().equals(channelId))
+                .forEach(readStatus -> ids.add(readStatus.getUserId()));
+        return ids;
     }
 }

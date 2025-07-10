@@ -8,8 +8,6 @@ import java.util.UUID;
 
 public record ChannelResponseDto(
         UUID id,
-        UUID userId,
-        UUID recipientId,
         String channelName,
         String description,
         ChannelType channelType,

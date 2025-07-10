@@ -2,7 +2,7 @@ package com.sprint.mission.discodeit.service.basic;
 
 import com.sprint.mission.discodeit.dto.UserStatusPostDto;
 import com.sprint.mission.discodeit.dto.UserStatusResponseDto;
-import com.sprint.mission.discodeit.dto.UserStatusUpdateDto;
+import com.sprint.mission.discodeit.dto.UserStatusUpdateRequest;
 import com.sprint.mission.discodeit.entity.UserStatus;
 import com.sprint.mission.discodeit.mapper.UserStatusMapper;
 import com.sprint.mission.discodeit.repository.UserRepository;
@@ -10,7 +10,6 @@ import com.sprint.mission.discodeit.repository.UserStatusRepository;
 import com.sprint.mission.discodeit.service.UserStatusService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import org.springframework.web.bind.annotation.*;
 
 import java.time.Instant;
 import java.util.*;
@@ -27,7 +26,7 @@ public class BasicUserStatusService implements UserStatusService {
         validateUser(userStatusPostDto.userId());
         existsUserStatus(userStatusPostDto.userId());
 
-        UserStatus userStatus = new UserStatus(userStatusPostDto.userId(), userStatusPostDto.latestActiveAt());
+        UserStatus userStatus = new UserStatus(userStatusPostDto.userId(), userStatusPostDto.latestActiveAt(), true);
         userStatusRepository.save(userStatus);
 
         return userStatusMapper.toUserStatusResponseDto(userStatus);
@@ -52,13 +51,14 @@ public class BasicUserStatusService implements UserStatusService {
     }
 
     @Override
-    public UserStatusResponseDto update(UUID id, UserStatusUpdateDto userStatusUpdateDto) {
-        UserStatus findUserStatus = userStatusRepository.findById(userStatusUpdateDto.id());
+    public UserStatusResponseDto update(UUID id, UserStatusUpdateRequest userStatusUpdateRequest) {
+        UserStatus findUserStatus = userStatusRepository.findById(id);
 
-        if (findUserStatus.getLastActiveAt().isAfter(userStatusUpdateDto.latestActiveAt())) throw new IllegalArgumentException("새로운 기록이 기존 기록보다 이전입니다.");
+        if (findUserStatus.getLastActiveAt().isAfter(userStatusUpdateRequest.newLastActivaAt()))
+            throw new IllegalArgumentException("새로운 기록이 기존 기록보다 이전입니다.");
 
-        Optional.ofNullable(userStatusUpdateDto.latestActiveAt()).ifPresent(findUserStatus::setLastActiveAt);
-        findUserStatus.setUpdatedAt(userStatusUpdateDto.latestActiveAt());
+        Optional.ofNullable(userStatusUpdateRequest.newLastActivaAt()).ifPresent(findUserStatus::setLastActiveAt);
+        findUserStatus.setUpdatedAt(userStatusUpdateRequest.newLastActivaAt());
 
         userStatusRepository.save(findUserStatus);
         return userStatusMapper.toUserStatusResponseDto(findUserStatus);
@@ -68,7 +68,8 @@ public class BasicUserStatusService implements UserStatusService {
     public UserStatusResponseDto updateByUserId(UUID userId) {
         Instant latestActiveAt = Instant.now();
         UserStatus findUserStatus = userStatusRepository.findByUserId(userId);
-        if (findUserStatus.getLastActiveAt().isAfter(latestActiveAt)) throw new IllegalArgumentException("새로운 기록이 기존 기록보다 이전입니다.");
+        if (findUserStatus.getLastActiveAt().isAfter(latestActiveAt))
+            throw new IllegalArgumentException("새로운 기록이 기존 기록보다 이전입니다.");
 
         findUserStatus.setLastActiveAt(latestActiveAt);
         findUserStatus.setUpdatedAt(latestActiveAt);
@@ -87,8 +88,6 @@ public class BasicUserStatusService implements UserStatusService {
         userStatusRepository.deleteByUserId(userId);
     }
 
-    //
-
     private void validateUser(UUID userId) {
         if (!userRepository.findAll().stream()
                 .anyMatch(user -> user.getId().equals(userId))) throw new IllegalArgumentException("User not found");
@@ -96,6 +95,7 @@ public class BasicUserStatusService implements UserStatusService {
 
     private void existsUserStatus(UUID userId) {
         if (!userStatusRepository.findAll().stream()
-                .anyMatch(userStatus -> userStatus.getUserId().equals(userId))) throw new IllegalStateException("User already exists.");
+                .anyMatch(userStatus -> userStatus.getUserId().equals(userId)))
+            throw new IllegalStateException("User already exists.");
     }
 }

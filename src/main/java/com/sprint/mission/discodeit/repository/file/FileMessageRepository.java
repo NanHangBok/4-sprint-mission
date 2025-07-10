@@ -2,6 +2,8 @@ package com.sprint.mission.discodeit.repository.file;
 
 import com.sprint.mission.discodeit.entity.ActiveStatus;
 import com.sprint.mission.discodeit.entity.Message;
+import com.sprint.mission.discodeit.exception.BusinessLogicException;
+import com.sprint.mission.discodeit.exception.ExceptionCode;
 import com.sprint.mission.discodeit.repository.MessageRepository;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Repository;
@@ -48,14 +50,14 @@ public class FileMessageRepository implements MessageRepository {
         Message message = list.stream()
                 .filter(m -> m.getId().equals(id))
                 .findFirst()
-                .orElseThrow(() -> new IllegalArgumentException("Message not found"));
+                .orElseThrow(() -> new BusinessLogicException(ExceptionCode.MESSAGE_NOT_FOUND));
         return message;
     }
 
     @Override
     public void save(Message message) {
         List<Message> list = findAll();
-        if(list.stream().anyMatch(message::equals)){
+        if (list.stream().anyMatch(message::equals)) {
             List<Message> updatedList = list.stream().map(c -> c.equals(message) ? message : c)
                     .collect(Collectors.toList());
             saveAll(updatedList);

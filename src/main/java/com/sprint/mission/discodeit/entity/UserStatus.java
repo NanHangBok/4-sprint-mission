@@ -13,6 +13,8 @@ import java.util.UUID;
 public class UserStatus extends BasedEntity {
     private UUID userId;
     private Instant lastActiveAt;
+    private boolean online;
+
     public boolean isRecentlyActive() {
         if (lastActiveAt.isAfter(Instant.now().minusSeconds(300))) return true;
 
@@ -24,6 +26,7 @@ public class UserStatus extends BasedEntity {
         return "UserStatus{" +
                 "userId=" + userId +
                 ", lastActiveAt=" + lastActiveAt +
+                ", online=" + online +
                 '}';
     }
 

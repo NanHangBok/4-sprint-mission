@@ -7,7 +7,7 @@ import java.util.UUID;
 public record UserLoginResponseDto(
         UUID id,
         UUID profileId,
-        String nickname,
+        String username,
         String email,
         PresenceStatus presenceStatus
 ) {

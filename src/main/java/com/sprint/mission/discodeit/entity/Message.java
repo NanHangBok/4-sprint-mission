@@ -3,22 +3,21 @@ package com.sprint.mission.discodeit.entity;
 
 import lombok.Getter;
 
-import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
 @Getter
-public class Message extends BasedEntity{
+public class Message extends BasedEntity {
     private String content;
-    private UUID userId;
+    private UUID authorId;
     private UUID channelId;
     private List<UUID> attachmentIds = new ArrayList<>();
 
-    public Message(UUID userId, UUID channelId, String content) {
+    public Message(UUID authorId, UUID channelId, String content) {
         super();
         this.content = content;
-        this.userId = userId;
+        this.authorId = authorId;
         this.channelId = channelId;
     }
 
@@ -28,14 +27,14 @@ public class Message extends BasedEntity{
                 "messageId=" + getId() +
                 ", messageCreatedAt=" + getCreatedAt() +
                 ", messageUpdatedAt=" + getUpdatedAt() +
-                ", content='" + content +
-                "', userId=" + userId +
+                ", newContent='" + content +
+                "', userId=" + authorId +
                 ", ChannelId=" + channelId +
                 '}';
     }
 
-    public UUID getUserId() {
-        return userId;
+    public UUID getAuthorId() {
+        return authorId;
     }
 
     public UUID getChannelId() {
@@ -48,11 +47,11 @@ public class Message extends BasedEntity{
 
     // 작성한 유저
     public void addUser(User user) {
-        if (this.userId != null) {
+        if (this.authorId != null) {
             System.out.println("유저 등록 완료");
             return;
         }
-        this.userId = user.getId();
+        this.authorId = user.getId();
     }
 
     // 작성된 채널
@@ -67,11 +66,11 @@ public class Message extends BasedEntity{
 
     // 유저가 삭제하거나 유저가 삭제된 경우
     public void removeUser() {
-        if (this.userId == null) {
+        if (this.authorId == null) {
             System.out.println("유저 삭제 완료");
             return;
         }
-        this.userId = null;
+        this.authorId = null;
     }
 
     // 채널에서 삭제된 경우

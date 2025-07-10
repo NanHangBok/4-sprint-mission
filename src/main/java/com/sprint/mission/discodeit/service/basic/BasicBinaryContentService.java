@@ -23,7 +23,7 @@ public class BasicBinaryContentService implements BinaryContentService {
 
     @Override
     public BinaryContentResponseDto create(BinaryContentPostDto binaryContentPostDto) {
-        BinaryContent binaryContent = new BinaryContent(binaryContentPostDto.content(),binaryContentPostDto.contentType());
+        BinaryContent binaryContent = binaryContentMapper.toBinaryContent(binaryContentPostDto);
         binaryContentRepository.save(binaryContent);
         return binaryContentMapper.toBinaryContentResponseDto(binaryContent);
     }
@@ -45,12 +45,6 @@ public class BasicBinaryContentService implements BinaryContentService {
     @Override
     public void delete(UUID id) {
         binaryContentRepository.delete(id);
-    }
-
-    @Override
-    public BinaryContent findBinaryContent(UUID binaryContentId) {
-        BinaryContent binaryContent = binaryContentRepository.findById(binaryContentId);
-        return binaryContent;
     }
 
     // 테스트용 findAll()

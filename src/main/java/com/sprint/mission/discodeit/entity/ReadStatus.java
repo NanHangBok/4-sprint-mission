@@ -1,6 +1,5 @@
 package com.sprint.mission.discodeit.entity;
 
-import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -9,18 +8,24 @@ import java.util.UUID;
 
 @Getter
 @Setter
-@AllArgsConstructor
-public class ReadStatus extends BasedEntity{
+public class ReadStatus extends BasedEntity {
     private UUID userId;
     private UUID channelId;
-    private Instant latestTime;
+    private Instant lastReadAt;
 
     @Override
     public String toString() {
         return "ReadStatus{" +
                 "userId=" + userId +
                 ", channelId=" + channelId +
-                ", latestTime=" + latestTime +
+                ", newLastReadAt=" + lastReadAt +
                 '}';
+    }
+
+    public ReadStatus(UUID userId, UUID channelId, Instant lastReadAt) {
+        this.userId = userId;
+        this.channelId = channelId;
+        this.lastReadAt = lastReadAt;
+        super.setActive(ActiveStatus.ACTIVE);
     }
 }

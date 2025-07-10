@@ -1,26 +1,15 @@
 package com.sprint.mission.discodeit.repository.file;
 
 import com.sprint.mission.discodeit.entity.BinaryContent;
-import com.sprint.mission.discodeit.entity.Channel;
+import com.sprint.mission.discodeit.exception.BusinessLogicException;
+import com.sprint.mission.discodeit.exception.ExceptionCode;
 import com.sprint.mission.discodeit.repository.BinaryContentRepository;
-import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Primary;
-import org.springframework.context.annotation.Profile;
-import org.springframework.http.converter.json.GsonBuilderUtils;
-import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Repository;
 
 import java.io.*;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.NoSuchElementException;
 import java.util.UUID;
 
 @Repository
@@ -49,11 +38,19 @@ public class FileBinaryContentRepository implements BinaryContentRepository {
         List<BinaryContent> list = new ArrayList<>();
         ids.stream()
                 .forEach(id -> {
-                    List<BinaryContent> binaryContentList = findAll().stream()
-                            .filter(content -> content.getId().equals(id))
-                            .toList();
-                    list.addAll(binaryContentList);
+                    BinaryContent binaryContent = findAll().stream()
+                            .filter(biContent -> biContent.getId().equals(id))
+                            .findFirst()
+                            .orElseThrow(() -> new BusinessLogicException(ExceptionCode.BINARYCONTENT_NOT_FOUND));
+                    list.add(binaryContent);
                 });
+//        ids.stream()
+//                .forEach(id -> {
+//                    List<BinaryContent> binaryContentList = findAll().stream()
+//                            .filter(content -> content.getId().equals(id))
+//                            .toList();
+//                    list.addAll(binaryContentList);
+//                });
         return list;
     }
 
@@ -72,7 +69,7 @@ public class FileBinaryContentRepository implements BinaryContentRepository {
         BinaryContent binaryContent = binaryContents.stream()
                 .filter(biContent -> biContent.getId().equals(id))
                 .findFirst()
-                .orElseThrow(() -> new IllegalArgumentException("Could not find binary content with id " + id));
+                .orElseThrow(() -> new BusinessLogicException(ExceptionCode.BINARYCONTENT_NOT_FOUND));
         binaryContents.remove(binaryContent);
         saveAll(binaryContents);
     }
@@ -80,9 +77,9 @@ public class FileBinaryContentRepository implements BinaryContentRepository {
     @Override
     public void save(BinaryContent binaryContent) {
         List<BinaryContent> binaryContents = findAll();
-        if(binaryContents.stream()
-                        .anyMatch(biContent -> biContent.equals(binaryContent)))
-            throw new RuntimeException("Binary content with id " + binaryContent.getId() + " already exists");
+        if (binaryContents.stream()
+                .anyMatch(biContent -> biContent.equals(binaryContent)))
+            throw new BusinessLogicException(ExceptionCode.BINARYCONTENT_EXISTS);
         binaryContents.add(binaryContent);
         saveAll(binaryContents);
     }
@@ -92,6 +89,6 @@ public class FileBinaryContentRepository implements BinaryContentRepository {
         List<BinaryContent> binaryContents = findAll();
         return binaryContents.stream().filter(binaryContent -> binaryContent.getId().equals(id))
                 .findFirst()
-                .orElseThrow(() -> new RuntimeException("Could not find binary content with id " + id));
+                .orElseThrow(() -> new BusinessLogicException(ExceptionCode.BINARYCONTENT_NOT_FOUND));
     }
 }

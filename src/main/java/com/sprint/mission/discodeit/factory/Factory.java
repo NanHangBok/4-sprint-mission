@@ -18,7 +18,7 @@
 //import org.springframework.context.annotation.Primary;
 //
 //
-///*********************************************
+/// *********************************************
 // *  Service를 관리하는 Factory 클래스
 // *  Service를 생성하고 주입시키는 역할
 // *  2025.06.02 김민수
@@ -46,7 +46,7 @@
 //    private final UserStatusMapper userStatusMapper;
 //
 ////    @Bean
-////    @ConditionalOnProperty(name = "discodeit.repository.type", havingValue = "jcf")
+////    @ConditionalOnProperty(newName = "discodeit.repository.type", havingValue = "jcf")
 ////    @Primary
 //    public static Factory getJCFInstance() {
 //        if (instance == null) {
@@ -57,7 +57,7 @@
 //    }
 ////
 ////    @Bean
-////    @ConditionalOnProperty(name = "discodeit.repository.type", havingValue = "file")
+////    @ConditionalOnProperty(newName = "discodeit.repository.type", havingValue = "file")
 //    public static Factory getFileInstance(){
 //        if (instance == null) {
 //            instance = new Factory(new FileUserRepository(), new FileChannelRepository(), new FileMessageRepository(),

@@ -31,8 +31,8 @@
 //
 //    // 메시지 생성
 //    @Override
-//    public Message createMessage(String content, User user, Channel channel) {
-//        Message message = new Message(content,user,channel);
+//    public Message createMessage(String newContent, User user, Channel channel) {
+//        Message message = new Message(newContent,user,channel);
 //        if (user.isActive().equals(ActiveStatus.ACTIVE)
 //                && channel.isActive().equals(ActiveStatus.ACTIVE)) {
 //            channel.addMessage(message);
@@ -63,13 +63,13 @@
 //    // 메시지 내용 수정
 //    // 현재는 내용 1개만 수정 가능
 //    @Override
-//    public void updateMessage(Message message, String content) {
+//    public void updateMessage(Message message, String newContent) {
 //        Message msg = messageRepository.findById(message.getId());
 //        User user = userRepository.findById(msg.getUserId());
 //        Channel channel = channelRepository.findById(msg.getChannelId());
 //
 //        validatedMessage(message);
-//        message.setContent(content);
+//        message.setContent(newContent);
 //        message.setUpdatedAt(System.currentTimeMillis());
 //
 //        user.removeMessage(message);
