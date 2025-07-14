@@ -1,6 +1,6 @@
 package com.sprint.mission.discodeit.exception;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.ConstraintViolation;
 import lombok.Getter;
 import org.springframework.validation.BindingResult;
@@ -11,13 +11,15 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 @Getter
-@JsonInclude(JsonInclude.Include.NON_NULL)
+@Schema(description = "전역 예외 처리")
 public class ErrorResponse {
-
     private List<FieldError> fieldErrors;
     private List<ConstraintViolationError> violationErrors;
+    @Schema(description = "HTTP 상태코드", example = "400")
     private int status;
+    @Schema(description = "발생 시각", format = "date-time")
     private Instant timestamp;
+    @Schema(description = "에러 내용", example = "Bad Request!")
     private String message;
 
     private ErrorResponse(List<FieldError> fieldErrors, List<ConstraintViolationError> violationErrors) {
@@ -44,9 +46,13 @@ public class ErrorResponse {
     }
 
     @Getter
+    @Schema(description = "DTO 검증 실패")
     public static class FieldError {
+        @Schema()
         private String field;
+        @Schema()
         private Object rejectedValue;
+        @Schema()
         private String reason;
 
         private FieldError(String field, Object rejectedValue, String reason) {
@@ -66,9 +72,13 @@ public class ErrorResponse {
     }
 
     @Getter
+    @Schema(description = "URI 변수 검증 실패")
     public static class ConstraintViolationError {
+        @Schema()
         private String propertyPath;
+        @Schema()
         private Object rejectedValue;
+        @Schema()
         private String reason;
 
         private ConstraintViolationError(String propertyPath, Object rejectedValue, String reason) {

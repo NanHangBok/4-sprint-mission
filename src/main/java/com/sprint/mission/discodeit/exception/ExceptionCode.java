@@ -18,16 +18,13 @@ public enum ExceptionCode {
     BINARYCONTENT_EXISTS(400, "BinaryContent Exists");
 
     @Getter
-    private int code;
-
-    @Getter
     private int status;
 
     @Getter
     private String message;
 
-    ExceptionCode(int code, String message) {
-        this.status = code;
+    ExceptionCode(int status, String message) {
+        this.status = status;
         this.message = message;
     }
 }
