@@ -15,13 +15,15 @@ public enum ExceptionCode {
     PRIVATE_CHANNEL_CANNOT_UPDATE(400, "Private Channel Cannot Be Updated"),
     BINARYCONTENT_NOT_FOUND(404, "BinaryContent Not Found"),
 
-    BINARYCONTENT_EXISTS(400, "BinaryContent Exists");
+    BINARYCONTENT_EXISTS(400, "BinaryContent Exists"),
+    USER_ALREADY_EXISTS_USERSTATUS(400, "User Already Exists UserStatus"),
+    INVALID_PAST_TIME(400, "Time Is Earlier Than Saved Time");
 
     @Getter
-    private int status;
+    private final int status;
 
     @Getter
-    private String message;
+    private final String message;
 
     ExceptionCode(int status, String message) {
         this.status = status;

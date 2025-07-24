@@ -1,6 +1,10 @@
 package com.sprint.mission.discodeit.controller;
 
-import com.sprint.mission.discodeit.dto.*;
+import com.sprint.mission.discodeit.dto.request.PrivateChannelCreateRequest;
+import com.sprint.mission.discodeit.dto.request.PublicChannelCreateRequest;
+import com.sprint.mission.discodeit.dto.request.PublicChannelUpdateRequest;
+import com.sprint.mission.discodeit.dto.ChannelDto;
+import com.sprint.mission.discodeit.entity.Channel;
 import com.sprint.mission.discodeit.mapper.ChannelMapper;
 import com.sprint.mission.discodeit.service.ChannelService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -18,6 +22,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @RestController
 @RequiredArgsConstructor
@@ -28,23 +33,25 @@ public class ChannelController {
     private final ChannelMapper channelMapper;
 
     @Operation(summary = "Public Channel 생성", operationId = "create_3", responses = {
-            @ApiResponse(responseCode = "201", description = "Public Channel이 성공적으로 생성됨", content = @Content(schema = @Schema(implementation = ChannelPublicCreateResponseDto.class))),
+            @ApiResponse(responseCode = "201", description = "Public Channel이 성공적으로 생성됨", content = @Content(schema = @Schema(implementation = ChannelDto.class))),
             @ApiResponse(responseCode = "400", description = "유효하지 않은 입력 및 검증 실패", content = @Content(examples = @ExampleObject(value = "Invalid request body | Constraint violation")))
     })
     @RequestMapping(method = RequestMethod.POST, value = "/public")
     public ResponseEntity createPublicChannel(@RequestBody PublicChannelCreateRequest publicChannelCreateRequest) {
-        ChannelPublicCreateResponseDto response = channelService.createPublicChannel(publicChannelCreateRequest);
+        Channel channel = channelService.createPublicChannel(publicChannelCreateRequest);
+        ChannelDto response = channelMapper.toChannelDto(channel);
 
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
     @Operation(summary = "Private Channel 생성", operationId = "create_4", responses = {
-            @ApiResponse(responseCode = "201", description = "Private Channel이 성공적으로 생성됨", content = @Content(schema = @Schema(implementation = ChannelPrivateCreateResponseDto.class))),
+            @ApiResponse(responseCode = "201", description = "Private Channel이 성공적으로 생성됨", content = @Content(schema = @Schema(implementation = ChannelDto.class))),
             @ApiResponse(responseCode = "400", description = "유효하지 않은 입력 및 검증 실패", content = @Content(examples = @ExampleObject(value = "Invalid request body | Constraint violation")))
     })
     @RequestMapping(method = RequestMethod.POST, value = "/private")
     public ResponseEntity createPrivateChannel(@RequestBody PrivateChannelCreateRequest privateChannelCreateRequest) {
-        ChannelPrivateCreateResponseDto response = channelService.createPrivateChannel(privateChannelCreateRequest);
+        Channel channel = channelService.createPrivateChannel(privateChannelCreateRequest);
+        ChannelDto response = channelMapper.toChannelDto(channel);
 
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
@@ -52,11 +59,12 @@ public class ChannelController {
     @Operation(summary = "Channel 정보 수정", operationId = "update_3", responses = {
             @ApiResponse(responseCode = "404", description = "Channel을 찾을 수 없음", content = @Content(examples = @ExampleObject(value = "Channel with id not found"))),
             @ApiResponse(responseCode = "400", description = "Private Channel은 수정할 수 없음", content = @Content(examples = @ExampleObject(value = "Private channel cannot be updated"))),
-            @ApiResponse(responseCode = "200", description = "Channel 정보가 성공적으로 수정됨", content = @Content(schema = @Schema(implementation = ChannelResponseDto.class)))
+            @ApiResponse(responseCode = "200", description = "Channel 정보가 성공적으로 수정됨", content = @Content(schema = @Schema(implementation = ChannelDto.class)))
     })
     @RequestMapping(method = RequestMethod.PATCH, value = "/{channel-id}")
     public ResponseEntity updatePublicChannel(@Parameter(description = "수정할 Channel ID") @PathVariable("channel-id") UUID channelId, @RequestBody PublicChannelUpdateRequest publicChannelUpdateRequest) {
-        ChannelResponseDto response = channelService.updateChannel(channelId, publicChannelUpdateRequest);
+        Channel channel = channelService.updateChannel(channelId, publicChannelUpdateRequest);
+        ChannelDto response = channelMapper.toChannelDto(channel);
 
         return ResponseEntity.ok(response);
     }
@@ -79,7 +87,8 @@ public class ChannelController {
     })
     @RequestMapping(method = RequestMethod.GET)
     public ResponseEntity findChannelByUserId(@Parameter(description = "조회할 User ID") @RequestParam("userId") UUID userId) {
-        List<ChannelDto> responses = channelService.findAllByUserId(userId);
+        List<Channel> channels = channelService.findAllByUserId(userId);
+        List<ChannelDto> responses = channels.stream().map(channelMapper::toChannelDto).collect(Collectors.toList());
 
         return ResponseEntity.ok(responses);
     }

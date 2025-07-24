@@ -38,16 +38,16 @@
 //    private final ReadStatusRepository readStatusRepository;
 //    private final UserStatusRepository userStatusRepository;
 //
-//    private final UserMapper userMapper;
-//    private final ChannelMapper channelMapper;
-//    private final MessageMapper messageMapper;
-//    private final BinaryContentMapper binaryContentMapper;
-//    private final ReadStatusMapper readStatusMapper;
-//    private final UserStatusMapper userStatusMapper;
+//    private final BasicUserMapper userMapper;
+//    private final BasicChannelMapper channelMapper;
+//    private final BasicMessageMapper messageMapper;
+//    private final BasicBinaryContentMapper binaryContentMapper;
+//    private final BasicReadStatusMapper readStatusMapper;
+//    private final BasicUserStatusMapper userStatusMapper;
 //
-////    @Bean
-////    @ConditionalOnProperty(newName = "discodeit.repository.type", havingValue = "jcf")
-////    @Primary
+/// /    @Bean
+/// /    @ConditionalOnProperty(newName = "discodeit.repository.type", havingValue = "jcf")
+/// /    @Primary
 //    public static Factory getJCFInstance() {
 //        if (instance == null) {
 //            instance = new Factory(new JCFUserRepository(), new JCFChannelRepository(), new JCFMessageRepository(),
@@ -75,12 +75,12 @@
 //        this.readStatusRepository = readStatusRepository;
 //        this.userStatusRepository = userStatusRepository;
 //
-//        this.userMapper = new UserMapper();
-//        this.channelMapper = new ChannelMapper();
-//        this.messageMapper = new MessageMapper();
-//        this.binaryContentMapper = new BinaryContentMapper();
-//        this.readStatusMapper = new ReadStatusMapper();
-//        this.userStatusMapper = new UserStatusMapper();
+//        this.userMapper = new BasicUserMapper();
+//        this.channelMapper = new BasicChannelMapper();
+//        this.messageMapper = new BasicMessageMapper();
+//        this.binaryContentMapper = new BasicBinaryContentMapper();
+//        this.readStatusMapper = new BasicReadStatusMapper();
+//        this.userStatusMapper = new BasicUserStatusMapper();
 //
 //        messageService = new BasicMessageService(getMessageRepository()
 //                                ,getUserRepository(),getChannelRepository(),getBinaryContentRepository(),getBinaryContentMapper());
