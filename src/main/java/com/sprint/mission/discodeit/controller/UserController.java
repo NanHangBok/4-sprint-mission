@@ -5,6 +5,7 @@ import com.sprint.mission.discodeit.dto.request.UserStatusUpdateRequest;
 import com.sprint.mission.discodeit.dto.request.UserUpdateRequest;
 import com.sprint.mission.discodeit.dto.UserDto;
 import com.sprint.mission.discodeit.dto.UserStatusDto;
+import com.sprint.mission.discodeit.entity.BinaryContent;
 import com.sprint.mission.discodeit.entity.User;
 import com.sprint.mission.discodeit.entity.UserStatus;
 import com.sprint.mission.discodeit.mapper.BinaryContentMapper;
@@ -26,6 +27,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -49,11 +51,11 @@ public class UserController {
     @RequestMapping(method = RequestMethod.POST, consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
     public ResponseEntity create(@RequestPart("userCreateRequest") UserCreateRequest userCreateRequest,
                                  @Parameter(description = "User 프로필 이미지") @RequestPart(value = "profile", required = false) MultipartFile profile) {
-        UUID binaryContentId = null;
-        if (profile != null) {
-            binaryContentId = binaryContentService.create(profile).getId();
-        }
-        User user = userService.createUser(userCreateRequest, binaryContentId);
+
+        BinaryContent binaryContent = Optional.ofNullable(profile)
+                .map(binaryContentService::create)
+                .orElse(null);
+        User user = userService.createUser(userCreateRequest, binaryContent);
         userStatusService.create(user);
         UserDto response = userMapper.toDto(user);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
@@ -70,11 +72,10 @@ public class UserController {
                                  @PathVariable("user-id") UUID userId,
                                  @RequestPart("userUpdateRequest") UserUpdateRequest userUpdateRequest,
                                  @Parameter(description = "수정할 User 프로필 이미지") @RequestPart(value = "profile", required = false) MultipartFile profile) {
-        UUID binaryContentId = null;
-        if (profile != null) {
-            binaryContentId = binaryContentService.create(profile).getId();
-        }
-        User user = userService.updateUser(userId, userUpdateRequest, binaryContentId);
+        BinaryContent binaryContent = Optional.ofNullable(profile)
+                .map(binaryContentService::create)
+                .orElse(null);
+        User user = userService.updateUser(userId, userUpdateRequest, binaryContent);
         UserDto response = userMapper.toDto(user);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }

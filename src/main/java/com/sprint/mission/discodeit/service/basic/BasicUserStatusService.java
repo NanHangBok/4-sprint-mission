@@ -36,12 +36,12 @@ public class BasicUserStatusService implements UserStatusService {
     @Transactional(rollbackFor = BusinessLogicException.class)
     @Override
     public UserStatus updateByUserId(UUID userId, UserStatusUpdateRequest userStatusUpdateRequest) {
-        Instant newLatestActiveAt = userStatusUpdateRequest.newLastActiveAt();
+        Instant newLastActiveAt = userStatusUpdateRequest.newLastActiveAt();
         UserStatus findUserStatus = userStatusRepository.findByUserId(userId);
-        if (findUserStatus.getLastActiveAt().isAfter(newLatestActiveAt))
+        if (findUserStatus.getLastActiveAt().isAfter(newLastActiveAt))
             throw new BusinessLogicException(ExceptionCode.INVALID_PAST_TIME);
 
-        findUserStatus.setLastActiveAt(newLatestActiveAt);
+        findUserStatus.setLastActiveAt(newLastActiveAt);
 
         userStatusRepository.save(findUserStatus);
         return findUserStatus;

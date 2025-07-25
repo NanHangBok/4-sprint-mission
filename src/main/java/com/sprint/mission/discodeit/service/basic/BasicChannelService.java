@@ -80,17 +80,7 @@ public class BasicChannelService implements ChannelService {
     public void deleteChannel(UUID id) {
         validateActiveChannel(id);
         Channel channel = channelRepository.findById(id).orElseThrow(() -> new BusinessLogicException(ExceptionCode.CHANNEL_NOT_FOUND));
-//        /***********************************
-//         * 전체 메시지 중 해당 채널의 메시지 삭제
-//         ***********************************/
-//        channel.getMessageIds().stream()
-//                .forEach(messageId -> {
-//                    System.out.println(channel);
-//                    removeMessage(channel, messageId);
-//                });// 채널 내 모든 메세지 삭제
-//        channel.clearMessages();
-        channelRepository.delete(channel);  // 전체 채널 리스트에서 해당 채널 삭제
-//        readStatusRepository.deleteAllById(channel.getId());
+        channelRepository.delete(channel);
     }
 
     private void validateActiveChannel(UUID id) {

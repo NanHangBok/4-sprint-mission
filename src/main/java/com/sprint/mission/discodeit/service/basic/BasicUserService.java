@@ -27,19 +27,16 @@ public class BasicUserService implements UserService {
 
     @Transactional(rollbackFor = BusinessLogicException.class)
     @Override
-    public User createUser(UserCreateRequest userCreateRequest, UUID binaryContentId) {
+    public User createUser(UserCreateRequest userCreateRequest, BinaryContent profile) {
         isDuplicateEmail(userCreateRequest.email());
         isDuplicateName(userCreateRequest.username());
 
-        BinaryContent profile = null;
-        if (binaryContentId == null) {
+        if (profile == null) {
             System.out.println("이미지가 포함되지 않아 기본 프로필로 설정됩니다.");
-        } else {
-            profile = binaryContentRepository.findById(binaryContentId).orElse(null);
         }
+
         User user = new User(userCreateRequest.username(), userCreateRequest.password(), userCreateRequest.email(), profile);
         userRepository.save(user);
-
         return user;
     }
 
@@ -51,27 +48,25 @@ public class BasicUserService implements UserService {
 
     @Transactional(rollbackFor = BusinessLogicException.class)
     @Override
-    public User updateUser(UUID userId, UserUpdateRequest userUpdateRequest, UUID binaryContentId) {
+    public User updateUser(UUID userId, UserUpdateRequest userUpdateRequest, BinaryContent newProfile) {
         User findUser = userRepository.findById(userId).orElseThrow(() -> new IllegalArgumentException("<UNK> <UNK> <UNK> <UNK> <UNK> <UNK>."));
 
         isDuplicateName(userUpdateRequest.newUsername());
         isDuplicateEmail(userUpdateRequest.newEmail());
 
-        Optional.ofNullable(userUpdateRequest.newUsername())
+        Optional.ofNullable(userUpdateRequest.newUsername())  // username 업데이트
                 .ifPresent(findUser::setUsername);
-        Optional.ofNullable(userUpdateRequest.newPassword())
+        Optional.ofNullable(userUpdateRequest.newPassword())  // password 업데이트
                 .ifPresent(findUser::setPassword);
-        Optional.ofNullable(userUpdateRequest.newEmail())
+        Optional.ofNullable(userUpdateRequest.newEmail())  // email 업데이트
                 .ifPresent(findUser::setEmail);
-        Optional.ofNullable(binaryContentId).ifPresent(bcId -> {
+        Optional.ofNullable(newProfile).ifPresent(binaryContent -> {  // 변경할 프로필이 있으면 삭제 후 등록
             Optional.ofNullable(findUser.getProfile()).ifPresent(binaryContentRepository::delete);
-            BinaryContent binaryContent = binaryContentRepository.findById(bcId).orElse(null);
             binaryContentRepository.save(binaryContent);
             findUser.setProfile(binaryContent);
         });
-        Instant now = Instant.now();
         UserStatus userStatus = userStatusRepository.findByUserId(findUser.getId());
-        userStatus.update(now);
+        userStatus.update(Instant.now());
         userRepository.save(findUser);
         userStatusRepository.save(userStatus);
 
@@ -85,8 +80,8 @@ public class BasicUserService implements UserService {
         validateActiveUser(user);
 
         // 프로필 이미지가 있는 경우에만 제거한다.
-        if (user.getProfileId() != null) {
-            binaryContentRepository.deleteById(user.getProfileId());
+        if (user.getProfile() != null) {
+            binaryContentRepository.delete(user.getProfile());
             user.setProfile(null);
         }
 

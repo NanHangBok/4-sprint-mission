@@ -4,6 +4,7 @@ import com.sprint.mission.discodeit.entity.Channel;
 import com.sprint.mission.discodeit.entity.Message;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
@@ -19,6 +20,7 @@ public interface MessageRepository extends JpaRepository<Message, UUID> {
 
     Message save(Message message);
 
+    @EntityGraph(attributePaths = {"attachments"})
     Page<Message> findAllByChannel_Id(UUID channelId, Pageable pageable);
 
     Optional<Message> findTopByChannelOrderByUpdatedAtDesc(Channel channel);
