@@ -24,7 +24,7 @@ discodeit:
     type: file
     file-directory: .discodeit
   storage:
-    type: cloud
+    type: local
     local:
       root-path: .storage
 

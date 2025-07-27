@@ -8,6 +8,8 @@ import com.sprint.mission.discodeit.exception.ExceptionCode;
 import com.sprint.mission.discodeit.repository.*;
 import com.sprint.mission.discodeit.service.UserService;
 import com.sprint.mission.discodeit.storage.BinaryContentStorage;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -23,18 +25,21 @@ public class BasicUserService implements UserService {
     private final UserRepository userRepository;
     private final BinaryContentRepository binaryContentRepository;
     private final UserStatusRepository userStatusRepository;
-    private final BinaryContentStorage binaryContentStorage;
+    @Autowired(required = false)
+    private BinaryContentStorage binaryContentStorage;
 
     @Transactional(rollbackFor = BusinessLogicException.class)
     @Override
-    public User createUser(UserCreateRequest userCreateRequest, BinaryContent profile) {
+    public User createUser(UserCreateRequest userCreateRequest, UUID profileId) {
         isDuplicateEmail(userCreateRequest.email());
         isDuplicateName(userCreateRequest.username());
 
-        if (profile == null) {
+        if (profileId == null) {
             System.out.println("이미지가 포함되지 않아 기본 프로필로 설정됩니다.");
         }
-
+        BinaryContent profile = Optional.ofNullable(profileId)
+                .flatMap(binaryContentRepository::findById)
+                .orElse(null);
         User user = new User(userCreateRequest.username(), userCreateRequest.password(), userCreateRequest.email(), profile);
         userRepository.save(user);
         return user;
@@ -48,7 +53,7 @@ public class BasicUserService implements UserService {
 
     @Transactional(rollbackFor = BusinessLogicException.class)
     @Override
-    public User updateUser(UUID userId, UserUpdateRequest userUpdateRequest, BinaryContent newProfile) {
+    public User updateUser(UUID userId, UserUpdateRequest userUpdateRequest, UUID newProfileId) {
         User findUser = userRepository.findById(userId).orElseThrow(() -> new IllegalArgumentException("<UNK> <UNK> <UNK> <UNK> <UNK> <UNK>."));
 
         isDuplicateName(userUpdateRequest.newUsername());
@@ -60,8 +65,10 @@ public class BasicUserService implements UserService {
                 .ifPresent(findUser::setPassword);
         Optional.ofNullable(userUpdateRequest.newEmail())  // email 업데이트
                 .ifPresent(findUser::setEmail);
-        Optional.ofNullable(newProfile).ifPresent(binaryContent -> {  // 변경할 프로필이 있으면 삭제 후 등록
+        Optional.ofNullable(newProfileId).ifPresent(binaryContentId -> {  // 변경할 프로필이 있으면 삭제 후 등록
             Optional.ofNullable(findUser.getProfile()).ifPresent(binaryContentRepository::delete);
+            BinaryContent binaryContent = binaryContentRepository.findById(newProfileId)
+                    .orElseThrow(() -> new BusinessLogicException(ExceptionCode.BINARY_CONTENT_NOT_FOUND));
             binaryContentRepository.save(binaryContent);
             findUser.setProfile(binaryContent);
         });

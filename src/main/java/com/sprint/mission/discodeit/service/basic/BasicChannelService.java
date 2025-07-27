@@ -54,12 +54,12 @@ public class BasicChannelService implements ChannelService {
     public List<Channel> findAllByUserId(UUID userId) {
         validateUser(userId);
         List<ReadStatus> readStatuses = readStatusRepository.findAllByUser_Id(userId);
-        List<Channel> channels = new ArrayList<>();
+        Set<Channel> channels = new LinkedHashSet<>();
         readStatuses.forEach(readStatus -> {
             channels.add(readStatus.getChannel());
         });
         channels.addAll(channelRepository.findAllByType(ChannelType.PUBLIC));
-        return channels;
+        return new ArrayList<>(channels);
     }
 
     @Transactional(rollbackFor = BusinessLogicException.class)

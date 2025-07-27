@@ -9,9 +9,9 @@ import java.util.List;
 import java.util.UUID;
 
 public interface UserService {
-    User createUser(UserCreateRequest userCreateRequest, BinaryContent profile);
+    User createUser(UserCreateRequest userCreateRequest, UUID profileId);
 
-    User updateUser(UUID userId, UserUpdateRequest userUpdateRequest, BinaryContent newProfile);
+    User updateUser(UUID userId, UserUpdateRequest userUpdateRequest, UUID newProfileId);
 
     void deleteUser(UUID userId);
 

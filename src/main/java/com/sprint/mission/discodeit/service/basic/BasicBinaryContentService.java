@@ -6,8 +6,8 @@ import com.sprint.mission.discodeit.exception.ExceptionCode;
 import com.sprint.mission.discodeit.repository.BinaryContentRepository;
 import com.sprint.mission.discodeit.service.BinaryContentService;
 import com.sprint.mission.discodeit.storage.BinaryContentStorage;
-import com.sprint.mission.discodeit.storage.LocalBinaryContentStorage;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -20,14 +20,15 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class BasicBinaryContentService implements BinaryContentService {
     private final BinaryContentRepository binaryContentRepository;
-    private final BinaryContentStorage binaryContentStorage;
+    @Autowired(required = false)
+    private BinaryContentStorage binaryContentStorage;
 
     @Transactional(rollbackFor = Exception.class)
     @Override
     public BinaryContent create(MultipartFile file) {
         BinaryContent binaryContent = new BinaryContent(file);
         binaryContentRepository.save(binaryContent);
-        if (binaryContentStorage.getClass() != LocalBinaryContentStorage.class) {
+        if (binaryContentStorage != null) {
             try {
                 binaryContentStorage.put(binaryContent.getId(), file.getBytes());
             } catch (IOException e) {
@@ -41,7 +42,7 @@ public class BasicBinaryContentService implements BinaryContentService {
 
     @Override
     public BinaryContent find(UUID id) {
-        return binaryContentRepository.findById(id).orElseThrow(() -> new BusinessLogicException(ExceptionCode.BINARYCONTENT_NOT_FOUND));
+        return binaryContentRepository.findById(id).orElseThrow(() -> new BusinessLogicException(ExceptionCode.BINARY_CONTENT_NOT_FOUND));
     }
 
     @Override

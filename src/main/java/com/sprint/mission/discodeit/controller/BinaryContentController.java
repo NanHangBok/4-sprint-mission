@@ -2,6 +2,8 @@ package com.sprint.mission.discodeit.controller;
 
 import com.sprint.mission.discodeit.dto.BinaryContentDto;
 import com.sprint.mission.discodeit.entity.BinaryContent;
+import com.sprint.mission.discodeit.exception.BusinessLogicException;
+import com.sprint.mission.discodeit.exception.ExceptionCode;
 import com.sprint.mission.discodeit.mapper.BinaryContentMapper;
 import com.sprint.mission.discodeit.service.BinaryContentService;
 import com.sprint.mission.discodeit.storage.BinaryContentStorage;
@@ -14,6 +16,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -30,7 +33,8 @@ import java.util.stream.Collectors;
 public class BinaryContentController {
     private final BinaryContentService binaryContentService;
     private final BinaryContentMapper binaryContentMapper;
-    private final BinaryContentStorage binaryContentStorage;
+    @Autowired(required = false)
+    private BinaryContentStorage binaryContentStorage;
 
     @Operation(summary = "여러 첨부 파일 조회", operationId = "findAllByIdIn", responses = {
             @ApiResponse(responseCode = "200", description = "첨부 파일 목록 조회 성공", content = @Content(array = @ArraySchema(schema = @Schema(implementation = BinaryContentDto.class)))),
@@ -57,7 +61,10 @@ public class BinaryContentController {
 
     @Operation(summary = "파일 다운로드", operationId = "download")
     @GetMapping(value = "/{binaryContentId}/download")
-    public ResponseEntity<Resource> downloadBinaryContent(@Parameter(schema = @Schema(format = "uuid")) @PathVariable("binaryContentId") UUID binaryContentId) throws IOException {
+    public ResponseEntity downloadBinaryContent(@Parameter(schema = @Schema(format = "uuid")) @PathVariable("binaryContentId") UUID binaryContentId) throws IOException {
+        if (binaryContentStorage == null)
+            throw new BusinessLogicException(ExceptionCode.BINARY_CONTENT_STORAGE_NOT_FOUND);
+
         BinaryContent binaryContent = binaryContentService.find(binaryContentId);
         BinaryContentDto binaryContentDto = binaryContentMapper.toDto(binaryContent);
         ResponseEntity<Resource> response = binaryContentStorage.download(binaryContentDto);

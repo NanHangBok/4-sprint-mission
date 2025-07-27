@@ -52,10 +52,13 @@ public class UserController {
     public ResponseEntity create(@RequestPart("userCreateRequest") UserCreateRequest userCreateRequest,
                                  @Parameter(description = "User 프로필 이미지") @RequestPart(value = "profile", required = false) MultipartFile profile) {
 
-        BinaryContent binaryContent = Optional.ofNullable(profile)
-                .map(binaryContentService::create)
+        UUID binaryContentId = Optional.ofNullable(profile)
+                .map(file -> {
+                    BinaryContent binaryContent = binaryContentService.create(profile);
+                    return binaryContent.getId();
+                })
                 .orElse(null);
-        User user = userService.createUser(userCreateRequest, binaryContent);
+        User user = userService.createUser(userCreateRequest, binaryContentId);
         userStatusService.create(user);
         UserDto response = userMapper.toDto(user);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
@@ -72,10 +75,13 @@ public class UserController {
                                  @PathVariable("user-id") UUID userId,
                                  @RequestPart("userUpdateRequest") UserUpdateRequest userUpdateRequest,
                                  @Parameter(description = "수정할 User 프로필 이미지") @RequestPart(value = "profile", required = false) MultipartFile profile) {
-        BinaryContent binaryContent = Optional.ofNullable(profile)
-                .map(binaryContentService::create)
+        UUID binaryContentId = Optional.ofNullable(profile)
+                .map(file -> {
+                    BinaryContent binaryContent = binaryContentService.create(profile);
+                    return binaryContent.getId();
+                })
                 .orElse(null);
-        User user = userService.updateUser(userId, userUpdateRequest, binaryContent);
+        User user = userService.updateUser(userId, userUpdateRequest, binaryContentId);
         UserDto response = userMapper.toDto(user);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
