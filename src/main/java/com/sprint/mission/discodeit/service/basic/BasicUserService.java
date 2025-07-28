@@ -9,7 +9,6 @@ import com.sprint.mission.discodeit.repository.*;
 import com.sprint.mission.discodeit.service.UserService;
 import com.sprint.mission.discodeit.storage.BinaryContentStorage;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -28,7 +27,7 @@ public class BasicUserService implements UserService {
     @Autowired(required = false)
     private BinaryContentStorage binaryContentStorage;
 
-    @Transactional(rollbackFor = BusinessLogicException.class)
+    @Transactional
     @Override
     public User createUser(UserCreateRequest userCreateRequest, UUID profileId) {
         isDuplicateEmail(userCreateRequest.email());
@@ -51,7 +50,7 @@ public class BasicUserService implements UserService {
         return userRepository.findAll();
     }
 
-    @Transactional(rollbackFor = BusinessLogicException.class)
+    @Transactional
     @Override
     public User updateUser(UUID userId, UserUpdateRequest userUpdateRequest, UUID newProfileId) {
         User findUser = userRepository.findById(userId).orElseThrow(() -> new IllegalArgumentException("<UNK> <UNK> <UNK> <UNK> <UNK> <UNK>."));
@@ -80,10 +79,11 @@ public class BasicUserService implements UserService {
         return findUser;
     }
 
-    @Transactional(rollbackFor = BusinessLogicException.class)
+    @Transactional
     @Override
     public void deleteUser(UUID userId) {
-        User user = userRepository.findById(userId).orElseThrow(() -> new BusinessLogicException(ExceptionCode.USER_NOT_FOUND));
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new BusinessLogicException(ExceptionCode.USER_NOT_FOUND));
         validateActiveUser(user);
 
         // 프로필 이미지가 있는 경우에만 제거한다.

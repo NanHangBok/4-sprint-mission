@@ -21,7 +21,7 @@ public class BasicUserStatusService implements UserStatusService {
     private final UserStatusRepository userStatusRepository;
     private final UserRepository userRepository;
 
-    @Transactional(rollbackFor = BusinessLogicException.class)
+    @Transactional
     @Override
     public UserStatus create(User user) {
         validateUser(user.getId());
@@ -33,7 +33,7 @@ public class BasicUserStatusService implements UserStatusService {
         return userStatus;
     }
 
-    @Transactional(rollbackFor = BusinessLogicException.class)
+    @Transactional
     @Override
     public UserStatus updateByUserId(UUID userId, UserStatusUpdateRequest userStatusUpdateRequest) {
         Instant newLastActiveAt = userStatusUpdateRequest.newLastActiveAt();

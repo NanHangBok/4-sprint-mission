@@ -7,6 +7,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 
+import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -20,7 +21,7 @@ public interface MessageRepository extends JpaRepository<Message, UUID> {
 
     Message save(Message message);
 
-    @EntityGraph(attributePaths = {"attachments","author"})
+    @EntityGraph(attributePaths = {"attachments", "author"})
     Page<Message> findAllByChannel_Id(UUID channelId, Pageable pageable);
 
     Optional<Message> findTopByChannelOrderByUpdatedAtDesc(Channel channel);

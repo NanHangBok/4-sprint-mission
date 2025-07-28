@@ -22,7 +22,7 @@ public class BasicChannelService implements ChannelService {
     private final ReadStatusRepository readStatusRepository;
     private final UserRepository userRepository;
 
-    @Transactional(rollbackFor = BusinessLogicException.class)
+    @Transactional
     @Override
     public Channel createPublicChannel(PublicChannelCreateRequest publicChannelCreateRequest) {
         Channel channel = new Channel(publicChannelCreateRequest.name(), publicChannelCreateRequest.description());
@@ -31,7 +31,7 @@ public class BasicChannelService implements ChannelService {
         return channel;
     }
 
-    @Transactional(rollbackFor = BusinessLogicException.class)
+    @Transactional
     @Override
     public Channel createPrivateChannel(PrivateChannelCreateRequest privateChannelCreateRequest) {
         for (UUID id : privateChannelCreateRequest.participantIds()) {
@@ -42,7 +42,8 @@ public class BasicChannelService implements ChannelService {
         channelRepository.save(channel);
 
         for (UUID id : privateChannelCreateRequest.participantIds()) {
-            User user = userRepository.findById(id).orElseThrow(() -> new BusinessLogicException(ExceptionCode.USER_NOT_FOUND));
+            User user = userRepository.findById(id)
+                    .orElseThrow(() -> new BusinessLogicException(ExceptionCode.USER_NOT_FOUND));
             ReadStatus readStatus = new ReadStatus(user, channel);
             readStatusRepository.save(readStatus);
         }
@@ -62,15 +63,18 @@ public class BasicChannelService implements ChannelService {
         return new ArrayList<>(channels);
     }
 
-    @Transactional(rollbackFor = BusinessLogicException.class)
+    @Transactional
     @Override
     public Channel updateChannel(UUID channelId, PublicChannelUpdateRequest publicChannelUpdateRequest) {
         validateActiveChannel(channelId);
         validatePublicChannel(channelId);
 
-        Channel findChannel = channelRepository.findById(channelId).orElseThrow(() -> new BusinessLogicException(ExceptionCode.CHANNEL_NOT_FOUND));
-        Optional.ofNullable(publicChannelUpdateRequest.newName()).ifPresent(findChannel::setName);
-        Optional.ofNullable(publicChannelUpdateRequest.newDescription()).ifPresent(findChannel::setDescription);
+        Channel findChannel = channelRepository.findById(channelId)
+                .orElseThrow(() -> new BusinessLogicException(ExceptionCode.CHANNEL_NOT_FOUND));
+        Optional.ofNullable(publicChannelUpdateRequest.newName())
+                .ifPresent(findChannel::setName);
+        Optional.ofNullable(publicChannelUpdateRequest.newDescription())
+                .ifPresent(findChannel::setDescription);
 
         channelRepository.save(findChannel);
         return findChannel;
@@ -79,7 +83,8 @@ public class BasicChannelService implements ChannelService {
     @Override
     public void deleteChannel(UUID id) {
         validateActiveChannel(id);
-        Channel channel = channelRepository.findById(id).orElseThrow(() -> new BusinessLogicException(ExceptionCode.CHANNEL_NOT_FOUND));
+        Channel channel = channelRepository.findById(id)
+                .orElseThrow(() -> new BusinessLogicException(ExceptionCode.CHANNEL_NOT_FOUND));
         channelRepository.delete(channel);
     }
 
@@ -90,7 +95,8 @@ public class BasicChannelService implements ChannelService {
     }
 
     private void validatePublicChannel(UUID id) {
-        if (channelRepository.findById(id).orElseThrow(() -> new BusinessLogicException(ExceptionCode.CHANNEL_NOT_FOUND))
+        if (channelRepository.findById(id)
+                .orElseThrow(() -> new BusinessLogicException(ExceptionCode.CHANNEL_NOT_FOUND))
                 .getType().equals(ChannelType.PRIVATE))
             throw new BusinessLogicException(ExceptionCode.PRIVATE_CHANNEL_CANNOT_UPDATE);
     }

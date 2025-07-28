@@ -5,8 +5,7 @@ create table binary_contents
     created_at   timestamp with time zone default CURRENT_TIMESTAMP  not null,
     file_name    varchar(255)                                        not null,
     size         bigint                                              not null,
-    content_type varchar(100)                                        not null,
-    bytes        bytea                                               not null
+    content_type varchar(100)                                        not null
 );
 
 alter table binary_contents
@@ -22,7 +21,7 @@ create table users
         unique,
     email      varchar(100)                                        not null
         unique,
-    passwrod   varchar(60)                                         not null,
+    password   varchar(60)                                         not null,
     profile_id uuid
                                                                    references binary_contents
                                                                        on delete set null
@@ -69,15 +68,15 @@ create table read_statuses
         primary key,
     created_at   timestamp with time zone default CURRENT_TIMESTAMP  not null,
     updated_at   timestamp                default CURRENT_TIMESTAMP,
-    user_id      uuid
-        unique
+    user_id      uuid                                                not null
         references users
             on delete cascade,
-    channel_id   uuid
-        unique
+    channel_id   uuid                                                not null
         references channels
             on delete cascade,
-    last_read_at timestamp with time zone default CURRENT_TIMESTAMP  not null
+    last_read_at timestamp with time zone default CURRENT_TIMESTAMP  not null,
+    constraint read_statuses_user_id_channel_id_unique
+        unique (user_id, channel_id)
 );
 
 alter table read_statuses

@@ -19,6 +19,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -33,19 +34,22 @@ public class BasicMessageService implements MessageService {
     @Autowired(required = false)
     private BinaryContentStorage binaryContentStorage;
 
-    @Transactional(rollbackFor = BusinessLogicException.class)
+    @Transactional
     @Override
     public Message createMessage(MessageCreateRequest messageCreateRequest, List<UUID> attachments) {
         validateChannel(messageCreateRequest.channelId());
-        Channel channel = channelRepository.findById(messageCreateRequest.channelId()).orElseThrow(() -> new BusinessLogicException(ExceptionCode.CHANNEL_NOT_FOUND));
+        Channel channel = channelRepository.findById(messageCreateRequest.channelId())
+                .orElseThrow(() -> new BusinessLogicException(ExceptionCode.CHANNEL_NOT_FOUND));
         validateUser(messageCreateRequest.authorId());
-        User user = userRepository.findById(messageCreateRequest.authorId()).orElseThrow(() -> new BusinessLogicException(ExceptionCode.USER_NOT_FOUND));
+        User user = userRepository.findById(messageCreateRequest.authorId())
+                .orElseThrow(() -> new BusinessLogicException(ExceptionCode.USER_NOT_FOUND));
         Message message = new Message(messageCreateRequest.content(), channel, user);
 
         if (attachments != null && !attachments.isEmpty()) {
             attachments.stream()
                     .forEach(binaryContentId -> {
-                        BinaryContent binaryContent = binaryContentRepository.findById(binaryContentId).orElse(null);
+                        BinaryContent binaryContent = binaryContentRepository.findById(binaryContentId)
+                                .orElse(null);
                         message.getAttachments().add(binaryContent);
                     });
         }
@@ -54,28 +58,31 @@ public class BasicMessageService implements MessageService {
     }
 
     @Override
-    public Page<Message> findAllByChannelId(UUID channelId, Pageable pageable) {
+    public Page<Message> findAllByChannelId(UUID channelId, Instant cursor, Pageable pageable) {
         Page<Message> messages = messageRepository.findAllByChannel_Id(channelId, pageable);
         return messages;
     }
 
-    @Transactional(rollbackFor = BusinessLogicException.class)
+    @Transactional
     @Override
     public Message updateMessage(UUID messageId, MessageUpdateRequest messageUpdateRequest) {
-        Message findMessage = messageRepository.findById(messageId).orElseThrow(() -> new BusinessLogicException(ExceptionCode.MESSAGE_NOT_FOUND));
+        Message findMessage = messageRepository.findById(messageId)
+                .orElseThrow(() -> new BusinessLogicException(ExceptionCode.MESSAGE_NOT_FOUND));
         validateActiveMessage(findMessage);
 
-        Optional.ofNullable(messageUpdateRequest.newContent()).ifPresent(findMessage::setContent);
+        Optional.ofNullable(messageUpdateRequest.newContent())
+                .ifPresent(findMessage::setContent);
 
         messageRepository.save(findMessage);
 
         return findMessage;
     }
 
-    @Transactional(rollbackFor = BusinessLogicException.class)
+    @Transactional
     @Override
     public void removeMessage(UUID messageId) {
-        Message findMessage = messageRepository.findById(messageId).orElseThrow(() -> new BusinessLogicException(ExceptionCode.MESSAGE_NOT_FOUND));
+        Message findMessage = messageRepository.findById(messageId)
+                .orElseThrow(() -> new BusinessLogicException(ExceptionCode.MESSAGE_NOT_FOUND));
         validateActiveMessage(findMessage);
 
         messageRepository.delete(findMessage);
@@ -85,7 +92,8 @@ public class BasicMessageService implements MessageService {
                         binaryContentRepository.delete(bc);
                     });
         }
-        Channel channel = channelRepository.findById(findMessage.getChannelId()).orElseThrow(() -> new BusinessLogicException(ExceptionCode.CHANNEL_NOT_FOUND));
+        Channel channel = channelRepository.findById(findMessage.getChannelId())
+                .orElseThrow(() -> new BusinessLogicException(ExceptionCode.CHANNEL_NOT_FOUND));
         channelRepository.save(channel);
     }
 

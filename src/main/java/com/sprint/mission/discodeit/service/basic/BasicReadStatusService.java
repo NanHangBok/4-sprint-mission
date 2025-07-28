@@ -24,14 +24,16 @@ public class BasicReadStatusService implements ReadStatusService {
     private final UserRepository userRepository;
     private final ChannelRepository channelRepository;
 
-    @Transactional(rollbackFor = BusinessLogicException.class)
+    @Transactional
     @Override
     public ReadStatus create(ReadStatusCreateRequest readStatusCreateRequest) {
         validateUser(readStatusCreateRequest);
         validateChannel(readStatusCreateRequest);
         existsByUserAndChannel(readStatusCreateRequest);
-        User user = userRepository.findById(readStatusCreateRequest.userId()).orElseThrow(() -> new BusinessLogicException(ExceptionCode.USER_NOT_FOUND));
-        Channel channel = channelRepository.findById(readStatusCreateRequest.channelId()).orElseThrow(() -> new BusinessLogicException(ExceptionCode.CHANNEL_NOT_FOUND));
+        User user = userRepository.findById(readStatusCreateRequest.userId())
+                .orElseThrow(() -> new BusinessLogicException(ExceptionCode.USER_NOT_FOUND));
+        Channel channel = channelRepository.findById(readStatusCreateRequest.channelId())
+                .orElseThrow(() -> new BusinessLogicException(ExceptionCode.CHANNEL_NOT_FOUND));
         ReadStatus readStatus = new ReadStatus(user, channel, readStatusCreateRequest.lastReadAt());
         readStatusRepository.save(readStatus);
         return readStatus;
@@ -43,7 +45,7 @@ public class BasicReadStatusService implements ReadStatusService {
         return readStatuses;
     }
 
-    @Transactional(rollbackFor = BusinessLogicException.class)
+    @Transactional
     @Override
     public ReadStatus update(UUID id, ReadStatusUpdateRequest readStatusUpdateRequest) {
         ReadStatus findReadStatus = readStatusRepository.findById(id).orElseThrow(() -> new BusinessLogicException(ExceptionCode.READSTATUS_NOT_FOUND));
