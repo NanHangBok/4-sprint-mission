@@ -29,6 +29,10 @@ spring:
     init:
       mode: never
       schema-locations: classpath:schema-dev.sql
+  boot:
+    admin:
+      client:
+        url: http://localhost:9090
 
 logging:
   level:

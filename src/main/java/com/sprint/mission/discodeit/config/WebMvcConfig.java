@@ -1,13 +1,19 @@
 package com.sprint.mission.discodeit.config;
 
-import org.springframework.context.annotation.Bean;
+import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 @Configuration
-public class WebMvcConfig {
+@RequiredArgsConstructor
+public class WebMvcConfig implements WebMvcConfigurer {
 
-    @Bean
-    public MDCLoggingInterceptor mdcLoggingInterceptor() {
-        return new MDCLoggingInterceptor();
+    private final MDCLoggingInterceptor mdcLoggingInterceptor;
+
+    @Override
+    public void addInterceptors(InterceptorRegistry registry) {
+        registry.addInterceptor(mdcLoggingInterceptor)
+                .addPathPatterns("/**"); // 모든 요청에 적용
     }
 }

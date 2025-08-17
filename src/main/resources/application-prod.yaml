@@ -20,7 +20,10 @@ spring:
         format_sql: true
     #        default_batch_fetch_size: 100
     open-in-view: false
-
+  boot:
+    admin:
+      client:
+        url: ${SPRING_BOOT_ADMIN_CLIENT_URL}
 logging:
   level:
     org.hibernate.SQL: info
