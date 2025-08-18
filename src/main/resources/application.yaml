@@ -25,8 +25,6 @@ spring:
       client:
         instance:
           name: discodeit
-          service-url: http://localhost:8081
-          management-url: http://localhost:8081/actuator
 
 management:
   info:
