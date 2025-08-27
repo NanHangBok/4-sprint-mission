@@ -11,7 +11,6 @@ import com.sprint.mission.discodeit.storage.BinaryContentStorage;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -29,8 +28,7 @@ import java.util.stream.Collectors;
 public class BinaryContentController implements BinaryContentApi {
     private final BinaryContentService binaryContentService;
     private final BinaryContentMapper binaryContentMapper;
-    @Autowired(required = false)
-    private BinaryContentStorage binaryContentStorage;
+    private final BinaryContentStorage binaryContentStorage;
 
     @RequestMapping(method = RequestMethod.GET)
     public ResponseEntity findBinaryContents(@RequestParam("binaryContentIds")

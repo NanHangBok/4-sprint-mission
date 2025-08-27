@@ -1,0 +1,5 @@
+/src/test
+.env
+discodeit.env
+discodeit.smoke.env
+discodeit-cluster.pem

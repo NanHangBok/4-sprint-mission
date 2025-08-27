@@ -17,9 +17,9 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 
@@ -40,9 +40,9 @@ public class ChannelControllerTest {
     @Autowired
     private ObjectMapper om;
 
-    @MockBean
+    @MockitoBean
     private ChannelService channelService;
-    @MockBean
+    @MockitoBean
     private ChannelMapper channelMapper;
 
     @DisplayName("공개 채널을 생성합니다. 공개 채널은 name과 description을 가질 수 있지만 선택 사항입니다.")

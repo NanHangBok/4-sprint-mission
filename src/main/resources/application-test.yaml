@@ -34,6 +34,8 @@ logging:
 
 discodeit:
   storage:
-    type: local
-    local:
-      root-path: .discodeit/storage
+    s3:
+      access-key: access-key
+      secret-key: secret-key
+      region: region
+      bucket: bucket

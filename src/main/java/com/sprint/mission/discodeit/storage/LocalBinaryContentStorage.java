@@ -5,42 +5,47 @@ import com.sprint.mission.discodeit.exception.BusinessLogicException;
 import com.sprint.mission.discodeit.exception.ErrorCode;
 import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Component;
 
-import java.io.*;
+import java.io.IOException;
+import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.UUID;
 
-@Component
-@ConditionalOnProperty(name = "discodeit.storage.type", havingValue = "local")
 public class LocalBinaryContentStorage implements BinaryContentStorage {
     @Value(" ${discodeit.storage.local.root-path}")
     private Path root;
 
     private final String EXTENSION = ".ser";
 
+    //    @PostConstruct
+//    void init() {
+//        if (Files.exists(root)) {
+//            File[] deleteList = root.toFile().listFiles();
+//            if (deleteList != null) {
+//                for (File file : deleteList) {
+//                    file.delete();
+//                }
+//            }
+//        } else {
+//            try {
+//                Files.createDirectories(root);
+//            } catch (IOException e) {
+//                throw new RuntimeException(e);
+//            }
+//        }
+//    }
     @PostConstruct
     void init() {
-        if (Files.exists(root)) {
-            File[] deleteList = root.toFile().listFiles();
-            if (deleteList != null) {
-                for (File file : deleteList) {
-                    file.delete();
-                }
-            }
-        } else {
-            try {
-                Files.createDirectories(root);
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
+        try {
+            Files.createDirectories(root);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
         }
     }
 
