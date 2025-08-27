@@ -1,6 +1,6 @@
 on:
   pull_request:
-    -main
+    branches: [ "main" ]
 
 jobs:
   test:
@@ -12,12 +12,16 @@ jobs:
         with:
           java-version: '17'
           distribution: 'temurin'
-      - name: 빌드 및 테스트
-        run: ./gradlew test
+
+      - name: gradlew 실행 권한
+        run: chmod +x gradlew
+
       - name: Jacoco Test
         run: ./gradlew clean test jacocoTestReport
+
       - name: CodeCov 커버리지
         uses: codecov/codecov-action@v3
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
-          files: build/reports/jacoco/test/jacocoTestReport.xml
+          files: build/reports/jacoco/test/jacocoTestReport.
+          fail_ci_if_error: true
