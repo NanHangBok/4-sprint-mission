@@ -47,7 +47,7 @@ jobs:
       - name: Render task definition
         run: |
           aws ecs describe-task-definition \
-          --task-definition ${{vars.ECR_TASK_DEFINITION}} \
+          --task-definition ${{vars.ECS_TASK_DEFINITION}} \
           --query taskDefinition > task-def-rendered-json
 
       # 🔧 10) jq 설치 (JSON 파싱용)
