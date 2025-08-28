@@ -96,9 +96,7 @@ jobs:
       # 13) 배포 완료 대기
       - name: ECS 배포 완료 대기
         run: |
-          aws ecs wait services-stable \
-            --cluster ${{ vars.ECS_CLUSTER }} \
-            --services ${{ vars.ECS_SERVICE }}
+          aws ecs wait services-stable --cluster ${{ vars.ECS_CLUSTER }} --services ${{ vars.ECS_SERVICE }}
 
       # 14) 배포 상태 확인
       - name: ECS 배포 상태 확인
