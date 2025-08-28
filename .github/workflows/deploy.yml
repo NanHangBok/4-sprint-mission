@@ -43,23 +43,23 @@ jobs:
           -t "${{vars.ECR_REPOSITORY_URI}}:$IMAGE_TAG" \
           --push .
 
-      # 9) 작업 정의 템플릿 렌더링
-      - name: Render task definition
-        run: |
-          aws ecs describe-task-definition \
-          --task-definition ${{vars.ECS_TASK_DEFINITION}} \
-          --query taskDefinition > task-def.rendered.json
-
       #      # 9) 작업 정의 템플릿 렌더링
       #      - name: Render task definition
       #        run: |
-      #          sudo apt-get update -y && sudo apt-get install -y gettext-base
-      #          export AWS_ACCOUNT_ID=762682309145
-      #          export AWS_REGION=${{ secrets.AWS_REGION }}
-      #          export IMAGE_TAG=${{ env.IMAGE_TAG }}
-      #          envsubst < ecs-task-def.json > task-def.rendered.json
-      #          echo "=== Rendered task def ==="
-      #          cat task-def.rendered.json
+      #          aws ecs describe-task-definition \
+      #          --task-definition ${{vars.ECS_TASK_DEFINITION}} \
+      #          --query taskDefinition > task-def.rendered.json
+
+      # 9) 작업 정의 템플릿 렌더링
+      - name: Render task definition
+        run: |
+          sudo apt-get update -y && sudo apt-get install -y gettext-base
+          export AWS_ACCOUNT_ID=762682309145
+          export AWS_REGION=${{ secrets.AWS_REGION }}
+          export IMAGE_TAG=${{ env.IMAGE_TAG }}
+          envsubst < ecs-task-def.json > task-def.rendered.json
+          echo "=== Rendered task def ==="
+          cat task-def.rendered.json
 
       # 🔧 10) jq 설치 (JSON 파싱용)
       - name: Install jq
