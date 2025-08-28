@@ -26,8 +26,8 @@ jobs:
       # 3) ECR 로그인 (계정 ID를 Secret에서 참조)
       - name: ECR Login
         run: |
-          aws ecr get-login-password --region us-east-1 \
-            | docker login --username AWS --password-stdin ${{env.ECR_REPOSITORY_NAME}}
+          aws ecr-public get-login-password --region us-east-1 \
+          | docker login --username AWS --password-stdin public.ecr.aws/h3g7d6d9
 
       # 5) 이미지 태그 구성
       - name: Prepare tags
