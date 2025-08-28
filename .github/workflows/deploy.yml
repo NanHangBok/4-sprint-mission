@@ -74,15 +74,15 @@ jobs:
           TASK_DEF_ARN=$(echo $REVISION_JSON | jq -r '.taskDefinition.taskDefinitionArn')
           echo "TASK_DEF_ARN=$TASK_DEF_ARN" >> $GITHUB_ENV
 
-      - name: ECS 서비스 중단
-        run: |
-          aws ecs update-service \
-          --cluster ${{vars.ECS_CLUSTER}} \
-          --service ${{vars.ECS_SERVICE}} \
-          --desired-count 0 |
-          aws ecs wait services-stable \
-          --cluster ${{vars.ECS_CLUSTER}} \
-          --service ${{vars.ECS_SERVICE}}
+      #      - name: ECS 서비스 중단
+      #        run: |
+      #          aws ecs update-service \
+      #          --cluster ${{vars.ECS_CLUSTER}} \
+      #          --service ${{vars.ECS_SERVICE}} \
+      #          --desired-count 0 |
+      #          aws ecs wait services-stable \
+      #          --cluster ${{vars.ECS_CLUSTER}} \
+      #          --service ${{vars.ECS_SERVICE}}
 
       # ✅ 12) ECS 서비스 업데이트 (정확한 리비전 사용)
       - name: ECS 서비스 업데이트
