@@ -2,8 +2,7 @@ on:
   push:
     branches:
       - release
-env:
-  ECR_REPOSITORY_NAME: public.ecr.aws/h3g7d6d9
+
 jobs:
   deploy:
     runs-on: ubuntu-latest
@@ -54,9 +53,8 @@ jobs:
       - name: Render task definition
         run: |
           sudo apt-get update -y && sudo apt-get install -y gettext-base
-          export AWS_ACCOUNT_ID=762682309145
-          export AWS_REGION=${{ secrets.AWS_REGION }}
           export IMAGE_TAG=${{ env.IMAGE_TAG }}
+          export ECR_REPOSITORY_URI=${{vars.ECR_REPOSITORY_URI}}
           envsubst < ecs-task-def.json > task-def.rendered.json
           echo "=== Rendered task def ==="
           cat task-def.rendered.json
@@ -74,15 +72,18 @@ jobs:
           TASK_DEF_ARN=$(echo $REVISION_JSON | jq -r '.taskDefinition.taskDefinitionArn')
           echo "TASK_DEF_ARN=$TASK_DEF_ARN" >> $GITHUB_ENV
 
-      #      - name: ECS 서비스 중단
-      #        run: |
-      #          aws ecs update-service \
-      #          --cluster ${{vars.ECS_CLUSTER}} \
-      #          --service ${{vars.ECS_SERVICE}} \
-      #          --desired-count 0 |
-      #          aws ecs wait services-stable \
-      #          --cluster ${{vars.ECS_CLUSTER}} \
-      #          --service ${{vars.ECS_SERVICE}}
+      - name: ECS 서비스 중단
+        run: |
+          aws ecs update-service \
+          --cluster ${{vars.ECS_CLUSTER}} \
+          --service ${{vars.ECS_SERVICE}} \
+          --desired-count 0
+
+      - name: 중지 완료 대기
+        run:
+          aws ecs wait services-stable \
+          --cluster ${{vars.ECS_CLUSTER}} \
+          --service ${{vars.ECS_SERVICE}}
 
       # ✅ 12) ECS 서비스 업데이트 (정확한 리비전 사용)
       - name: ECS 서비스 업데이트
