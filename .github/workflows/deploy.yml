@@ -48,7 +48,7 @@ jobs:
         run: |
           aws ecs describe-task-definition \
           --task-definition ${{vars.ECS_TASK_DEFINITION}} \
-          --query taskDefinition > task-def-rendered-json
+          --query taskDefinition > task-def.rendered.json
 
       #      # 9) 작업 정의 템플릿 렌더링
       #      - name: Render task definition
