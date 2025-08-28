@@ -11,7 +11,7 @@
         }
       ],
       "essential": true,
-      "image": "public.ecr.aws/h3g7d6d9/discodeit:local-slim",
+      "image": "${ECR_REPOSITORY_URI}:${IMAGE_TAG}",
       "logConfiguration": {
         "logDriver": "awslogs",
         "options": {

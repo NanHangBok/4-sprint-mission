@@ -42,13 +42,6 @@ jobs:
           -t "${{vars.ECR_REPOSITORY_URI}}:$IMAGE_TAG" \
           --push .
 
-      #      # 9) 작업 정의 템플릿 렌더링
-      #      - name: Render task definition
-      #        run: |
-      #          aws ecs describe-task-definition \
-      #          --task-definition ${{vars.ECS_TASK_DEFINITION}} \
-      #          --query taskDefinition > task-def.rendered.json
-
       # 9) 작업 정의 템플릿 렌더링
       - name: Render task definition
         run: |
