@@ -82,8 +82,8 @@ jobs:
       - name: 중지 완료 대기
         run:
           aws ecs wait services-stable \
-          --cluster ${{vars.ECS_CLUSTER}} \
-          --service ${{vars.ECS_SERVICE}}
+          --cluster ${{ vars.ECS_CLUSTER }} \
+          --services ${{ vars.ECS_SERVICE }}
 
       # ✅ 12) ECS 서비스 업데이트 (정확한 리비전 사용)
       - name: ECS 서비스 업데이트
