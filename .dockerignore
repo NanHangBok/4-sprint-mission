@@ -1,5 +1,10 @@
 /src/test
 .env
 discodeit.env
-discodeit.smoke.env
-discodeit-cluster.pem
+/.logs
+/.discodeit
+/logs
+docker-compose.yml
+Dockerfile
+.github
+*.md

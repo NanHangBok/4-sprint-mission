@@ -37,7 +37,7 @@ public class BasicChannelService implements ChannelService {
     @Override
     public Channel createPublicChannel(PublicChannelCreateRequest publicChannelCreateRequest) {
         log.debug("공개 채널 생성 호출");
-        isDuplicatedChannelName(publicChannelCreateRequest.name());
+        validateDuplicatedChannelName(publicChannelCreateRequest.name());
         Channel channel = new Channel(publicChannelCreateRequest.name(), publicChannelCreateRequest.description());
         channelRepository.save(channel);
         log.info("공개 채널 생성 완료 id = {}", channel.getId());
@@ -122,7 +122,7 @@ public class BasicChannelService implements ChannelService {
         });
     }
 
-    private void isDuplicatedChannelName(String channelName) {
+    private void validateDuplicatedChannelName(String channelName) {
         if (channelRepository.existsByName(channelName)) {
             log.warn("채널이름 중복 name = {}", channelName);
             throw new ChannelAlreadyExistsException(ErrorCode.AlREADY_EXISTS_CHANNEL_NAME, Map.of("channelName", channelName));

@@ -40,8 +40,8 @@ public class BasicUserService implements UserService {
     @Override
     public User createUser(UserCreateRequest userCreateRequest, UUID profileId) {
         log.debug("유저 생성 호출");
-        isDuplicateEmail(userCreateRequest.email());
-        isDuplicateName(userCreateRequest.username());
+        validateDuplicateEmail(userCreateRequest.email());
+        validateDuplicateName(userCreateRequest.username());
 
         if (profileId == null) {
             System.out.println("이미지가 포함되지 않아 기본 프로필로 설정됩니다.");
@@ -67,8 +67,8 @@ public class BasicUserService implements UserService {
         log.debug("유저 수정 호출");
         User findUser = validateUser(userId);
 
-        isDuplicateName(userUpdateRequest.newUsername());
-        isDuplicateEmail(userUpdateRequest.newEmail());
+        validateDuplicateName(userUpdateRequest.newUsername());
+        validateDuplicateEmail(userUpdateRequest.newEmail());
 
         Optional.ofNullable(userUpdateRequest.newUsername())  // username 업데이트
                 .ifPresent(findUser::setUsername);
@@ -120,14 +120,14 @@ public class BasicUserService implements UserService {
     }
 
     // 동일한 이메일이 존재하는지 확인
-    private void isDuplicateEmail(String email) {
+    private void validateDuplicateEmail(String email) {
         if (userRepository.existsByEmail(email)) {
             log.warn("이메일 검증 실패 , 해당 이메일은 이미 존재합니다. email = {}", email);
             throw new UserAlreadyExistsException(ErrorCode.EMAIL_OR_USERNAME_ALREADY_EXISTS, Map.of("email", email));
         }
     }
 
-    private void isDuplicateName(String name) {
+    private void validateDuplicateName(String name) {
         if (userRepository.existsByUsername(name)) {
             log.warn("이름 검증 실패 name , 해당 username은 이미 존재합니다 = {}", name);
             throw new UserAlreadyExistsException(ErrorCode.EMAIL_OR_USERNAME_ALREADY_EXISTS, Map.of("name", name));

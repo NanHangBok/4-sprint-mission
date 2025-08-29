@@ -11,6 +11,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
@@ -23,29 +24,21 @@ public class LocalBinaryContentStorage implements BinaryContentStorage {
 
     private final String EXTENSION = ".ser";
 
-    //    @PostConstruct
-//    void init() {
-//        if (Files.exists(root)) {
-//            File[] deleteList = root.toFile().listFiles();
-//            if (deleteList != null) {
-//                for (File file : deleteList) {
-//                    file.delete();
-//                }
-//            }
-//        } else {
-//            try {
-//                Files.createDirectories(root);
-//            } catch (IOException e) {
-//                throw new RuntimeException(e);
-//            }
-//        }
-//    }
     @PostConstruct
     void init() {
-        try {
-            Files.createDirectories(root);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
+        if (Files.exists(root)) {
+            File[] deleteList = root.toFile().listFiles();
+            if (deleteList != null) {
+                for (File file : deleteList) {
+                    file.delete();
+                }
+            }
+        } else {
+            try {
+                Files.createDirectories(root);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
         }
     }
 
