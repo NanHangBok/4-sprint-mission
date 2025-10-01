@@ -9,7 +9,6 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.Serializable;
 import java.util.UUID;
 
 @Getter
@@ -17,7 +16,7 @@ import java.util.UUID;
 @NoArgsConstructor
 @Entity
 @Table(name = "binary_contents")
-public class BinaryContent extends BaseEntity implements Serializable {
+public class BinaryContent extends BaseEntity {
     @Column(nullable = false)
     private String contentType;
     @Column(nullable = false)

@@ -7,6 +7,7 @@ import com.sprint.mission.discodeit.dto.request.PrivateChannelCreateRequest;
 import com.sprint.mission.discodeit.dto.request.PublicChannelCreateRequest;
 import com.sprint.mission.discodeit.entity.Channel;
 import com.sprint.mission.discodeit.entity.ChannelType;
+import com.sprint.mission.discodeit.entity.Role;
 import com.sprint.mission.discodeit.entity.User;
 import com.sprint.mission.discodeit.exception.GlobalExceptionHandler;
 import com.sprint.mission.discodeit.mapper.ChannelMapper;
@@ -86,8 +87,8 @@ public class ChannelControllerTest {
         // given
         Channel channel = ChannelFixture.createPrivateChannel();
         given(channelService.createPrivateChannel(request)).willReturn(channel);
-        UserDto hongDto = new UserDto(hong.getId(), hong.getUsername(), hong.getEmail(), null, true);
-        UserDto kimDto = new UserDto(kim.getId(), kim.getUsername(), kim.getEmail(), null, true);
+        UserDto hongDto = new UserDto(hong.getId(), hong.getUsername(), hong.getEmail(), null, true, Role.USER);
+        UserDto kimDto = new UserDto(kim.getId(), kim.getUsername(), kim.getEmail(), null, true, Role.USER);
         List<UserDto> dtos = List.of(hongDto, kimDto);
         ChannelDto channelDto = new ChannelDto(channel.getId(), ChannelType.PRIVATE, null, null, dtos, Instant.now());
         given(channelMapper.toChannelDto(channel)).willReturn(channelDto);

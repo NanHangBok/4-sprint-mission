@@ -1,9 +1,13 @@
 package com.sprint.mission.discodeit.exception;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.ConstraintViolation;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.springframework.http.HttpStatus;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.validation.BindingResult;
 
 import java.time.Instant;
@@ -49,6 +53,20 @@ public class ErrorResponse {
         this.details = details;
     }
 
+    public ErrorResponse(AuthenticationException exception) {
+        this.status = HttpServletResponse.SC_UNAUTHORIZED;
+        this.timestamp = Instant.now();
+        this.message = exception.getMessage();
+        this.details = Map.of("authorized", "권한이 없습니다.");
+    }
+
+    public ErrorResponse(AccessDeniedException exception) {
+        this.status = HttpStatus.FORBIDDEN.value();
+        this.timestamp = Instant.now();
+        this.message = "권한이 없습니다.";
+        this.details = Map.of("authorized", "권한이 없습니다.");
+    }
+
     public static ErrorResponse of(BindingResult bindingResult) {
         return new ErrorResponse(FieldError.of(bindingResult), null);
     }
@@ -63,6 +81,14 @@ public class ErrorResponse {
 
     public static ErrorResponse of(DiscodeitException discodeitException) {
         return new ErrorResponse(discodeitException.getErrorCode().getStatus(), Instant.now(), discodeitException.getMessage(), discodeitException.getErrorCode().name(), discodeitException.getClass().getSimpleName(), discodeitException.getDetails());
+    }
+
+    public static ErrorResponse of(AuthenticationException exception) {
+        return new ErrorResponse(exception);
+    }
+
+    public static ErrorResponse of(AccessDeniedException exception) {
+        return new ErrorResponse(exception);
     }
 
     @Getter

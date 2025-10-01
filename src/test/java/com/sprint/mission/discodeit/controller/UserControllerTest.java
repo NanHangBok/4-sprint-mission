@@ -5,23 +5,21 @@ import com.sprint.mission.discodeit.dto.BinaryContentDto;
 import com.sprint.mission.discodeit.dto.UserDto;
 import com.sprint.mission.discodeit.dto.request.UserCreateRequest;
 import com.sprint.mission.discodeit.entity.BinaryContent;
+import com.sprint.mission.discodeit.entity.Role;
 import com.sprint.mission.discodeit.entity.User;
-import com.sprint.mission.discodeit.entity.UserStatus;
 import com.sprint.mission.discodeit.exception.GlobalExceptionHandler;
 import com.sprint.mission.discodeit.mapper.BinaryContentMapper;
 import com.sprint.mission.discodeit.mapper.UserMapper;
-import com.sprint.mission.discodeit.mapper.UserStatusMapper;
 import com.sprint.mission.discodeit.service.BinaryContentService;
 import com.sprint.mission.discodeit.service.UserService;
-import com.sprint.mission.discodeit.service.UserStatusService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockMultipartFile;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 
@@ -41,17 +39,13 @@ public class UserControllerTest {
     @Autowired
     private ObjectMapper om;
 
-    @MockBean
+    @MockitoBean
     private UserService userService;
-    @MockBean
-    private UserStatusService userStatusService;
-    @MockBean
+    @MockitoBean
     private UserMapper userMapper;
-    @MockBean
+    @MockitoBean
     private BinaryContentMapper binaryContentMapper;
-    @MockBean
-    private UserStatusMapper userStatusMapper;
-    @MockBean
+    @MockitoBean
     private BinaryContentService binaryContentService;
 
     @DisplayName("유저를 생성할 때 profile은 선택사항입니다. profile이 존재하지 않아도 정상적으로 유저를 생성합니다.")
@@ -64,10 +58,8 @@ public class UserControllerTest {
 
         // given
         User user = new User(request, null);
-        UserStatus userStatus = new UserStatus(user);
         given(userService.createUser(request, null)).willReturn(user);
-        given(userStatusService.create(user)).willReturn(userStatus);
-        UserDto userDto = new UserDto(UUID.randomUUID(), "username", "test@email.com", null, true);
+        UserDto userDto = new UserDto(UUID.randomUUID(), "username", "test@email.com", null, true, Role.USER);
         given(userMapper.toDto(user)).willReturn(userDto);
 
         // when
@@ -96,12 +88,10 @@ public class UserControllerTest {
 
         // given
         User user = new User(request, null);
-        UserStatus userStatus = new UserStatus(user);
         BinaryContent binaryContent = BinaryContent.of(UUID.randomUUID(), profile);
         given(userService.createUser(request, binaryContent.getId())).willReturn(user);
-        given(userStatusService.create(user)).willReturn(userStatus);
         BinaryContentDto binaryContentDto = new BinaryContentDto(binaryContent.getId(), binaryContent.getSize(), binaryContent.getFileName(), binaryContent.getContentType());
-        UserDto userDto = new UserDto(UUID.randomUUID(), "username", "test@email.com", binaryContentDto, true);
+        UserDto userDto = new UserDto(UUID.randomUUID(), "username", "test@email.com", binaryContentDto, true, Role.USER);
         given(userMapper.toDto(user)).willReturn(userDto);
         given(binaryContentService.create(profile)).willReturn(binaryContent);
 

@@ -1,9 +1,7 @@
 package com.sprint.mission.discodeit.controller.api;
 
 import com.sprint.mission.discodeit.dto.UserDto;
-import com.sprint.mission.discodeit.dto.UserStatusDto;
 import com.sprint.mission.discodeit.dto.request.UserCreateRequest;
-import com.sprint.mission.discodeit.dto.request.UserStatusUpdateRequest;
 import com.sprint.mission.discodeit.dto.request.UserUpdateRequest;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -16,7 +14,6 @@ import jakarta.validation.constraints.NotNull;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -59,13 +56,13 @@ public interface UserApi {
     ResponseEntity findAllUsers();
 
 
-    @Operation(summary = "User 온라인 상태 업데이트", operationId = "updateUserStatusByUserId", responses = {
-            @ApiResponse(responseCode = "404", description = "해당 User의 UserStatus를 찾을 수 없음", content = @Content(examples = @ExampleObject(value = "UserStatus with userId not found"))),
-            @ApiResponse(responseCode = "400", description = "유효하지 않은 입력 및 검증 실패", content = @Content(examples = @ExampleObject(value = "Invalid request body | Constraint violation"))),
-            @ApiResponse(responseCode = "200", description = "User 온라인 상태가 성공적으로 업데이트 됨", content = @Content(schema = @Schema(implementation = UserStatusDto.class)))
-    })
-    ResponseEntity updateUserStatus(@Parameter(description = "상태를 변경할 User ID")
-                                    @NotNull(message = "잘못된 ID 입니다.")
-                                    @PathVariable("user-id") UUID userId,
-                                    @RequestBody UserStatusUpdateRequest userStatusUpdateRequest);
+//    @Operation(summary = "User 온라인 상태 업데이트", operationId = "updateUserStatusByUserId", responses = {
+//            @ApiResponse(responseCode = "404", description = "해당 User의 UserStatus를 찾을 수 없음", content = @Content(examples = @ExampleObject(value = "UserStatus with userId not found"))),
+//            @ApiResponse(responseCode = "400", description = "유효하지 않은 입력 및 검증 실패", content = @Content(examples = @ExampleObject(value = "Invalid request body | Constraint violation"))),
+//            @ApiResponse(responseCode = "200", description = "User 온라인 상태가 성공적으로 업데이트 됨", content = @Content(schema = @Schema(implementation = UserStatusDto.class)))
+//    })
+//    ResponseEntity updateUserStatus(@Parameter(description = "상태를 변경할 User ID")
+//                                    @NotNull(message = "잘못된 ID 입니다.")
+//                                    @PathVariable("user-id") UUID userId,
+//                                    @RequestBody UserStatusUpdateRequest userStatusUpdateRequest);
 }

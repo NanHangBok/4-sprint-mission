@@ -6,6 +6,7 @@ import com.sprint.mission.discodeit.dto.UserDto;
 import com.sprint.mission.discodeit.dto.request.MessageCreateRequest;
 import com.sprint.mission.discodeit.entity.Channel;
 import com.sprint.mission.discodeit.entity.Message;
+import com.sprint.mission.discodeit.entity.Role;
 import com.sprint.mission.discodeit.entity.User;
 import com.sprint.mission.discodeit.exception.GlobalExceptionHandler;
 import com.sprint.mission.discodeit.mapper.BinaryContentMapper;
@@ -19,10 +20,10 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockMultipartFile;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 
@@ -43,15 +44,15 @@ public class MessageControllerTest {
     @Autowired
     private ObjectMapper om;
 
-    @MockBean
+    @MockitoBean
     private MessageService messageService;
-    @MockBean
+    @MockitoBean
     private MessageMapper messageMapper;
-    @MockBean
+    @MockitoBean
     private BinaryContentMapper binaryContentMapper;
-    @MockBean
+    @MockitoBean
     private BinaryContentService binaryContentService;
-    @MockBean
+    @MockitoBean
     private PageResponseMapper pageResponseMapper;
 
     @DisplayName("메시지를 생성합니다. 작성자와 채널은 필수 항목이며 메시지 내용과 첨부파일은 선택사항입니다." +
@@ -72,7 +73,7 @@ public class MessageControllerTest {
         // given
         Message message = Message.of(UUID.randomUUID(), channel, user, "content");
         given(messageService.createMessage(request, new ArrayList<>())).willReturn(message);
-        UserDto userDto = new UserDto(user.getId(), user.getUsername(), user.getEmail(), null, true);
+        UserDto userDto = new UserDto(user.getId(), user.getUsername(), user.getEmail(), null, true, Role.USER);
         MessageDto messageDto = new MessageDto(message.getId(), userDto, channel.getId(), "content", null, Instant.now(), Instant.now());
         given(messageMapper.toDto(message)).willReturn(messageDto);
 

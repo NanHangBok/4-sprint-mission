@@ -23,11 +23,11 @@ public class ReadStatus extends BaseUpdatableEntity {
     @Column(nullable = false)
     private Instant lastReadAt;
 
-    @ManyToOne
+    @ManyToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
-    @ManyToOne
+    @ManyToOne(cascade = {CascadeType.ALL})
     @JoinColumn(name = "channel_id", nullable = false)
     private Channel channel;
 

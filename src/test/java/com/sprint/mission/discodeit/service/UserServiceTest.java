@@ -3,12 +3,10 @@ package com.sprint.mission.discodeit.service;
 import com.sprint.mission.discodeit.dto.request.UserCreateRequest;
 import com.sprint.mission.discodeit.dto.request.UserUpdateRequest;
 import com.sprint.mission.discodeit.entity.User;
-import com.sprint.mission.discodeit.entity.UserStatus;
 import com.sprint.mission.discodeit.exception.user.UserAlreadyExistsException;
 import com.sprint.mission.discodeit.exception.user.UserNotFoundException;
 import com.sprint.mission.discodeit.repository.BinaryContentRepository;
 import com.sprint.mission.discodeit.repository.UserRepository;
-import com.sprint.mission.discodeit.repository.UserStatusRepository;
 import com.sprint.mission.discodeit.service.basic.BasicUserService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -17,7 +15,6 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.time.Instant;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -35,8 +32,6 @@ public class UserServiceTest {
     private UserRepository userRepository;
     @Mock
     private BinaryContentRepository binaryContentRepository;
-    @Mock
-    private UserStatusRepository userStatusRepository;
 
     @InjectMocks
     private BasicUserService userService;
@@ -96,13 +91,10 @@ public class UserServiceTest {
         UserUpdateRequest request = new UserUpdateRequest("newUsername", "new@email.com", "newPassword");
         UUID uuid = UUID.randomUUID();
         User testUser = User.of(uuid, "oldUsername", "old@email.com", "oldPassword", null);
-        UserStatus testUserStatus = new UserStatus(testUser, Instant.now());
         given(userRepository.findById(uuid)).willReturn(Optional.of(testUser));
-        given(userStatusRepository.findByUserId(uuid)).willReturn(testUserStatus);
         given(userRepository.existsByEmail(request.newEmail())).willReturn(false);
         given(userRepository.existsByUsername(request.newUsername())).willReturn(false);
         given(userRepository.save(testUser)).willReturn(testUser);
-        given(userStatusRepository.save(testUserStatus)).willReturn(testUserStatus);
 
         // when
         User user = userService.updateUser(uuid, request, null);

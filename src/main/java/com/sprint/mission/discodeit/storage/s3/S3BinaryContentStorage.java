@@ -37,31 +37,11 @@ public class S3BinaryContentStorage implements BinaryContentStorage {
         this.region = region;
         this.bucket = bucket;
         if (accessKey != null && !accessKey.isBlank()) {
-            s3Client = S3Client.builder()
-                    .region(Region.of(region))
-                    .credentialsProvider(StaticCredentialsProvider
-                            .create(AwsBasicCredentials
-                                    .create(accessKey,
-                                            secretKey)))
-                    .build();
+            s3Client = S3Client.builder().region(Region.of(region)).credentialsProvider(StaticCredentialsProvider.create(AwsBasicCredentials.create(accessKey, secretKey))).build();
         } else {
-            s3Client = S3Client.builder()
-                    .region(Region.of(region))
-                    .credentialsProvider(DefaultCredentialsProvider
-                            .create())
-                    .build();
+            s3Client = S3Client.builder().region(Region.of(region)).credentialsProvider(DefaultCredentialsProvider.create()).build();
         }
-        presigner = S3Presigner.builder()
-                .region(Region.of(region))
-                .credentialsProvider(
-                        (accessKey != null && !accessKey.isBlank())
-                                ? StaticCredentialsProvider
-                                .create(AwsBasicCredentials
-                                        .create(accessKey,
-                                                secretKey))
-                                : DefaultCredentialsProvider
-                                .create())
-                .build();
+        presigner = S3Presigner.builder().region(Region.of(region)).credentialsProvider((accessKey != null && !accessKey.isBlank()) ? StaticCredentialsProvider.create(AwsBasicCredentials.create(accessKey, secretKey)) : DefaultCredentialsProvider.create()).build();
     }
 
     @Override
@@ -69,15 +49,12 @@ public class S3BinaryContentStorage implements BinaryContentStorage {
         String key = binaryContentId.toString();
 
         // 2) PutObjectRequest 생성 (버킷 정책이 퍼블릭 읽기면 acl 생략해도 됨)
-        PutObjectRequest putReq = PutObjectRequest.builder()
-                .bucket(bucket)
-                .key(key)
+        PutObjectRequest putReq = PutObjectRequest.builder().bucket(bucket).key(key)
                 // .acl(ObjectCannedACL.PUBLIC_READ) // 필요 시 주석 해제
                 .build();
 
         // 3) 업로드 (임시파일 없이 InputStream으로)
-        s3Client.putObject(putReq,
-                RequestBody.fromBytes(bytes));
+        s3Client.putObject(putReq, RequestBody.fromBytes(bytes));
 
         // 4) 퍼블릭 URL 생성 후 반환
         return binaryContentId;
@@ -87,15 +64,9 @@ public class S3BinaryContentStorage implements BinaryContentStorage {
     @Override
     public InputStream get(UUID binaryContentId) {
         // 응답 헤더(Content-Disposition)를 presign 시점에 주입
-        GetObjectRequest getReq = GetObjectRequest.builder()
-                .bucket(bucket)
-                .key(binaryContentId.toString())
-                .responseContentDisposition("attachment; filename=\"" + binaryContentId.toString() + "\"")
-                .build();
+        GetObjectRequest getReq = GetObjectRequest.builder().bucket(bucket).key(binaryContentId.toString()).responseContentDisposition("attachment; filename=\"" + binaryContentId.toString() + "\"").build();
 
-        GetObjectPresignRequest preReq = GetObjectPresignRequest.builder()
-                .getObjectRequest(getReq)
-                .signatureDuration(Duration.ofMinutes(5)) // 유효기간
+        GetObjectPresignRequest preReq = GetObjectPresignRequest.builder().getObjectRequest(getReq).signatureDuration(Duration.ofMinutes(5)) // 유효기간
                 .build();
 
         URL signed = presigner.presignGetObject(preReq).url();
@@ -117,15 +88,9 @@ public class S3BinaryContentStorage implements BinaryContentStorage {
     }
 
     private String generatePresignedUrl(String key, String contentType) {
-        GetObjectRequest getReq = GetObjectRequest.builder()
-                .bucket(bucket)
-                .key(key)
-                .responseContentType(contentType)
-                .build();
+        GetObjectRequest getReq = GetObjectRequest.builder().bucket(bucket).key(key).responseContentType(contentType).build();
 
-        GetObjectPresignRequest preReq = GetObjectPresignRequest.builder()
-                .getObjectRequest(getReq)
-                .signatureDuration(Duration.ofMinutes(5)) // 유효기간
+        GetObjectPresignRequest preReq = GetObjectPresignRequest.builder().getObjectRequest(getReq).signatureDuration(Duration.ofMinutes(5)) // 유효기간
                 .build();
 
         String signed = presigner.presignGetObject(preReq).url().toString();

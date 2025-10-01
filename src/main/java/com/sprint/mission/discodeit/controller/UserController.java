@@ -2,19 +2,14 @@ package com.sprint.mission.discodeit.controller;
 
 import com.sprint.mission.discodeit.controller.api.UserApi;
 import com.sprint.mission.discodeit.dto.UserDto;
-import com.sprint.mission.discodeit.dto.UserStatusDto;
 import com.sprint.mission.discodeit.dto.request.UserCreateRequest;
-import com.sprint.mission.discodeit.dto.request.UserStatusUpdateRequest;
 import com.sprint.mission.discodeit.dto.request.UserUpdateRequest;
 import com.sprint.mission.discodeit.entity.BinaryContent;
 import com.sprint.mission.discodeit.entity.User;
-import com.sprint.mission.discodeit.entity.UserStatus;
 import com.sprint.mission.discodeit.mapper.BinaryContentMapper;
 import com.sprint.mission.discodeit.mapper.UserMapper;
-import com.sprint.mission.discodeit.mapper.UserStatusMapper;
 import com.sprint.mission.discodeit.service.BinaryContentService;
 import com.sprint.mission.discodeit.service.UserService;
-import com.sprint.mission.discodeit.service.UserStatusService;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Encoding;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -39,9 +34,7 @@ import java.util.stream.Collectors;
 public class UserController implements UserApi {
     private final UserService userService;
     private final UserMapper userMapper;
-    private final UserStatusService userStatusService;
     private final BinaryContentMapper binaryContentMapper;
-    private final UserStatusMapper userStatusMapper;
     private final BinaryContentService binaryContentService;
 
     @io.swagger.v3.oas.annotations.parameters.RequestBody(content = @Content(encoding = @Encoding(name = "userCreateRequest", contentType = MediaType.APPLICATION_JSON_VALUE)))
@@ -56,7 +49,6 @@ public class UserController implements UserApi {
                 })
                 .orElse(null);
         User user = userService.createUser(userCreateRequest, binaryContentId);
-        userStatusService.create(user);
         UserDto response = userMapper.toDto(user);
         log.debug("생성 응답 = {}", response);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
@@ -92,17 +84,12 @@ public class UserController implements UserApi {
 
     @RequestMapping(method = RequestMethod.GET)
     public ResponseEntity findAllUsers() {
+        log.info("GET /api/users 호출");
         List<User> users = userService.findAll();
-        List<UserDto> response = users.stream().map(userMapper::toDto).collect(Collectors.toList());
-        return ResponseEntity.ok(response);
-    }
-
-    @RequestMapping(method = RequestMethod.PATCH, value = "/{user-id}/userStatus")
-    public ResponseEntity updateUserStatus(@PathVariable("user-id") UUID userId,
-                                           @RequestBody UserStatusUpdateRequest userStatusUpdateRequest) {
-        UserStatus userStatus = userStatusService.updateByUserId(userId, userStatusUpdateRequest);
-        UserStatusDto response = userStatusMapper.toDto(userStatus);
-
+        List<UserDto> response = users.stream()
+                .map(userMapper::toDto)
+                .collect(Collectors.toList());
+        log.info("전체 조회 응답 {}건 발견", response.size());
         return ResponseEntity.ok(response);
     }
 }

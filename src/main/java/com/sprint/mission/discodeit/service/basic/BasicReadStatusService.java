@@ -31,8 +31,8 @@ public class BasicReadStatusService implements ReadStatusService {
     @Transactional
     @Override
     public ReadStatus create(ReadStatusCreateRequest readStatusCreateRequest) {
-        User user = validateUser(readStatusCreateRequest);
-        Channel channel = validateChannel(readStatusCreateRequest);
+        User user = getValidUser(readStatusCreateRequest);
+        Channel channel = getValidChannel(readStatusCreateRequest);
         existsByUserAndChannel(readStatusCreateRequest);
 
         ReadStatus readStatus = new ReadStatus(user, channel, readStatusCreateRequest.lastReadAt());
@@ -40,6 +40,7 @@ public class BasicReadStatusService implements ReadStatusService {
         return readStatus;
     }
 
+    @Transactional(readOnly = true)
     @Override
     public List<ReadStatus> findAllByUserId(UUID userId) {
         List<ReadStatus> readStatuses = readStatusRepository.findAllByUserId(userId);
@@ -61,12 +62,12 @@ public class BasicReadStatusService implements ReadStatusService {
         readStatusRepository.deleteById(id);
     }
 
-    private User validateUser(ReadStatusCreateRequest readStatusCreateRequest) {
+    private User getValidUser(ReadStatusCreateRequest readStatusCreateRequest) {
         return userRepository.findById(readStatusCreateRequest.userId())
                 .orElseThrow(() -> new ReadStatusNotFoundException(ErrorCode.CHANNEL_OR_USER_NOT_FOUND, Map.of("userId", readStatusCreateRequest.userId())));
     }
 
-    private Channel validateChannel(ReadStatusCreateRequest readStatusCreateRequest) {
+    private Channel getValidChannel(ReadStatusCreateRequest readStatusCreateRequest) {
         return channelRepository.findById(readStatusCreateRequest.channelId())
                 .orElseThrow(() -> new ReadStatusNotFoundException(ErrorCode.CHANNEL_OR_USER_NOT_FOUND, Map.of("channelId", readStatusCreateRequest.channelId())));
 

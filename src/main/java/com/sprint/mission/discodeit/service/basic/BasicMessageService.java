@@ -21,6 +21,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -45,8 +46,8 @@ public class BasicMessageService implements MessageService {
     @Override
     public Message createMessage(MessageCreateRequest messageCreateRequest, List<UUID> attachments) {
         log.debug("메시지 생성 호출");
-        Channel channel = validateChannel(messageCreateRequest.channelId());
-        User user = validateUser(messageCreateRequest.authorId());
+        Channel channel = getValidChannel(messageCreateRequest.channelId());
+        User user = getValidUser(messageCreateRequest.authorId());
 
         Message message = new Message(messageCreateRequest.content(), channel, user);
 
@@ -63,18 +64,20 @@ public class BasicMessageService implements MessageService {
         return message;
     }
 
+    @Transactional(readOnly = true)
     @Override
     public Page<Message> findAllByChannelId(UUID channelId, Instant cursor, Pageable pageable) {
-        validateChannel(channelId);
+        getValidChannel(channelId);
         Page<Message> messages = messageRepository.findAllByChannel_Id(channelId, pageable);
         return messages;
     }
 
     @Transactional
+    @PreAuthorize("@basicMessageService.findUserIdByMessageId(#messageId) == authentication.principal.userDto.id")
     @Override
     public Message updateMessage(UUID messageId, MessageUpdateRequest messageUpdateRequest) {
         log.debug("메시지 수정 호출 id = {}", messageId);
-        Message findMessage = validateMessage(messageId);
+        Message findMessage = getValidMessage(messageId);
 
         Optional.ofNullable(messageUpdateRequest.newContent())
                 .ifPresent(findMessage::setContent);
@@ -85,10 +88,11 @@ public class BasicMessageService implements MessageService {
     }
 
     @Transactional
+    @PreAuthorize("@basicMessageService.findUserIdByMessageId(#messageId) == authentication.principal.userDto.id")
     @Override
     public void removeMessage(UUID messageId) {
         log.debug("메시지 삭제 호출 id = {}", messageId);
-        Message findMessage = validateMessage(messageId);
+        Message findMessage = getValidMessage(messageId);
 
         messageRepository.delete(findMessage);
         log.info("메시지 삭제 완료 id = {}", messageId);
@@ -101,7 +105,7 @@ public class BasicMessageService implements MessageService {
         }
     }
 
-    private Message validateMessage(UUID messageId) {
+    private Message getValidMessage(UUID messageId) {
         return messageRepository.findById(messageId)
                 .orElseThrow(() -> {
                     log.warn("해당 메시지를 찾을 수 없음 id = {}", messageId);
@@ -109,7 +113,7 @@ public class BasicMessageService implements MessageService {
                 });
     }
 
-    private User validateUser(UUID authorId) {
+    private User getValidUser(UUID authorId) {
         return userRepository.findById(authorId)
                 .orElseThrow(() -> {
                     log.warn("해당 유저를 찾을 수 없음 id = {}", authorId);
@@ -117,11 +121,17 @@ public class BasicMessageService implements MessageService {
                 });
     }
 
-    private Channel validateChannel(UUID channelId) {
+    private Channel getValidChannel(UUID channelId) {
         return channelRepository.findById(channelId)
                 .orElseThrow(() -> {
                     log.warn("해당 채널을 찾을 수 없음 id = {}", channelId);
                     throw new ChannelNotFoundException(ErrorCode.CHANNEL_NOT_FOUND, Map.of("channelId", channelId));
                 });
+    }
+
+    @Override
+    public UUID findUserIdByMessageId(UUID messageId) {
+        Message message = getValidMessage(messageId);
+        return message.getAuthor().getId();
     }
 }

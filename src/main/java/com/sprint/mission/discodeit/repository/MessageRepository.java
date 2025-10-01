@@ -22,7 +22,7 @@ public interface MessageRepository extends JpaRepository<Message, UUID> {
 
     Message save(Message message);
 
-    @EntityGraph(attributePaths = {"attachments", "author"})
+    @EntityGraph(attributePaths = {"attachments", "author", "author.profile"})
     Page<Message> findAllByChannel_Id(UUID channelId, Pageable pageable);
 
     Optional<Message> findTopByChannelOrderByUpdatedAtDesc(Channel channel);

@@ -19,6 +19,7 @@ import com.sprint.mission.discodeit.repository.UserRepository;
 import com.sprint.mission.discodeit.service.ChannelService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -34,6 +35,7 @@ public class BasicChannelService implements ChannelService {
     private final UserRepository userRepository;
 
     @Transactional
+    @PreAuthorize("hasRole('CHANNEL_MANAGER')")
     @Override
     public Channel createPublicChannel(PublicChannelCreateRequest publicChannelCreateRequest) {
         log.debug("공개 채널 생성 호출");
@@ -53,7 +55,7 @@ public class BasicChannelService implements ChannelService {
         channelRepository.save(channel);
 
         for (UUID id : privateChannelCreateRequest.participantIds()) {
-            User user = validateUser(id);
+            User user = getValidUser(id);
             ReadStatus readStatus = new ReadStatus(user, channel);
             readStatusRepository.save(readStatus);
         }
@@ -64,7 +66,7 @@ public class BasicChannelService implements ChannelService {
     @Override
     @Transactional(readOnly = true)
     public List<Channel> findAllByUserId(UUID userId) {
-        validateUser(userId);
+        getValidUser(userId);
         List<ReadStatus> readStatuses = readStatusRepository.findAllByUser_Id(userId);
         Set<Channel> channels = new LinkedHashSet<>();
         readStatuses.forEach(readStatus -> {
@@ -75,10 +77,11 @@ public class BasicChannelService implements ChannelService {
     }
 
     @Transactional
+    @PreAuthorize("hasRole('CHANNEL_MANAGER')")
     @Override
     public Channel updateChannel(UUID channelId, PublicChannelUpdateRequest publicChannelUpdateRequest) {
         log.debug("공개 채널 수정 호출 id = {}", channelId);
-        Channel findChannel = validateChannel(channelId);
+        Channel findChannel = getValidChannel(channelId);
         validatePublicChannel(findChannel);
 
         Optional.ofNullable(publicChannelUpdateRequest.newName())
@@ -92,15 +95,16 @@ public class BasicChannelService implements ChannelService {
         return findChannel;
     }
 
+    @PreAuthorize("hasRole('CHANNEL_MANAGER')")
     @Override
     public void deleteChannel(UUID id) {
         log.debug("채널 삭제 호출 id = {}", id);
-        Channel channel = validateChannel(id);
+        Channel channel = getValidChannel(id);
         log.info("채널 삭제 완료 id = {}", id);
         channelRepository.delete(channel);
     }
 
-    private Channel validateChannel(UUID id) {
+    private Channel getValidChannel(UUID id) {
         return channelRepository.findById(id)
                 .orElseThrow(() -> {
                     log.warn("해당 채널을 찾을 수 없음 id = {}", id);
@@ -115,7 +119,7 @@ public class BasicChannelService implements ChannelService {
         }
     }
 
-    private User validateUser(UUID userId) {
+    private User getValidUser(UUID userId) {
         return userRepository.findById(userId).orElseThrow(() -> {
             log.warn("해당 유저가 존재하지 않음 id = {}", userId);
             throw new UserNotFoundException(ErrorCode.USER_NOT_FOUND, Map.of("userId", userId));
