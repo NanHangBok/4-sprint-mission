@@ -9,6 +9,7 @@ import com.sprint.mission.discodeit.repository.UserRepository;
 import com.sprint.mission.discodeit.service.AuthService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.session.SessionInformation;
 import org.springframework.security.core.session.SessionRegistry;
 import org.springframework.stereotype.Service;
@@ -27,6 +28,7 @@ public class BasicAuthService implements AuthService {
 
     @Transactional
     @Override
+    @PreAuthorize("hasRole=('ADMIN')")
     public User updateRole(RoleUpdateRequest roleUpdateRequest) {
         User user = getValidUser(roleUpdateRequest.userId());
         log.info("인가 권한 변경 id = {}, oldRole = {}, newRole = {}", roleUpdateRequest.userId(), user.getRole(), roleUpdateRequest.newRole());

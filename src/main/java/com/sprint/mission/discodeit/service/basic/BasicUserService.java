@@ -63,7 +63,7 @@ public class BasicUserService implements UserService {
     }
 
     @Transactional
-    @PreAuthorize("hasRole('ADMIN') OR #userId == authentication.principal.userDto.id")
+    @PreAuthorize("#userId == authentication.principal.userDto.id")
     @Override
     public User updateUser(UUID userId, UserUpdateRequest userUpdateRequest, UUID newProfileId) {
         log.debug("유저 수정 호출");
