@@ -1,8 +1,12 @@
 package com.sprint.mission.discodeit.config;
 
 import com.sprint.mission.discodeit.auth.DiscodeitUserDetailsService;
-import com.sprint.mission.discodeit.auth.LoginFailureHandler;
-import com.sprint.mission.discodeit.auth.LoginSuccessHandler;
+import com.sprint.mission.discodeit.auth.filter.JwtAuthenticationFilter;
+import com.sprint.mission.discodeit.auth.handler.JwtLoginSuccessHandler;
+import com.sprint.mission.discodeit.auth.handler.JwtLogoutHandler;
+import com.sprint.mission.discodeit.auth.handler.LoginFailureHandler;
+import com.sprint.mission.discodeit.auth.provider.JwtTokenProvider;
+import com.sprint.mission.discodeit.auth.registry.JwtRegistry;
 import com.sprint.mission.discodeit.dto.request.RoleUpdateRequest;
 import com.sprint.mission.discodeit.dto.request.UserCreateRequest;
 import com.sprint.mission.discodeit.entity.Role;
@@ -13,6 +17,7 @@ import com.sprint.mission.discodeit.service.AuthService;
 import com.sprint.mission.discodeit.service.UserService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -25,6 +30,7 @@ import org.springframework.security.access.hierarchicalroles.RoleHierarchyImpl;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.session.SessionRegistry;
 import org.springframework.security.core.session.SessionRegistryImpl;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -33,6 +39,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.access.AccessDeniedHandlerImpl;
 import org.springframework.security.web.authentication.Http403ForbiddenEntryPoint;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.authentication.logout.HttpStatusReturningLogoutSuccessHandler;
 import org.springframework.security.web.csrf.*;
 import org.springframework.security.web.session.HttpSessionEventPublisher;
@@ -41,6 +48,7 @@ import org.springframework.util.StringUtils;
 import java.util.function.Supplier;
 
 @Configuration
+@RequiredArgsConstructor
 @EnableMethodSecurity(prePostEnabled = true)
 public class SecurityConfig {
     @Value("${discodeit.admin.username}")
@@ -50,52 +58,49 @@ public class SecurityConfig {
     @Value("${discodeit.admin.email}")
     private String email;
 
+    private final JwtTokenProvider jwtTokenProvider;
+    private final JwtRegistry jwtRegistry;
+
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http,
-                                           LoginSuccessHandler loginSuccessHandler,
+                                           JwtLoginSuccessHandler jwtLoginSuccessHandler,
                                            LoginFailureHandler loginFailureHandler,
-                                           UserDetailsService discodeitUserDetailsService, SessionRegistry sessionRegistry) throws Exception {
+                                           UserDetailsService discodeitUserDetailsService,
+                                           SessionRegistry sessionRegistry, JwtLogoutHandler jwtLogoutHandler) throws Exception {
         http
                 .csrf(csrf -> csrf
                         .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
                         .csrfTokenRequestHandler(new SpaCsrfTokenRequestHandler())
                 )
-
+                .cors(Customizer.withDefaults())
+                .addFilterBefore(new JwtAuthenticationFilter(jwtTokenProvider, discodeitUserDetailsService, jwtRegistry), UsernamePasswordAuthenticationFilter.class)
                 .formLogin(Customizer.withDefaults())
                 .formLogin(login -> login
                         .loginProcessingUrl("/api/auth/login")
-                        .successHandler(loginSuccessHandler)
+                        .successHandler(jwtLoginSuccessHandler)
                         .failureHandler(loginFailureHandler)
-
-                )
-                .rememberMe(remember -> remember
-                        .key("${discodeit.remember-key}")
-                        .tokenValiditySeconds(24 * 60 * 60)
-                        .rememberMeParameter("remember-me")
-                        .userDetailsService(discodeitUserDetailsService)
                 )
                 .logout(logout -> logout
                         .logoutUrl("/api/auth/logout")
+                        .addLogoutHandler(jwtLogoutHandler)
                         .logoutSuccessHandler(new HttpStatusReturningLogoutSuccessHandler(HttpStatus.NO_CONTENT))
                         .invalidateHttpSession(true)
                         .clearAuthentication(true)
-                        .deleteCookies("JSESSIONID", "remember-me")
                 )
                 .sessionManagement(management -> management
-                        .sessionConcurrency(concurrency -> concurrency
-                                .maximumSessions(1)
-                                .sessionRegistry(sessionRegistry)
-                        )
+                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 )
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/auth/csrf-token").permitAll()
-                        .requestMatchers(HttpMethod.POST, "/api/users").permitAll()
-                        .requestMatchers("/api/auth/login").permitAll()
-                        .requestMatchers("/api/auth/logout").permitAll()
-                        .requestMatchers("*", "/actuator/**", "/swagger-resource/**"
-                                , "/swagger-ui.html", "/swagger-ui/**", "/v3/**",
-                                "/assets/**").permitAll()
-                        .anyRequest().authenticated()
+//                        .requestMatchers("**").permitAll()
+                                .requestMatchers("/api/auth/csrf-token").permitAll()
+                                .requestMatchers(HttpMethod.POST, "/api/users").permitAll()
+                                .requestMatchers("/api/auth/login").permitAll()
+                                .requestMatchers("/api/auth/logout").permitAll()
+                                .requestMatchers("/api/auth/refresh").permitAll()
+                                .requestMatchers("*", "/actuator/**", "/swagger-resource/**"
+                                        , "/swagger-ui.html", "/swagger-ui/**", "/v3/**",
+                                        "/assets/**").permitAll()
+                                .anyRequest().authenticated()
                 )
                 .exceptionHandling(ex -> ex
                         .authenticationEntryPoint(new Http403ForbiddenEntryPoint())
@@ -182,5 +187,4 @@ public class SecurityConfig {
         }
         return new DiscodeitUserDetailsService(userRepository, userMapper);
     }
-
 }

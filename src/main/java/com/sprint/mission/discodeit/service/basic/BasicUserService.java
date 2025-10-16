@@ -125,11 +125,24 @@ public class BasicUserService implements UserService {
         return userRepository.existsByUsername(username);
     }
 
+    @Override
+    public User findByEmail(String email) {
+        return getValidUser(email);
+    }
+
     private User getValidUser(UUID userId) {
         return userRepository.findById(userId).orElseThrow(() -> {
             log.warn("해당 유저를 찾을 수 없음 id = {}", userId);
             throw new UserNotFoundException(ErrorCode.USER_NOT_FOUND, Map.of("userId", userId));
         });
+    }
+
+    private User getValidUser(String email) {
+        return userRepository.findByEmail(email)
+                .orElseThrow(() -> {
+                    log.warn("해당 유저를 찾을 수 없음 email = {}", email);
+                    throw new UserNotFoundException(ErrorCode.USER_NOT_FOUND, Map.of("email", email));
+                });
     }
 
     // 동일한 이메일이 존재하는지 확인

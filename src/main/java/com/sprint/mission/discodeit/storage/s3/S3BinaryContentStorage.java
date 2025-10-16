@@ -90,7 +90,9 @@ public class S3BinaryContentStorage implements BinaryContentStorage {
     private String generatePresignedUrl(String key, String contentType) {
         GetObjectRequest getReq = GetObjectRequest.builder().bucket(bucket).key(key).responseContentType(contentType).build();
 
-        GetObjectPresignRequest preReq = GetObjectPresignRequest.builder().getObjectRequest(getReq).signatureDuration(Duration.ofMinutes(5)) // 유효기간
+        GetObjectPresignRequest preReq = GetObjectPresignRequest.builder()
+                .getObjectRequest(getReq)
+                .signatureDuration(Duration.ofMinutes(5)) // 유효기간
                 .build();
 
         String signed = presigner.presignGetObject(preReq).url().toString();

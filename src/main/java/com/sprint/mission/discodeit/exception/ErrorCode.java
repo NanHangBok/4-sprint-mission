@@ -19,7 +19,9 @@ public enum ErrorCode {
     USER_ALREADY_EXISTS_USERSTATUS(400, "User Already Exists UserStatus"),
     INVALID_PAST_TIME(400, "Time Is Earlier Than Saved Time"),
     BINARY_CONTENT_STORAGE_NOT_FOUND(404, "BinaryContent Storage Not Found"),
-    AlREADY_EXISTS_CHANNEL_NAME(400, "Channel Name Already Exists");
+    AlREADY_EXISTS_CHANNEL_NAME(400, "Channel Name Already Exists"),
+
+    INVALID_REFRESH_TOKEN(401, "Invalid Refresh Token");
 
     @Getter
     private final int status;
