@@ -24,7 +24,7 @@ public class NotificationRequiredTopicListener {
     @KafkaListener(topics = "discodeit.MessageCreatedEvent")
     public void onMessageCreatedEvent(String kafkaEvent) {
         try {
-            log.info("kafka 이벤트 수신 메시지 생성 알림")
+            log.info("kafka 이벤트 수신 메시지 생성 알림");
             MessageCreatedEvent event = objectMapper.readValue(kafkaEvent,
                     MessageCreatedEvent.class);
             notificationService.create(event.message());
@@ -36,7 +36,7 @@ public class NotificationRequiredTopicListener {
     @KafkaListener(topics = "discodeit.RoleUpdatedEvent")
     public void onRoleUpdatedEvent(String kafkaEvent) {
         try {
-            log.info("kafka 이벤트 수신 유저 권한 수정 알림")
+            log.info("kafka 이벤트 수신 유저 권한 수정 알림");
             RoleUpdatedEvent event = objectMapper.readValue(kafkaEvent,
                     RoleUpdatedEvent.class);
             notificationService.create(event.user(), event.oldRole(), event.newRole());
