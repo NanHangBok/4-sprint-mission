@@ -10,4 +10,6 @@ public interface AuthService {
     User updateRole(RoleUpdateRequest roleUpdateRequest);
 
     TokenResponse reissueToken(Map<String, Object> claims);
+
+    User getUserByAccessToken(String accessToken);
 }

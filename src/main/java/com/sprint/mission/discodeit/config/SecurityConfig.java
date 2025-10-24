@@ -66,7 +66,8 @@ public class SecurityConfig {
                                            JwtLoginSuccessHandler jwtLoginSuccessHandler,
                                            LoginFailureHandler loginFailureHandler,
                                            UserDetailsService discodeitUserDetailsService,
-                                           SessionRegistry sessionRegistry, JwtLogoutHandler jwtLogoutHandler) throws Exception {
+                                           SessionRegistry sessionRegistry,
+                                           JwtLogoutHandler jwtLogoutHandler) throws Exception {
         http
                 .csrf(csrf -> csrf
                         .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
@@ -95,7 +96,6 @@ public class SecurityConfig {
                                 .requestMatchers("/api/auth/csrf-token").permitAll()
                                 .requestMatchers(HttpMethod.POST, "/api/users").permitAll()
                                 .requestMatchers("/api/auth/login").permitAll()
-                                .requestMatchers("/api/auth/logout").permitAll()
                                 .requestMatchers("/api/auth/refresh").permitAll()
                                 .requestMatchers("*", "/actuator/**", "/swagger-resource/**"
                                         , "/swagger-ui.html", "/swagger-ui/**", "/v3/**",

@@ -6,7 +6,7 @@ plugins {
 }
 
 group = 'com.sprint.mission'
-version = '2.1-M10'
+version = '2.2-M11'
 
 java {
     toolchain {
@@ -48,6 +48,16 @@ dependencies {
 
     //JWT
     implementation 'com.nimbusds:nimbus-jose-jwt:10.3'
+
+    // Retry
+    implementation 'org.springframework.retry:spring-retry'
+    // Cache
+    implementation 'org.springframework.boot:spring-boot-starter-cache'
+//    implementation 'com.github.ben-manes.caffeine:caffeine'
+    // Kafka
+    implementation 'org.springframework.kafka:spring-kafka'
+    // Redis
+    implementation 'org.springframework.boot:spring-boot-starter-data-redis'
 
     // test 소스
     testCompileOnly 'org.projectlombok:lombok'

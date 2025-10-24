@@ -16,12 +16,15 @@ public enum ErrorCode {
     BINARY_CONTENT_NOT_FOUND(404, "BinaryContent Not Found"),
 
     BINARY_CONTENT_EXISTS(400, "BinaryContent Exists"),
+    BINARY_CONTENT_UPLOAD_FAIL(400, "BinaryContent Upload Fail"),
     USER_ALREADY_EXISTS_USERSTATUS(400, "User Already Exists UserStatus"),
     INVALID_PAST_TIME(400, "Time Is Earlier Than Saved Time"),
     BINARY_CONTENT_STORAGE_NOT_FOUND(404, "BinaryContent Storage Not Found"),
     AlREADY_EXISTS_CHANNEL_NAME(400, "Channel Name Already Exists"),
 
-    INVALID_REFRESH_TOKEN(401, "Invalid Refresh Token");
+    INVALID_REFRESH_TOKEN(401, "Invalid Refresh Token"),
+
+    NOTIFICATION_NOT_FOUND(404, "Notification Not Found");
 
     @Getter
     private final int status;

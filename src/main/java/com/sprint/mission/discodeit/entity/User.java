@@ -72,10 +72,6 @@ public class User extends BaseUpdatableEntity {
                 '}';
     }
 
-    public UUID getProfileId() {
-        return profile.getId();
-    }
-
     public static User of(UUID uuid, String username, String email, String password, BinaryContent profile) {
         return new User(uuid, username, email, password, profile);
     }

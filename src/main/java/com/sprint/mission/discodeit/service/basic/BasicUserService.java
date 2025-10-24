@@ -15,6 +15,8 @@ import com.sprint.mission.discodeit.storage.BinaryContentStorage;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -37,6 +39,7 @@ public class BasicUserService implements UserService {
     private BinaryContentStorage binaryContentStorage;
 
     @Transactional
+    @CacheEvict(value = "users", key = "'users'")
     @Override
     public User createUser(UserCreateRequest userCreateRequest, UUID profileId) {
         log.debug("유저 생성 호출");
@@ -57,6 +60,7 @@ public class BasicUserService implements UserService {
     }
 
     @Transactional(readOnly = true)
+    @Cacheable(value = "users", key = "'users'")
     @Override
     public List<User> findAll() {
         return userRepository.findAll();
@@ -64,6 +68,7 @@ public class BasicUserService implements UserService {
 
     @Transactional
     @PreAuthorize("#userId == authentication.principal.userDto.id")
+    @CacheEvict(value = "users", key = "'users'")
     @Override
     public User updateUser(UUID userId, UserUpdateRequest userUpdateRequest, UUID newProfileId) {
         log.debug("유저 수정 호출");
@@ -97,8 +102,9 @@ public class BasicUserService implements UserService {
     }
 
     @Transactional
-    @Override
     @PreAuthorize("#userId == authentication.principal.userDto.id")
+    @CacheEvict(value = "users", key = "'users'")
+    @Override
     public void deleteUser(UUID userId) {
         log.debug("유저 삭제 호출 id = {}", userId);
         User user = getValidUser(userId);

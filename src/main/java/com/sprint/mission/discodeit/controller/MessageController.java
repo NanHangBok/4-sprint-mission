@@ -12,6 +12,7 @@ import com.sprint.mission.discodeit.mapper.MessageMapper;
 import com.sprint.mission.discodeit.mapper.PageResponseMapper;
 import com.sprint.mission.discodeit.service.BinaryContentService;
 import com.sprint.mission.discodeit.service.MessageService;
+import io.micrometer.core.annotation.Timed;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Encoding;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -45,6 +46,7 @@ public class MessageController implements MessageApi {
     private final BinaryContentService binaryContentService;
     private final PageResponseMapper pageResponseMapper;
 
+    @Timed("message.create.async")
     @io.swagger.v3.oas.annotations.parameters.RequestBody(content = @Content(encoding = @Encoding(name = "messageCreateRequest", contentType = MediaType.APPLICATION_JSON_VALUE)))
     @RequestMapping(method = RequestMethod.POST, consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
     public ResponseEntity create(@RequestPart("messageCreateRequest") MessageCreateRequest messageCreateRequest,

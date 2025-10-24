@@ -9,6 +9,8 @@ import java.time.Instant;
 public record ReadStatusUpdateRequest(
         @Schema(description = "새로운(최근) 읽음 상태 시각", format = "date-time")
         @PastOrPresent(message = "최근 읽음 상태는 과거이거나 현재여야 합니다.")
-        Instant newLastReadAt
+        Instant newLastReadAt,
+        @Schema(description = "알림 수신 여부")
+        Boolean newNotificationEnabled
 ) {
 }

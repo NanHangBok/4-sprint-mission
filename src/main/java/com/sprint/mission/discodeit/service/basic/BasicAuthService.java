@@ -4,7 +4,9 @@ import com.sprint.mission.discodeit.auth.DiscodeitUserDetails;
 import com.sprint.mission.discodeit.auth.provider.JwtTokenProvider;
 import com.sprint.mission.discodeit.dto.request.RoleUpdateRequest;
 import com.sprint.mission.discodeit.dto.response.TokenResponse;
+import com.sprint.mission.discodeit.entity.Role;
 import com.sprint.mission.discodeit.entity.User;
+import com.sprint.mission.discodeit.event.RoleUpdatedEvent;
 import com.sprint.mission.discodeit.exception.ErrorCode;
 import com.sprint.mission.discodeit.exception.auth.InvalidRefreshTokenException;
 import com.sprint.mission.discodeit.exception.user.UserNotFoundException;
@@ -12,6 +14,7 @@ import com.sprint.mission.discodeit.repository.UserRepository;
 import com.sprint.mission.discodeit.service.AuthService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.session.SessionInformation;
 import org.springframework.security.core.session.SessionRegistry;
@@ -27,13 +30,15 @@ public class BasicAuthService implements AuthService {
     private final UserRepository userRepository;
     private final SessionRegistry sessionRegistry;
     private final JwtTokenProvider jwtTokenProvider;
+    private final ApplicationEventPublisher eventPublisher;
 
     @Transactional
     @Override
     @PreAuthorize("hasRole=('ADMIN')")
     public User updateRole(RoleUpdateRequest roleUpdateRequest) {
         User user = getValidUser(roleUpdateRequest.userId());
-        log.info("인가 권한 변경 id = {}, oldRole = {}, newRole = {}", roleUpdateRequest.userId(), user.getRole(), roleUpdateRequest.newRole());
+        Role oldRole = user.getRole();
+        log.info("인가 권한 변경 id = {}, oldRole = {}, newRole = {}", roleUpdateRequest.userId(), oldRole, roleUpdateRequest.newRole());
         user.updateRole(roleUpdateRequest.newRole());
         sessionRegistry.getAllPrincipals()
                 .forEach(principal -> {
@@ -50,6 +55,8 @@ public class BasicAuthService implements AuthService {
                         }
                     }
                 });
+        log.info("권한 변경 알림 생성 userId = {}", user.getId());
+        eventPublisher.publishEvent(new RoleUpdatedEvent(user, oldRole, roleUpdateRequest.newRole()));
         return userRepository.save(user);
     }
 
@@ -73,6 +80,22 @@ public class BasicAuthService implements AuthService {
         TokenResponse tokenResponse = new TokenResponse(newAccessToken, newRefreshToken);
         log.info("AccessToken 및 RefreshToken 재발급 완료");
         return tokenResponse;
+    }
+
+    @Override
+    public User getUserByAccessToken(String accessToken) {
+        String token = accessToken.replace("Bearer ", "");
+        jwtTokenProvider.verifyJws(token);
+        Map<String, Object> claims = jwtTokenProvider.getClaims(token);
+        Date expiredAt = (Date) claims.get("exp");
+        String userEmail = (String) claims.get("sub");
+        if (expiredAt.before(new Date())) {
+            log.warn("RefreshToken 유효기간이 만료 됨");
+            throw new InvalidRefreshTokenException(ErrorCode.INVALID_REFRESH_TOKEN, Map.of("expiredAt", expiredAt));
+        }
+
+        User user = getValidUserByEmail(userEmail);
+        return user;
     }
 
     private User getValidUser(UUID userId) {

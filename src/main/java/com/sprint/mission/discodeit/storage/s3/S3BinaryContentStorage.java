@@ -1,12 +1,26 @@
 package com.sprint.mission.discodeit.storage.s3;
 
 import com.sprint.mission.discodeit.dto.BinaryContentDto;
+import com.sprint.mission.discodeit.entity.BinaryContentStatus;
+import com.sprint.mission.discodeit.event.S3UploadFailedEvent;
+import com.sprint.mission.discodeit.exception.ErrorCode;
+import com.sprint.mission.discodeit.exception.binary_content.BinaryContentException;
+import com.sprint.mission.discodeit.exception.binary_content.BinaryContentUploadFailException;
+import com.sprint.mission.discodeit.service.BinaryContentService;
 import com.sprint.mission.discodeit.storage.BinaryContentStorage;
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.slf4j.MDC;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.ResponseEntity;
+import org.springframework.retry.annotation.Backoff;
+import org.springframework.retry.annotation.Recover;
+import org.springframework.retry.annotation.Retryable;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
+import software.amazon.awssdk.awscore.exception.AwsServiceException;
+import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3Client;
@@ -20,10 +34,14 @@ import java.io.InputStream;
 import java.net.URI;
 import java.net.URL;
 import java.time.Duration;
+import java.util.Map;
 import java.util.UUID;
 
+@Slf4j
 @AllArgsConstructor
 public class S3BinaryContentStorage implements BinaryContentStorage {
+    private final BinaryContentService binaryContentService;
+    private final ApplicationEventPublisher eventPublisher;
     private final S3Client s3Client;
     private final S3Presigner presigner;
     private String accessKey;
@@ -31,7 +49,7 @@ public class S3BinaryContentStorage implements BinaryContentStorage {
     private String region;
     private String bucket;
 
-    public S3BinaryContentStorage(String accessKey, String secretKey, String region, String bucket) {
+    public S3BinaryContentStorage(String accessKey, String secretKey, String region, String bucket, BinaryContentService binaryContentService, ApplicationEventPublisher eventPublisher) {
         this.accessKey = accessKey;
         this.secretKey = secretKey;
         this.region = region;
@@ -42,10 +60,24 @@ public class S3BinaryContentStorage implements BinaryContentStorage {
             s3Client = S3Client.builder().region(Region.of(region)).credentialsProvider(DefaultCredentialsProvider.create()).build();
         }
         presigner = S3Presigner.builder().region(Region.of(region)).credentialsProvider((accessKey != null && !accessKey.isBlank()) ? StaticCredentialsProvider.create(AwsBasicCredentials.create(accessKey, secretKey)) : DefaultCredentialsProvider.create()).build();
+        this.binaryContentService = binaryContentService;
+        this.eventPublisher = eventPublisher;
     }
 
+    @Retryable(
+            retryFor = {BinaryContentUploadFailException.class, Throwable.class, AwsServiceException.class, SdkClientException.class},
+            recover = "recover",
+            backoff = @Backoff(delay = 1000)
+    )
     @Override
     public UUID put(UUID binaryContentId, byte[] bytes) {
+        try {
+            Thread.sleep(3000);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new RuntimeException("Thread interrupted while simulating delay", e);
+        }
+
         String key = binaryContentId.toString();
 
         // 2) PutObjectRequest 생성 (버킷 정책이 퍼블릭 읽기면 acl 생략해도 됨)
@@ -54,7 +86,18 @@ public class S3BinaryContentStorage implements BinaryContentStorage {
                 .build();
 
         // 3) 업로드 (임시파일 없이 InputStream으로)
-        s3Client.putObject(putReq, RequestBody.fromBytes(bytes));
+        try {
+            s3Client.putObject(putReq, RequestBody.fromBytes(bytes));
+            binaryContentService.updateStatus(binaryContentId, BinaryContentStatus.SUCCESS);
+            log.info("S3 업로드 성공");
+        } catch (AwsServiceException e) {
+            throw new BinaryContentUploadFailException(ErrorCode.BINARY_CONTENT_UPLOAD_FAIL, Map.of("RequestId", MDC.get("requestId"),
+                    "BinaryContentId", binaryContentId.toString()));
+        } catch (SdkClientException e) {
+            throw new BinaryContentUploadFailException(ErrorCode.BINARY_CONTENT_UPLOAD_FAIL, Map.of("RequestId", MDC.get("requestId"), "BinaryContentId", binaryContentId.toString()));
+        } catch (Exception e) {
+            throw new BinaryContentUploadFailException(ErrorCode.BINARY_CONTENT_UPLOAD_FAIL, Map.of("RequestId", MDC.get("requestId"), "BinaryContentId", binaryContentId.toString()));
+        }
 
         // 4) 퍼블릭 URL 생성 후 반환
         return binaryContentId;
@@ -98,6 +141,13 @@ public class S3BinaryContentStorage implements BinaryContentStorage {
         String signed = presigner.presignGetObject(preReq).url().toString();
 
         return signed;
+    }
+
+    @Recover
+    public UUID recover(BinaryContentException e, UUID binaryContentId, byte[] bytes) {
+        log.info("S3 업로드 실패");
+        eventPublisher.publishEvent(new S3UploadFailedEvent(e, binaryContentId));
+        throw new BinaryContentUploadFailException(ErrorCode.BINARY_CONTENT_UPLOAD_FAIL, Map.of("RequestId", e.getMessage()));
     }
 
 }

@@ -1,9 +1,7 @@
 package com.sprint.mission.discodeit.entity;
 
-import com.sprint.mission.discodeit.entity.base.BaseEntity;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Table;
+import com.sprint.mission.discodeit.entity.base.BaseUpdatableEntity;
+import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -16,19 +14,23 @@ import java.util.UUID;
 @NoArgsConstructor
 @Entity
 @Table(name = "binary_contents")
-public class BinaryContent extends BaseEntity {
+public class BinaryContent extends BaseUpdatableEntity {
     @Column(nullable = false)
     private String contentType;
     @Column(nullable = false)
     private Long size;
     @Column(nullable = false)
     private String fileName;
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private BinaryContentStatus status;
 
     public BinaryContent(String contentType, Long size, String fileName) {
         super();
         this.contentType = contentType;
         this.size = size;
         this.fileName = fileName;
+        this.status = BinaryContentStatus.PROCESSING;
     }
 
     public BinaryContent(MultipartFile file) {
@@ -36,6 +38,7 @@ public class BinaryContent extends BaseEntity {
         this.contentType = file.getContentType();
         this.size = file.getSize();
         this.fileName = file.getOriginalFilename();
+        this.status = BinaryContentStatus.PROCESSING;
     }
 
     private BinaryContent(UUID id, MultipartFile file) {
@@ -54,6 +57,10 @@ public class BinaryContent extends BaseEntity {
 
     public static BinaryContent of(UUID id, MultipartFile file) {
         return new BinaryContent(id, file);
+    }
+
+    public void updateStatus(BinaryContentStatus status) {
+        this.status = status;
     }
 }
 

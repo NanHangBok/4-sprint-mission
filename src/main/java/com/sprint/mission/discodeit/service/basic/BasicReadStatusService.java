@@ -3,6 +3,7 @@ package com.sprint.mission.discodeit.service.basic;
 import com.sprint.mission.discodeit.dto.request.ReadStatusCreateRequest;
 import com.sprint.mission.discodeit.dto.request.ReadStatusUpdateRequest;
 import com.sprint.mission.discodeit.entity.Channel;
+import com.sprint.mission.discodeit.entity.Message;
 import com.sprint.mission.discodeit.entity.ReadStatus;
 import com.sprint.mission.discodeit.entity.User;
 import com.sprint.mission.discodeit.exception.ErrorCode;
@@ -53,8 +54,16 @@ public class BasicReadStatusService implements ReadStatusService {
         ReadStatus findReadStatus = readStatusRepository.findById(id).orElseThrow(() -> new ReadStatusNotFoundException(ErrorCode.READSTATUS_NOT_FOUND, Map.of("readStatusId", id)));
 
         Optional.ofNullable(readStatusUpdateRequest.newLastReadAt()).ifPresent(findReadStatus::setLastReadAt);
+        Optional.ofNullable(readStatusUpdateRequest.newNotificationEnabled()).ifPresent(findReadStatus::setNotificationEnabled);
         readStatusRepository.save(findReadStatus);
         return findReadStatus;
+    }
+
+    @Transactional(readOnly = true)
+    @Override
+    public List<ReadStatus> findAllByMessage(Message message) {
+        List<ReadStatus> readStatuses = getAllByChannelId(message.getChannelId());
+        return readStatuses;
     }
 
     @Override
@@ -78,4 +87,7 @@ public class BasicReadStatusService implements ReadStatusService {
             throw new ReadStatusAlreadyExistsException(ErrorCode.READSTATUS_ALREADY_EXISTS, Map.of("userId", readStatusCreateDto.userId(), "channelId", readStatusCreateDto.channelId()));
     }
 
+    private List<ReadStatus> getAllByChannelId(UUID channelId) {
+        return readStatusRepository.findAllByChannel_Id((channelId));
+    }
 }

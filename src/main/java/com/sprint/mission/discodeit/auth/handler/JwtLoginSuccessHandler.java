@@ -14,6 +14,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cache.CacheManager;
 import org.springframework.http.MediaType;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
@@ -22,6 +23,7 @@ import org.springframework.stereotype.Component;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 
 @Slf4j
 @Component
@@ -30,6 +32,7 @@ public class JwtLoginSuccessHandler implements AuthenticationSuccessHandler {
     private final JwtTokenProvider jwtTokenProvider;
     private final ObjectMapper objectMapper;
     private final JwtRegistry jwtRegistry;
+    private final CacheManager cacheManager;
 
     @Value("${jwt.refresh-token-expiration-minutes}")
     private int expiration;
@@ -39,6 +42,9 @@ public class JwtLoginSuccessHandler implements AuthenticationSuccessHandler {
                                         HttpServletResponse response,
                                         Authentication authentication) throws IOException, ServletException {
         log.info("로그인 성공 username = {}", authentication.getName());
+        // cache 무효화
+        Objects.requireNonNull(cacheManager.getCache("users")).evict("users");
+
         DiscodeitUserDetails userDetails = (DiscodeitUserDetails) authentication.getPrincipal();
         UserDto userDto = userDetails.getUserDto();
         Map<String, Object> claims = new HashMap<>();
