@@ -10,7 +10,9 @@ services:
       - "15432:5432"
     volumes:
       - discodeit-data:/var/lib/postgresql/data
-      - ./4-sprint-mission/src/main/resources/schema.sql:/docker-entrypoint-initdb.d/init.sql:ro
+      - ./src/main/resources/schema.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    networks:
+      - backend
 
   redis:
     image: redis:7.2-alpine
@@ -44,6 +46,7 @@ services:
       KAFKA_LOG_DIRS: /tmp/kraft-combined-logs
       CLUSTER_ID: MkU3OEVBNTcwNTJENDM2Qk
 
+
   app:
     build: ./4-sprint-mission
     container_name: spring-app
@@ -56,36 +59,33 @@ services:
       AWS_S3_SECRET_KEY: ${AWS_S3_SECRET_KEY}
       AWS_S3_REGION: ${AWS_S3_REGION}
       AWS_S3_BUCKET: ${AWS_S3_BUCKET}
-      AWS_S3_PRESIGNED_URL_EXPIRATION: ${AWS_S3_PRESIGNED_URL_EXPIRATION}
-      ADMIN_USERNAME: ${ADMIN_USERNAME}
-      ADMIN_PASSWORD: ${ADMIN_PASSWORD}
-      ADMIN_EMAIL: ${ADMIN_EMAIL}
-      REDIS_HOST: ${REDIS_HOST}
-      STORAGE_TYPE: ${STORAGE_TYPE}
-      STORAGE_LOCAL_ROOT_PATH: ${STORAGE_LOCAL_ROOT_PATH}
-      REMEMBER_KEY: ${REMEMBER_KEY}
+      PRESIGNED-URL-EXPIRATION: ${AWS_S3_PRESIGNED_URL_EXPIRATION}
     ports:
-      - "8081:8081"
+      - "8081:8080"
     depends_on: [ postgres, redis, broker]
     volumes:
       - ./${STORAGE_LOCAL_ROOT_PATH}:/${STORAGE_LOCAL_ROOT_PATH}
+    networks:
+      - backend
 
   frontend:
-    build: ./frontend
-    container_name: frontend
+    build: ./4-sprint-mission/src/main/resources/static
     ports:
-      - "8090:80"
+      - "3000:80"
 
   nginx:
     image: nginx
     container_name: nginx-loadbalancer
     ports:
-      - "3000:80"
+      - "8080:80"
     depends_on: [ app, frontend ]
     volumes:
       - ./nginx/nginx.conf:/etc/nginx/nginx.conf
-      - ./frontend:/usr/share/nginx/html
+      - ./4-sprint-mission/src/main/resources/static:/usr/share/nginx/html
+
+
+networks:
+  backend:
 
 volumes:
   discodeit-data: { }
-  redis-data:
