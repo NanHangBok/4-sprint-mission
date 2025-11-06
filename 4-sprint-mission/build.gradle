@@ -61,7 +61,8 @@ dependencies {
 
     // webSocket
     implementation 'org.springframework.boot:spring-boot-starter-websocket'
-
+    implementation 'org.springframework.security:spring-security-messaging'
+    
     // test 소스
     testCompileOnly 'org.projectlombok:lombok'
     testAnnotationProcessor 'org.projectlombok:lombok'
