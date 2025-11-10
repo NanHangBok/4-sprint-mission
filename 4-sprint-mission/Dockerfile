@@ -42,7 +42,7 @@ FROM ${RUNTIME_IMAGE}
 WORKDIR /app
 
 # 애플리케이션이 사용하는 포트 노출
-EXPOSE 80
+EXPOSE 8081
 # Spring Boot 프로필을 운영(prod)으로 설정
 ENV PROJECT_NAME="discodeit"
 ENV PROJECT_VERSION="1.2-M8"

@@ -12,7 +12,7 @@ create table binary_contents
 );
 
 alter table binary_contents
-    owner to discodeit_user_dev;
+    owner to discodeit_user;
 
 create table users
 (
@@ -32,7 +32,7 @@ create table users
 );
 
 alter table users
-    owner to discodeit_user_dev;
+    owner to discodeit_user;
 
 create table channels
 (
@@ -49,7 +49,7 @@ create table channels
     );
 
 alter table channels
-    owner to discodeit_user_dev;
+    owner to discodeit_user;
 
 create table read_statuses
 (
@@ -72,7 +72,7 @@ create table read_statuses
 );
 
 alter table read_statuses
-    owner to discodeit_user_dev;
+    owner to discodeit_user;
 
 create table messages
 (
@@ -90,7 +90,7 @@ create table messages
 );
 
 alter table messages
-    owner to discodeit_user_dev;
+    owner to discodeit_user;
 
 create table message_attachments
 (
@@ -103,4 +103,4 @@ create table message_attachments
 );
 
 alter table message_attachments
-    owner to discodeit_user_dev;
+    owner to discodeit_user;

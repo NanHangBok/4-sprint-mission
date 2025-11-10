@@ -1,13 +1,17 @@
 package com.sprint.mission.discodeit.event.kafka.topic_listener;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sprint.mission.discodeit.entity.BinaryContentStatus;
 import com.sprint.mission.discodeit.event.MessageCreatedEvent;
 import com.sprint.mission.discodeit.event.RoleUpdatedEvent;
 import com.sprint.mission.discodeit.event.S3UploadFailedEvent;
+import com.sprint.mission.discodeit.event.UserLogInOutEvent;
+import com.sprint.mission.discodeit.repository.SseEmitterRepository;
 import com.sprint.mission.discodeit.service.BinaryContentService;
 import com.sprint.mission.discodeit.service.NotificationService;
+import com.sprint.mission.discodeit.service.SseService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.annotation.KafkaListener;
@@ -20,8 +24,10 @@ public class NotificationRequiredTopicListener {
     private final NotificationService notificationService;
     private final ObjectMapper objectMapper;
     private final BinaryContentService binaryContentService;
+    private final SseEmitterRepository sseEmitterRepository;
+    private final SseService sseService;
 
-    @KafkaListener(topics = "discodeit.MessageCreatedEvent")
+    @KafkaListener(topics = "discodeit.MessageCreatedEvent", groupId = "discodeit-group")
     public void onMessageCreatedEvent(String kafkaEvent) {
         try {
             log.info("kafka 이벤트 수신 메시지 생성 알림");
@@ -33,7 +39,7 @@ public class NotificationRequiredTopicListener {
         }
     }
 
-    @KafkaListener(topics = "discodeit.RoleUpdatedEvent")
+    @KafkaListener(topics = "discodeit.RoleUpdatedEvent", groupId = "discodeit-group")
     public void onRoleUpdatedEvent(String kafkaEvent) {
         try {
             log.info("kafka 이벤트 수신 유저 권한 수정 알림");
@@ -45,7 +51,7 @@ public class NotificationRequiredTopicListener {
         }
     }
 
-    @KafkaListener(topics = "discodeit.S3UploadFailedEvent")
+    @KafkaListener(topics = "discodeit.S3UploadFailedEvent", groupId = "discodeit-group")
     public void onS3UploadFailedEvent(String kafkaEvent) {
         try {
             log.info("kafka 이벤트 수신 S3 업로드 실패 알림");
@@ -53,6 +59,24 @@ public class NotificationRequiredTopicListener {
                     S3UploadFailedEvent.class);
             binaryContentService.updateStatus(event.binaryContentId(), BinaryContentStatus.FAIL);
             notificationService.create(event.exception());
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @KafkaListener(topics = "discodeit.UserLogInOutEvent", groupId = "discodeit-group")
+    public void onUserLogInOutEvent(String kafkaEvent) {
+        try {
+            log.info("kafka <UNK> <UNK> <UNK> <UNK> <UNK>");
+            UserLogInOutEvent event = objectMapper.readValue(kafkaEvent,
+                    UserLogInOutEvent.class);
+            if (event.status()) {
+                sseService.connect(event.userId(), null);
+            } else {
+                sseEmitterRepository.remove(event.userId());
+            }
+        } catch (JsonMappingException e) {
+            throw new RuntimeException(e);
         } catch (JsonProcessingException e) {
             throw new RuntimeException(e);
         }

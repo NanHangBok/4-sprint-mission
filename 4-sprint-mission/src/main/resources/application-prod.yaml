@@ -14,9 +14,9 @@ spring:
 
   datasource:
     driver-class-name: org.postgresql.Driver
-    url: jdbc:postgresql://localhost:5432/discodeit_dev
-    username: discodeit_user_dev
-    password: discodeitdev1234
+    url: ${SPRING_DATASOURCE_URL}
+    username: ${SPRING_DATASOURCE_USERNAME}
+    password: ${SPRING_DATASOURCE_PASSWORD}
   #  datasource:
   #    url: jdbc:h2:mem:e2e;DB_CLOSE_DELAY=-1
   #    driver-class-name: org.h2.Driver
@@ -24,7 +24,7 @@ spring:
   #    password:
   jpa:
     hibernate:
-      ddl-auto: update
+      ddl-auto: validate
     properties:
       hibernate:
         format_sql: true

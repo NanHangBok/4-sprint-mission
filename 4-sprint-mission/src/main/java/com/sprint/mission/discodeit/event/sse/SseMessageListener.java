@@ -2,7 +2,6 @@ package com.sprint.mission.discodeit.event.sse;
 
 import com.sprint.mission.discodeit.event.SseMessageEvent;
 import com.sprint.mission.discodeit.event.SseNotificationEvent;
-import com.sprint.mission.discodeit.repository.SseMessageRepository;
 import com.sprint.mission.discodeit.service.SseService;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
@@ -11,11 +10,9 @@ import org.springframework.stereotype.Component;
 public class SseMessageListener {
 
     private final SseService sseService;
-    private final SseMessageRepository sseMessageRepository;
 
-    public SseMessageListener(SseService sseService, SseMessageRepository sseMessageRepository) {
+    public SseMessageListener(SseService sseService) {
         this.sseService = sseService;
-        this.sseMessageRepository = sseMessageRepository;
     }
 
     @EventListener

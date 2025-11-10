@@ -1,9 +1,6 @@
 package com.sprint.mission.discodeit.auth.provider;
 
-import com.nimbusds.jose.JWSAlgorithm;
-import com.nimbusds.jose.JWSHeader;
-import com.nimbusds.jose.JWSSigner;
-import com.nimbusds.jose.JWSVerifier;
+import com.nimbusds.jose.*;
 import com.nimbusds.jose.crypto.MACSigner;
 import com.nimbusds.jose.crypto.MACVerifier;
 import com.nimbusds.jwt.JWTClaimsSet;
@@ -147,6 +144,47 @@ public class JwtTokenProvider {
             return false;
         } catch (Exception e) {
             throw new RuntimeException("Token의 유효기간 검증 중 오류 발생", e);
+        }
+    }
+
+    public boolean validateAccessToken(String token) throws JOSEException {
+        JWSVerifier accessTokenVerifier = new MACVerifier(secretKey.getBytes(StandardCharsets.UTF_8));
+        return validateToken(token, accessTokenVerifier, "access");
+    }
+
+    public boolean validateRefreshToken(String token) throws JOSEException {
+        JWSVerifier refreshTokenVerifier = new MACVerifier(secretKey.getBytes(StandardCharsets.UTF_8));
+        return validateToken(token, refreshTokenVerifier, "refresh");
+    }
+
+    private boolean validateToken(String token, JWSVerifier verifier, String expectedType) {
+        try {
+            SignedJWT signedJWT = SignedJWT.parse(token);
+
+            // Verify signature
+            if (!signedJWT.verify(verifier)) {
+                log.debug("JWT signature verification failed for {} token", expectedType);
+                return false;
+            }
+
+            // Check token type
+            String tokenType = (String) signedJWT.getJWTClaimsSet().getClaim("type");
+            if (!expectedType.equals(tokenType)) {
+                log.debug("JWT token type mismatch: expected {}, got {}", expectedType, tokenType);
+                return false;
+            }
+
+            // Check expiration
+            Date expirationTime = signedJWT.getJWTClaimsSet().getExpirationTime();
+            if (expirationTime == null || expirationTime.before(new Date())) {
+                log.debug("JWT {} token expired", expectedType);
+                return false;
+            }
+
+            return true;
+        } catch (Exception e) {
+            log.debug("JWT {} token validation failed: {}", expectedType, e.getMessage());
+            return false;
         }
     }
 }

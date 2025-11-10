@@ -1,5 +1,7 @@
 package com.sprint.mission.discodeit.auth.registry;
 
+import com.nimbusds.jose.JOSEException;
+
 import java.util.UUID;
 
 public interface JwtRegistry {
@@ -15,5 +17,5 @@ public interface JwtRegistry {
 
     void rotateJwtInformation(String refreshToken, JwtInformation newJwtInformation);
 
-    void clearExpiredJwtInformation();
+    void clearExpiredJwtInformation() throws JOSEException;
 }

@@ -2,6 +2,7 @@ package com.sprint.mission.discodeit.auth.interceptor;
 
 import com.sprint.mission.discodeit.auth.provider.JwtTokenProvider;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.simp.stomp.StompCommand;
@@ -16,6 +17,7 @@ import org.springframework.stereotype.Component;
 import java.text.ParseException;
 import java.util.Objects;
 
+@Slf4j
 @Component
 @RequiredArgsConstructor
 public class JwtAuthenticationChannelInterceptor implements ChannelInterceptor {
@@ -24,9 +26,12 @@ public class JwtAuthenticationChannelInterceptor implements ChannelInterceptor {
 
     @Override
     public Message<?> preSend(Message<?> message, MessageChannel channel) {
+        log.info("PreSend Test");
+        log.info(channel.toString());
+        log.info(message.toString());
         StompHeaderAccessor accessor = MessageHeaderAccessor.getAccessor(message, StompHeaderAccessor.class);
         if (StompCommand.CONNECT.equals(accessor.getCommand())) {
-            String token = Objects.requireNonNull(accessor.getNativeHeader("Authorization")).toString();
+            String token = Objects.requireNonNull(accessor.getFirstNativeHeader("Authorization")).toString();
             token = token.replace("Bearer ", "");
             jwtTokenProvider.verifyJws(token);
             String username = null;

@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sprint.mission.discodeit.event.MessageCreatedEvent;
 import com.sprint.mission.discodeit.event.RoleUpdatedEvent;
 import com.sprint.mission.discodeit.event.S3UploadFailedEvent;
+import com.sprint.mission.discodeit.event.UserLogInOutEvent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.event.EventListener;
@@ -43,6 +44,14 @@ public class KafkaProduceRequiredEventListener {
         log.info("kafka 이벤트 호출 S3 파일 업로드 실패 알림");
         String payload = objectMapper.writeValueAsString(event);
         kafkaTemplate.send("discodeit.S3UploadFailedEvent", payload);
+    }
+
+    @Async("eventTaskExecutor")
+    @EventListener
+    public void on(UserLogInOutEvent event) throws JsonProcessingException {
+        log.info("kafka UserLogInOut Event");
+        String payload = objectMapper.writeValueAsString(event);
+        kafkaTemplate.send("discodeit.UserLogInOutEvent", payload);
     }
 }
 
